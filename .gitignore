@@ -1,0 +1,36 @@
+# Python Virtualenv & Cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite
+*.db
+free_lx.db
+revora.db
+
+# Secrets & Environment variables
+.env
+*.env
+
+# Flutter / Dart
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+frontend/android/app/build/
+frontend/android/app/debug/
+frontend/android/app/profile/
+frontend/android/app/release/
+frontend/android/.gradle/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
