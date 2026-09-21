@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_sidebar.dart';
 import '../../../../shared/widgets/responsive_layout.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../providers/admin_providers.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_dealer_verification_screen.dart';
@@ -63,6 +65,18 @@ class AdminShell extends ConsumerWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout, size: 20, color: Colors.white),
+              tooltip: 'Log Out',
+              onPressed: () async {
+                await ref.read(authControllerProvider.notifier).signOut();
+                if (context.mounted) {
+                  context.go('/login');
+                }
+              },
+            ),
+          ],
         ),
         drawer: Drawer(
           child: AppSidebar(
@@ -191,6 +205,20 @@ class AdminShell extends ConsumerWidget {
                                   ),
                                 ],
                               ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            IconButton(
+                              icon: const Icon(Icons.logout,
+                                  size: 18, color: AppColors.error),
+                              tooltip: 'Log Out',
+                              onPressed: () async {
+                                await ref
+                                    .read(authControllerProvider.notifier)
+                                    .signOut();
+                                if (context.mounted) {
+                                  context.go('/login');
+                                }
+                              },
                             ),
                           ],
                         ),

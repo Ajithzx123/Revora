@@ -8,12 +8,14 @@ import '../../../../shared/widgets/dealer_match_card.dart';
 import '../providers/customer_providers.dart';
 import '../widgets/requirement_summary_card.dart';
 import '../widgets/customer_quote_card.dart';
+import '../widgets/customer_sell_car_card.dart';
 
 class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sellPosts = ref.watch(customerSellPostsProvider);
     final requirements = ref.watch(customerRequirementsProvider);
     final allQuotes = ref.watch(allCustomerQuotesProvider);
     final topDealers = ref.watch(topDealersProvider);
@@ -28,11 +30,56 @@ class CustomerHomeScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Hero Request Workflow Card
-                _buildWorkflowHero(context, ref),
+                // 1. Top Section: Clean title & compact Buy/Sell action cards
+                _buildTopSection(context),
+                const SizedBox(height: AppSpacing.xl),
+
+                // 2. Cars for Sale by Owners (Posted directly by sellers)
+                SectionHeader(
+                  title: 'Cars For Sale',
+                  subtitle: 'Explore recent cars posted directly by sellers',
+                  actionLabel: 'View All',
+                  onActionTap: () {
+                    ref.read(customerActiveTabProvider.notifier).state = 2;
+                  },
+                ),
+                if (sellPosts.isEmpty)
+                  _buildEmptyCard('No cars listed for sale yet')
+                else
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Calculate item width to display exactly 3 items with gaps on larger screens
+                      final double itemWidth = constraints.maxWidth > 900
+                          ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
+                          : constraints.maxWidth > 600
+                              ? (constraints.maxWidth - AppSpacing.md) / 2
+                              : constraints.maxWidth * 0.82;
+
+                      return SizedBox(
+                        height: 345,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: sellPosts.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: AppSpacing.md),
+                          itemBuilder: (context, index) {
+                            final post = sellPosts[index];
+                            return SizedBox(
+                              width: itemWidth,
+                              child: CustomerSellCarCard(
+                                post: post,
+                                imageHeight: 110,
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 const SizedBox(height: AppSpacing.xxl),
 
-                // 2. Active Requirements Section
+                // 3. Active Requirements Section
                 SectionHeader(
                   title: 'Active Buy Requirements',
                   subtitle: 'Dealers are preparing quotes for your requests',
@@ -44,20 +91,38 @@ class CustomerHomeScreen extends ConsumerWidget {
                 if (requirements.isEmpty)
                   _buildEmptyCard('No active requirements yet')
                 else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: requirements.length,
-                    separatorBuilder: (_, __) =>
-                        const SizedBox(height: AppSpacing.md),
-                    itemBuilder: (context, index) {
-                      final req = requirements[index];
-                      return RequirementSummaryCard(
-                        requirement: req,
-                        onViewQuotes: () {
-                          ref.read(customerActiveTabProvider.notifier).state =
-                              1;
-                        },
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Calculate item width to display exactly 3 items with gaps on larger screens
+                      final double itemWidth = constraints.maxWidth > 900
+                          ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
+                          : constraints.maxWidth > 600
+                              ? (constraints.maxWidth - AppSpacing.md) / 2
+                              : constraints.maxWidth * 0.82;
+
+                      return SizedBox(
+                        height: 345,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: requirements.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: AppSpacing.md),
+                          itemBuilder: (context, index) {
+                            final req = requirements[index];
+                            return SizedBox(
+                              width: itemWidth,
+                              child: RequirementSummaryCard(
+                                requirement: req,
+                                imageHeight: 110,
+                                onViewQuotes: () {
+                                  ref.read(customerActiveTabProvider.notifier).state =
+                                      1;
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   ),
@@ -75,38 +140,43 @@ class CustomerHomeScreen extends ConsumerWidget {
                 ),
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final crossAxisCount = constraints.maxWidth > 900
-                        ? 3
+                    // Calculate item width to display exactly 3 items with gaps on larger screens
+                    final double itemWidth = constraints.maxWidth > 900
+                        ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
                         : constraints.maxWidth > 600
-                        ? 2
-                        : 1;
+                            ? (constraints.maxWidth - AppSpacing.md) / 2
+                            : constraints.maxWidth * 0.82;
 
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: AppSpacing.md,
-                        mainAxisSpacing: AppSpacing.md,
-                        childAspectRatio: 0.85,
+                    return SizedBox(
+                      height: 345,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: allQuotes.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(width: AppSpacing.md),
+                        itemBuilder: (context, index) {
+                          return SizedBox(
+                            width: itemWidth,
+                            child: CustomerQuoteCard(
+                              quote: allQuotes[index],
+                              isHomeScreen: true,
+                              imageHeight: 110,
+                              onContact: () => context.push('/chat'),
+                              onAccept: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Quote accepted! Dealer notified.',
+                                    ),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
-                      itemCount: allQuotes.length,
-                      itemBuilder: (context, index) {
-                        return CustomerQuoteCard(
-                          quote: allQuotes[index],
-                          onContact: () => context.push('/chat'),
-                          onAccept: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Quote accepted! Dealer notified.',
-                                ),
-                                backgroundColor: AppColors.success,
-                              ),
-                            );
-                          },
-                        );
-                      },
                     );
                   },
                 ),
@@ -122,7 +192,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: topDealers.length,
-                    separatorBuilder: (_, __) =>
+                    separatorBuilder: (_, _) =>
                         const SizedBox(width: AppSpacing.md),
                     itemBuilder: (context, index) {
                       final dealer = topDealers[index];
@@ -143,115 +213,60 @@ class CustomerHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWorkflowHero(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, Color(0xFF1E293B)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildTopSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'What can we help you with today?',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.4,
+          ),
         ),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-                  border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: const Text(
-                  'REQUEST-FIRST MARKETPLACE',
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          const Text(
-            'Tell dealers what car you want.\nLet them compete for your deal.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-              height: 1.25,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          const Text(
-            'Skip infinite browsing. Post your requirements or list your car, and get competitive verified dealer quotes directly.',
-            style: TextStyle(
-              color: Color(0xFF94A3B8),
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          Wrap(
-            spacing: AppSpacing.md,
-            runSpacing: AppSpacing.sm,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => context.push('/post-requirement'),
-                icon: const Icon(Icons.add_circle_outline, size: 18),
-                label: const Text('Post Buy Requirement'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.md,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                  ),
-                  elevation: 0,
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.push('/sell-car'),
-                icon: const Icon(Icons.sell_outlined, size: 18),
-                label: const Text('Sell Your Car'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Color(0xFF475569)),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.md,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        const SizedBox(height: AppSpacing.md),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 600;
+
+            final buyCard = _CompactActionCard(
+              emoji: '🚗',
+              title: 'Buy a Car',
+              subtitle: "Tell us what you're looking for",
+              accentColor: const Color(0xFF2563EB),
+              onTap: () => context.push('/post-requirement'),
+            );
+
+            final sellCard = _CompactActionCard(
+              emoji: '💰',
+              title: 'Sell My Car',
+              subtitle: 'Get offers from verified dealers',
+              accentColor: AppColors.accent,
+              onTap: () => context.push('/sell-car'),
+            );
+
+            if (isWide) {
+              return Row(
+                children: [
+                  Expanded(child: buyCard),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(child: sellCard),
+                ],
+              );
+            }
+
+            return Column(
+              children: [
+                buyCard,
+                const SizedBox(height: AppSpacing.sm),
+                sellCard,
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -272,3 +287,128 @@ class CustomerHomeScreen extends ConsumerWidget {
     );
   }
 }
+
+class _CompactActionCard extends StatefulWidget {
+  final String emoji;
+  final String title;
+  final String subtitle;
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  const _CompactActionCard({
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_CompactActionCard> createState() => _CompactActionCardState();
+}
+
+class _CompactActionCardState extends State<_CompactActionCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(
+              color: _isHovered
+                  ? widget.accentColor
+                  : AppColors.border,
+              width: _isHovered ? 1.5 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _isHovered
+                    ? widget.accentColor.withValues(alpha: 0.12)
+                    : Colors.black.withValues(alpha: 0.03),
+                blurRadius: _isHovered ? 10 : 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: widget.accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.emoji,
+                    style: const TextStyle(fontSize: 22),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.subtitle,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: _isHovered
+                      ? widget.accentColor
+                      : widget.accentColor.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 16,
+                  color: _isHovered ? Colors.white : widget.accentColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

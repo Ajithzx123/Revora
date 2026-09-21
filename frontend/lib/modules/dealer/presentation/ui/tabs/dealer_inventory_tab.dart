@@ -41,18 +41,54 @@ class DealerInventoryTab extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
           final car = inventory[index];
-          return CarCard(
-            imageUrl: car['imageUrl'] as String,
-            make: car['make'] as String,
-            model: car['model'] as String,
-            year: car['year'] as int,
-            price: car['price'] as num,
-            fuelType: car['fuelType'] as String,
-            transmission: car['transmission'] as String,
-            kmDriven: car['kmDriven'] as num,
-            onTap: () {
-              // Open edit inventory or details
-            },
+          return SizedBox(
+            height: 380,
+            child: CarCard(
+              imageUrl: car['imageUrl'] as String,
+              title: '${car['year']} ${car['make']} ${car['model']}',
+              location: 'Verified Dealership Stock',
+              priceText: '₹${((car['price'] as num) / 100000).toStringAsFixed(2)} Lakh',
+              badgeText: 'In Stock',
+              badgeBgColor: const Color(0xFFDCFCE7),
+              badgeTextColor: const Color(0xFF166534),
+              specs: [
+                CarSpecItem(
+                  icon: Icons.calendar_today_outlined,
+                  label: '${car['year']}',
+                ),
+                CarSpecItem(
+                  icon: Icons.speed,
+                  label: '${((car['kmDriven'] as num) / 1000).toStringAsFixed(0)}k km',
+                ),
+                CarSpecItem(
+                  icon: Icons.local_gas_station_outlined,
+                  label: car['fuelType'] as String,
+                ),
+                CarSpecItem(
+                  icon: Icons.tune,
+                  label: car['transmission'] as String,
+                ),
+              ],
+              primaryAction: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                child: const Text(
+                  'Manage Listing',
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                ),
+              ),
+              onTap: () {
+                // Open edit inventory or details
+              },
+            ),
           );
         },
       ),

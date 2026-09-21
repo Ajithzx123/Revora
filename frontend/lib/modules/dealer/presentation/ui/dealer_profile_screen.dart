@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/section_header.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 
 class DealerProfileScreen extends ConsumerWidget {
   const DealerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authControllerProvider).user;
+    final fullName = user?.fullName ?? 'Apex Motor Corp (Vikram Malhotra)';
+    final email = user?.email ?? 'dealer@revora.com';
+    final phone = user?.phone ?? '+91 98205 99881';
+    final initials = fullName.isNotEmpty
+        ? fullName
+            .trim()
+            .split(' ')
+            .where((w) => w.isNotEmpty)
+            .map((e) => e[0])
+            .take(2)
+            .join()
+            .toUpperCase()
+        : 'AM';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -44,10 +61,10 @@ class DealerProfileScreen extends ConsumerWidget {
                             AppSpacing.radiusMd,
                           ),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'AM',
-                            style: TextStyle(
+                            initials,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
@@ -56,32 +73,35 @@ class DealerProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  'Apex Motor Corp',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
+                                Flexible(
+                                  child: Text(
+                                    fullName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
                                 ),
-                                SizedBox(width: AppSpacing.xs),
-                                Icon(
+                                const SizedBox(width: AppSpacing.xs),
+                                const Icon(
                                   Icons.verified,
                                   color: AppColors.info,
                                   size: 16,
                                 ),
                               ],
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              'GSTIN: 27AABCA1234F1Z8 • Verified Dealership',
-                              style: TextStyle(
+                              '$phone • $email',
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
@@ -131,7 +151,7 @@ class DealerProfileScreen extends ConsumerWidget {
                         trailing: Switch(
                           value: true,
                           onChanged: (_) {},
-                          activeColor: AppColors.accent,
+                          activeThumbColor: AppColors.accent,
                         ),
                         onTap: () {},
                       ),
@@ -163,7 +183,12 @@ class DealerProfileScreen extends ConsumerWidget {
 
                 Center(
                   child: TextButton.icon(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await ref.read(authControllerProvider.notifier).signOut();
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
+                    },
                     icon: const Icon(
                       Icons.logout,
                       color: AppColors.error,
@@ -193,22 +218,25 @@ class DealerProfileScreen extends ConsumerWidget {
     required Widget trailing,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.primary),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        trailing: trailing,
+        onTap: onTap,
       ),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-      ),
-      trailing: trailing,
-      onTap: onTap,
     );
   }
 }

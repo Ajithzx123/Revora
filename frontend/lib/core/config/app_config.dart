@@ -16,6 +16,7 @@ class AppConfig {
   bool get logEnabled => _environment.logEnabled;
   String get supabaseUrl => _environment.supabaseUrl;
   String get supabaseAnonKey => _environment.supabaseAnonKey;
+  bool get useMockData => _environment.useMockData;
 
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);

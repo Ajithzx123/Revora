@@ -38,7 +38,7 @@ class CustomerActivityScreen extends ConsumerWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(AppSpacing.md),
                     itemCount: activities.length,
-                    separatorBuilder: (_, __) =>
+                    separatorBuilder: (_, _) =>
                         const Divider(height: 1, color: AppColors.borderLight),
                     itemBuilder: (context, index) {
                       final act = activities[index];

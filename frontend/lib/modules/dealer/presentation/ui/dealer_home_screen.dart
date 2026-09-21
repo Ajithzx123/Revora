@@ -101,7 +101,7 @@ class DealerHomeScreen extends ConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: buyLeads.take(3).length,
-                  separatorBuilder: (_, __) =>
+                  separatorBuilder: (_, _) =>
                       const SizedBox(height: AppSpacing.md),
                   itemBuilder: (context, index) {
                     final lead = buyLeads[index];
@@ -256,7 +256,7 @@ class DealerHomeScreen extends ConsumerWidget {
                                   height: 120,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
+                                  errorBuilder: (_, _, _) => Container(
                                     height: 120,
                                     color: AppColors.primarySubtle,
                                     child: const Icon(

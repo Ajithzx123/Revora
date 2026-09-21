@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:revora/modules/customer/data/repositories/customer_repository.dart';
+import 'package:revora/modules/customer/domain/repositories/customer_repository.dart';
+import 'package:revora/modules/customer/data/repositories/mock_customer_repository.dart';
 import 'package:revora/modules/customer/domain/entities/buy_requirement.dart';
 import 'package:revora/modules/customer/domain/entities/quote.dart';
 import 'package:revora/modules/customer/domain/entities/sell_post.dart';
@@ -7,7 +8,7 @@ import 'package:revora/modules/customer/domain/entities/customer_activity.dart';
 import 'package:revora/shared/domain/entities/dealer_info.dart';
 
 final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
-  return CustomerRepository();
+  return MockCustomerRepository();
 });
 
 final customerRequirementsProvider = Provider<List<BuyRequirement>>((ref) {

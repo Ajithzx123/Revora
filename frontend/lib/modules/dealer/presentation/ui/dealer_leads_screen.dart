@@ -104,7 +104,7 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: buyLeads.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: AppSpacing.md),
                             itemBuilder: (context, index) {
                               final lead = buyLeads[index];
@@ -236,7 +236,7 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: sellLeads.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: AppSpacing.md),
                             itemBuilder: (context, index) {
                               final lead = sellLeads[index];
@@ -261,7 +261,7 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                                         width: 110,
                                         height: 80,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
+                                        errorBuilder: (_, _, _) =>
                                             Container(
                                           width: 110,
                                           height: 80,

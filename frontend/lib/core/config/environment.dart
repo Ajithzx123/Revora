@@ -43,4 +43,8 @@ enum Environment {
         );
     }
   }
+
+  bool get useMockData {
+    return const bool.fromEnvironment('USE_MOCK_DATA', defaultValue: true);
+  }
 }

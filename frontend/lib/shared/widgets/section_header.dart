@@ -51,7 +51,7 @@ class SectionHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
           if (trailing == null && actionLabel != null && onActionTap != null)
             TextButton(
               onPressed: onActionTap,

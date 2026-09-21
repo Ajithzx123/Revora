@@ -118,17 +118,29 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                               ),
                             ),
                           ),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: requirements.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: AppSpacing.md),
-                            itemBuilder: (context, index) {
-                              return RequirementSummaryCard(
-                                requirement: requirements[index],
-                                onViewQuotes: () {
-                                  _tabController.animateTo(1);
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final crossAxisCount =
+                                  constraints.maxWidth > 700 ? 2 : 1;
+
+                              return GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  crossAxisSpacing: AppSpacing.md,
+                                  mainAxisSpacing: AppSpacing.md,
+                                  childAspectRatio: 0.72,
+                                ),
+                                itemCount: requirements.length,
+                                itemBuilder: (context, index) {
+                                  return RequirementSummaryCard(
+                                    requirement: requirements[index],
+                                    onViewQuotes: () {
+                                      _tabController.animateTo(1);
+                                    },
+                                  );
                                 },
                               );
                             },
@@ -167,7 +179,7 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                                   crossAxisCount: crossAxisCount,
                                   crossAxisSpacing: AppSpacing.md,
                                   mainAxisSpacing: AppSpacing.md,
-                                  childAspectRatio: 0.9,
+                                  childAspectRatio: 0.72,
                                 ),
                                 itemCount: allQuotes.length,
                                 itemBuilder: (context, index) {

@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/section_header.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 
 class CustomerProfileScreen extends ConsumerWidget {
   const CustomerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authControllerProvider).user;
+    final fullName = user?.fullName ?? 'Rahul Verma';
+    final email = user?.email ?? 'buyer@revora.com';
+    final phone = user?.phone ?? '+91 98201 12345';
+    final initials = fullName.isNotEmpty
+        ? fullName
+            .trim()
+            .split(' ')
+            .where((w) => w.isNotEmpty)
+            .map((e) => e[0])
+            .take(2)
+            .join()
+            .toUpperCase()
+        : 'RV';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -35,12 +52,12 @@ class CustomerProfileScreen extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 28,
                         backgroundColor: AppColors.accent,
                         child: Text(
-                          'AK',
-                          style: TextStyle(
+                          initials,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -48,22 +65,22 @@ class CustomerProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Amit Kumar',
-                              style: TextStyle(
+                              fullName,
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              '+91 98765 43210 • amit.kumar@example.com',
-                              style: TextStyle(
+                              '$phone • $email',
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
@@ -113,7 +130,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                         trailing: Switch(
                           value: true,
                           onChanged: (_) {},
-                          activeColor: AppColors.accent,
+                          activeThumbColor: AppColors.accent,
                         ),
                         onTap: () {},
                       ),
@@ -141,7 +158,12 @@ class CustomerProfileScreen extends ConsumerWidget {
                 // Logout button
                 Center(
                   child: TextButton.icon(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await ref.read(authControllerProvider.notifier).signOut();
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
+                    },
                     icon: const Icon(
                       Icons.logout,
                       color: AppColors.error,
@@ -171,22 +193,25 @@ class CustomerProfileScreen extends ConsumerWidget {
     required Widget trailing,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.primary),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        trailing: trailing,
+        onTap: onTap,
       ),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-      ),
-      trailing: trailing,
-      onTap: onTap,
     );
   }
 }

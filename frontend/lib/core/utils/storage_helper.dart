@@ -5,7 +5,7 @@ import '../config/constants.dart';
 class StorageHelper {
   StorageHelper._();
 
-  static late final SharedPreferences _prefs;
+  static late SharedPreferences _prefs;
   static const _secureStorage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );

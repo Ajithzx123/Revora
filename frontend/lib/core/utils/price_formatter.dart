@@ -24,4 +24,8 @@ class PriceFormatter {
     final format = NumberFormat.decimalPattern('en_IN');
     return '${format.format(km)} km';
   }
+
+  static String formatRange(num min, num max) {
+    return '${formatINR(min)} - ${formatINR(max)}';
+  }
 }

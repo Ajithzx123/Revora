@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/config/constants.dart';
 import '../../../../core/supabase/supabase_service.dart';
 import '../../../../core/utils/storage_helper.dart';
+import '../../data/repositories/mock_auth_repository.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRepository {
@@ -25,6 +27,9 @@ abstract class AuthRepository {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  if (AppConfig.instance.useMockData) {
+    return MockAuthRepository();
+  }
   return SupabaseAuthRepository();
 });
 

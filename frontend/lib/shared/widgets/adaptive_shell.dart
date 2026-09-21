@@ -215,8 +215,7 @@ class AdaptiveShell extends StatelessWidget {
                             letterSpacing: -0.3,
                           ),
                         ),
-                        if (desktopHeaderTrailing != null)
-                          desktopHeaderTrailing!,
+                        ?desktopHeaderTrailing,
                       ],
                     ),
                   ),

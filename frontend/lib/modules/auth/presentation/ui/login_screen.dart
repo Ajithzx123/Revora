@@ -15,8 +15,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(text: 'customer@revora.com');
+  final _passwordController = TextEditingController(text: 'password123');
   bool _obscurePassword = true;
 
   @override
@@ -32,10 +32,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    final success = await ref.read(authControllerProvider.notifier).signIn(
-          email: email,
-          password: password,
-        );
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .signIn(email: email, password: password);
 
     if (success && mounted) {
       final user = ref.read(authControllerProvider).user;
@@ -57,11 +56,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         context.go('/admin/dashboard');
         break;
     }
-  }
-
-  void _fillQuickCredentials(String email, String password) {
-    _emailController.text = email;
-    _passwordController.text = password;
   }
 
   @override
@@ -111,10 +105,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       'Welcome to Revora',
                       textAlign: TextAlign.center,
-                      style: (isDark
-                              ? AppTextStyles.headlineLargeDark
-                              : AppTextStyles.headlineLarge)
-                          .copyWith(fontWeight: FontWeight.w800),
+                      style:
+                          (isDark
+                                  ? AppTextStyles.headlineLargeDark
+                                  : AppTextStyles.headlineLarge)
+                              .copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -137,14 +132,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline,
-                                color: AppColors.error, size: 20),
+                            const Icon(
+                              Icons.error_outline,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 authState.errorMessage!,
-                                style: AppTextStyles.bodySmall
-                                    .copyWith(color: AppColors.error),
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.error,
+                                ),
                               ),
                             ),
                           ],
@@ -166,7 +165,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
-                        hintText: 'name@company.com',
+                        hintText: 'customer@..., dealer@..., or admin@...',
                         prefixIcon: Icon(Icons.email_outlined, size: 20),
                       ),
                       validator: (value) {
@@ -195,7 +194,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Password reset link sent (demo)'),
+                                content: Text(
+                                  'Password reset link sent (demo)',
+                                ),
                               ),
                             );
                           },
@@ -222,8 +223,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onFieldSubmitted: (_) => _onLogin(),
                       decoration: InputDecoration(
                         hintText: 'Enter your password',
-                        prefixIcon:
-                            const Icon(Icons.lock_outline_rounded, size: 20),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline_rounded,
+                          size: 20,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -241,9 +244,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
                         }
                         return null;
                       },
@@ -278,59 +278,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Demo Role Fast Login Shortcuts
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.surfaceDark : AppColors.primarySubtle,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: isDark ? AppColors.borderDark : AppColors.border,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Quick Demo Access:',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              ActionChip(
-                                label: const Text('Customer'),
-                                onPressed: () => _fillQuickCredentials(
-                                  'buyer@revora.com',
-                                  'password123',
-                                ),
-                              ),
-                              ActionChip(
-                                label: const Text('Dealer'),
-                                onPressed: () => _fillQuickCredentials(
-                                  'dealer@revora.com',
-                                  'password123',
-                                ),
-                              ),
-                              ActionChip(
-                                label: const Text('Admin'),
-                                onPressed: () => _fillQuickCredentials(
-                                  'admin@revora.com',
-                                  'password123',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                     ),
                     const SizedBox(height: 24),
 

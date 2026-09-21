@@ -4,7 +4,8 @@ class PostBuyRequirementScreen extends StatefulWidget {
   const PostBuyRequirementScreen({super.key});
 
   @override
-  State<PostBuyRequirementScreen> createState() => _PostBuyRequirementScreenState();
+  State<PostBuyRequirementScreen> createState() =>
+      _PostBuyRequirementScreenState();
 }
 
 class _PostBuyRequirementScreenState extends State<PostBuyRequirementScreen> {
@@ -13,9 +14,7 @@ class _PostBuyRequirementScreenState extends State<PostBuyRequirementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post Buy Requirement'),
-      ),
+      appBar: AppBar(title: const Text('Post Buy Requirement')),
       body: Stepper(
         currentStep: _currentStep,
         onStepContinue: () {
@@ -44,13 +43,23 @@ class _PostBuyRequirementScreenState extends State<PostBuyRequirementScreen> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDropdown('Make', ['Maruti Suzuki', 'Hyundai', 'Tata', 'Toyota']),
+                _buildDropdown('Make', [
+                  'Maruti Suzuki',
+                  'Hyundai',
+                  'Tata',
+                  'Toyota',
+                ]),
                 const SizedBox(height: 16),
                 _buildDropdown('Model', ['Swift', 'Creta', 'Nexon', 'Innova']),
                 const SizedBox(height: 16),
                 _buildDropdown('Year', ['2020+', '2018+', '2015+']),
                 const SizedBox(height: 16),
-                _buildDropdown('Fuel Type', ['Petrol', 'Diesel', 'CNG', 'Electric']),
+                _buildDropdown('Fuel Type', [
+                  'Petrol',
+                  'Diesel',
+                  'CNG',
+                  'Electric',
+                ]),
               ],
             ),
             isActive: _currentStep >= 0,
@@ -60,16 +69,28 @@ class _PostBuyRequirementScreenState extends State<PostBuyRequirementScreen> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDropdown('Budget', ['Under ₹5 Lakh', '₹5 - ₹10 Lakh', '₹10 - ₹20 Lakh', 'Above ₹20 Lakh']),
+                _buildDropdown('Budget', [
+                  'Under ₹5 Lakh',
+                  '₹5 - ₹10 Lakh',
+                  '₹10 - ₹20 Lakh',
+                  'Above ₹20 Lakh',
+                ]),
                 const SizedBox(height: 16),
-                _buildDropdown('City', ['Bengaluru', 'Delhi', 'Mumbai', 'Chennai']),
+                _buildDropdown('City', [
+                  'Bengaluru',
+                  'Delhi',
+                  'Mumbai',
+                  'Chennai',
+                ]),
               ],
             ),
             isActive: _currentStep >= 1,
           ),
           Step(
             title: const Text('Review & Submit'),
-            content: const Text('Please review your requirements before posting to dealers.'),
+            content: const Text(
+              'Please review your requirements before posting to dealers.',
+            ),
             isActive: _currentStep >= 2,
           ),
         ],
@@ -79,10 +100,10 @@ class _PostBuyRequirementScreenState extends State<PostBuyRequirementScreen> {
 
   Widget _buildDropdown(String label, List<String> options) {
     return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: label,
-      ),
-      items: options.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+      decoration: InputDecoration(labelText: label),
+      items: options
+          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+          .toList(),
       onChanged: (val) {},
     );
   }

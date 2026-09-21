@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/utils/price_formatter.dart';
 import '../../../../../shared/widgets/custom_button.dart';
+import '../../domain/entities/quote.dart';
+import '../providers/customer_providers.dart';
 
-class QuoteComparisonScreen extends StatelessWidget {
+class QuoteComparisonScreen extends ConsumerWidget {
   final String requirementId;
 
   const QuoteComparisonScreen({
@@ -13,63 +17,59 @@ class QuoteComparisonScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data for side-by-side comparison
-    final quotes = [
-      {
-        'dealer': 'Prime Motors',
-        'rating': 4.8,
-        'car': '2021 Innova Crysta ZX 2.4',
-        'price': 1850000,
-        'km': 45000,
-        'perks': '1 Year Dealer Warranty',
-      },
-      {
-        'dealer': 'Elite Car Hub',
-        'rating': 4.9,
-        'car': '2022 Innova Crysta G 2.4',
-        'price': 1950000,
-        'km': 30000,
-        'perks': 'Free Service, Extended Warranty',
-      },
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quotes = ref.watch(customerQuotesProvider(requirementId));
+    final displayQuotes = quotes.isNotEmpty
+        ? quotes
+        : ref.watch(allCustomerQuotesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Compare Quotes'),
       ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: quotes.map((quote) => _buildComparisonColumn(context, quote)).toList(),
-        ),
-      ),
+      body: displayQuotes.isEmpty
+          ? const Center(
+              child: Text(
+                'No quotes available to compare.',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            )
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Row(
+                children: displayQuotes
+                    .map((quote) => _buildComparisonColumn(context, quote))
+                    .toList(),
+              ),
+            ),
     );
   }
 
-  Widget _buildComparisonColumn(BuildContext context, Map<String, dynamic> quote) {
+  Widget _buildComparisonColumn(BuildContext context, Quote quote) {
     return Container(
-      width: 300,
-      margin: const EdgeInsets.only(right: 16),
+      width: 320,
+      margin: const EdgeInsets.only(right: AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: const BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(11)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(AppSpacing.radiusLg - 1),
+              ),
             ),
             child: Column(
               children: [
                 Text(
-                  quote['dealer'] as String,
+                  quote.dealerName,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -83,10 +83,27 @@ class QuoteComparisonScreen extends StatelessWidget {
                     const Icon(Icons.star, color: AppColors.accent, size: 16),
                     const SizedBox(width: 4),
                     Text(
-                      '${quote['rating']}',
+                      '${quote.dealerRating}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.white,
                           ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${quote.matchPercentage}% Match',
+                        style: const TextStyle(
+                          color: AppColors.accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -94,29 +111,43 @@ class QuoteComparisonScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildRow('Car', quote['car'] as String, context),
-                const Divider(height: 24),
-                _buildRow('Price', PriceFormatter.formatINR(quote['price'] as num), context, isHighlight: true),
-                const Divider(height: 24),
-                _buildRow('Km Driven', PriceFormatter.formatKm(quote['km'] as num), context),
-                const Divider(height: 24),
-                _buildRow('Perks', quote['perks'] as String, context),
-                const SizedBox(height: 32),
+                _buildRow('Car', quote.carTitle, context),
+                const Divider(height: 24, color: AppColors.borderLight),
+                _buildRow('Quoted Price',
+                    PriceFormatter.formatINR(quote.quotedPrice), context,
+                    isHighlight: true),
+                const Divider(height: 24, color: AppColors.borderLight),
+                _buildRow('Km Driven',
+                    PriceFormatter.formatKm(quote.carMileage), context),
+                const Divider(height: 24, color: AppColors.borderLight),
+                _buildRow('Fuel & Year',
+                    '${quote.carFuel}  •  ${quote.carYear}', context),
+                const Divider(height: 24, color: AppColors.borderLight),
+                _buildRow('Dealer Notes', quote.comment, context),
+                const SizedBox(height: AppSpacing.xl),
                 CustomButton(
                   text: 'Chat with Dealer',
                   onPressed: () {
-                    context.push('/chat/chat-compare');
+                    context.push('/chat/${quote.dealerId}');
                   },
                   variant: ButtonVariant.outline,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 CustomButton(
                   text: 'Accept Quote',
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content:
+                            Text('Accepted quote from ${quote.dealerName}!'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -126,7 +157,8 @@ class QuoteComparisonScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(String label, String value, BuildContext context, {bool isHighlight = false}) {
+  Widget _buildRow(String label, String value, BuildContext context,
+      {bool isHighlight = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -140,9 +172,11 @@ class QuoteComparisonScreen extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: isHighlight ? FontWeight.bold : FontWeight.normal,
-                color: isHighlight ? AppColors.accent : AppColors.textPrimary,
-                fontSize: isHighlight ? 20 : 16,
+                fontWeight:
+                    isHighlight ? FontWeight.bold : FontWeight.normal,
+                color:
+                    isHighlight ? AppColors.accent : AppColors.textPrimary,
+                fontSize: isHighlight ? 20 : 15,
               ),
         ),
       ],

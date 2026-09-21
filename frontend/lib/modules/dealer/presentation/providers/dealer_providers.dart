@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:revora/modules/dealer/data/repositories/dealer_repository.dart';
+import 'package:revora/modules/dealer/domain/repositories/dealer_repository.dart';
+import 'package:revora/modules/dealer/data/repositories/mock_dealer_repository.dart';
 import 'package:revora/modules/dealer/domain/entities/buy_lead.dart';
 import 'package:revora/modules/dealer/domain/entities/sell_lead.dart';
 import 'package:revora/modules/dealer/domain/entities/dealer_kpi.dart';
@@ -7,7 +8,7 @@ import 'package:revora/modules/dealer/domain/entities/dealer_activity.dart';
 import 'package:revora/shared/domain/entities/vehicle.dart';
 
 final dealerRepositoryProvider = Provider<DealerRepository>((ref) {
-  return DealerRepository();
+  return MockDealerRepository();
 });
 
 final dealerKPIsProvider = Provider<DealerKPI>((ref) {

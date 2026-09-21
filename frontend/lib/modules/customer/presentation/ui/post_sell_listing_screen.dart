@@ -13,9 +13,7 @@ class _PostSellListingScreenState extends State<PostSellListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post Sell Listing'),
-      ),
+      appBar: AppBar(title: const Text('Post Sell Listing')),
       body: Stepper(
         currentStep: _currentStep,
         onStepContinue: () {
@@ -26,9 +24,9 @@ class _PostSellListingScreenState extends State<PostSellListingScreen> {
           } else {
             // Submit
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Listing Posted!')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Listing Posted!')));
           }
         },
         onStepCancel: () {
@@ -44,7 +42,12 @@ class _PostSellListingScreenState extends State<PostSellListingScreen> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDropdown('Make', ['Maruti Suzuki', 'Hyundai', 'Tata', 'Toyota']),
+                _buildDropdown('Make', [
+                  'Maruti Suzuki',
+                  'Hyundai',
+                  'Tata',
+                  'Toyota',
+                ]),
                 const SizedBox(height: 16),
                 _buildDropdown('Model', ['Swift', 'Creta', 'Nexon', 'Innova']),
                 const SizedBox(height: 16),
@@ -63,7 +66,12 @@ class _PostSellListingScreenState extends State<PostSellListingScreen> {
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
-                _buildDropdown('Number of Owners', ['1st', '2nd', '3rd', '4th+']),
+                _buildDropdown('Number of Owners', [
+                  '1st',
+                  '2nd',
+                  '3rd',
+                  '4th+',
+                ]),
               ],
             ),
             isActive: _currentStep >= 1,
@@ -81,7 +89,9 @@ class _PostSellListingScreenState extends State<PostSellListingScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Expected Selling Price (₹)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Expected Selling Price (₹)',
+                  ),
                   keyboardType: TextInputType.number,
                 ),
               ],
@@ -90,7 +100,9 @@ class _PostSellListingScreenState extends State<PostSellListingScreen> {
           ),
           Step(
             title: const Text('Review & Submit'),
-            content: const Text('Please review your car listing before submitting to dealers.'),
+            content: const Text(
+              'Please review your car listing before submitting to dealers.',
+            ),
             isActive: _currentStep >= 3,
           ),
         ],
@@ -100,10 +112,10 @@ class _PostSellListingScreenState extends State<PostSellListingScreen> {
 
   Widget _buildDropdown(String label, List<String> options) {
     return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: label,
-      ),
-      items: options.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+      decoration: InputDecoration(labelText: label),
+      items: options
+          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+          .toList(),
       onChanged: (val) {},
     );
   }

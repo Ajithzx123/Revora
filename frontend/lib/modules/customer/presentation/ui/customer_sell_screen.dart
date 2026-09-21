@@ -4,9 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/section_header.dart';
-import '../../../../shared/widgets/status_chip.dart';
-import '../../../../shared/widgets/spec_chip.dart';
 import '../providers/customer_providers.dart';
+import '../widgets/customer_sell_post_card.dart';
 
 class CustomerSellScreen extends ConsumerWidget {
   const CustomerSellScreen({super.key});
@@ -55,162 +54,28 @@ class CustomerSellScreen extends ConsumerWidget {
                 if (sellPosts.isEmpty)
                   _buildEmptyState(context)
                 else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: sellPosts.length,
-                    separatorBuilder: (_, __) =>
-                        const SizedBox(height: AppSpacing.md),
-                    itemBuilder: (context, index) {
-                      final post = sellPosts[index];
-                      return Container(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusMd),
-                          border:
-                              Border.all(color: AppColors.border, width: 0.8),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final crossAxisCount = constraints.maxWidth > 700 ? 2 : 1;
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: AppSpacing.md,
+                          mainAxisSpacing: AppSpacing.md,
+                          childAspectRatio: 0.72,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                      AppSpacing.radiusSm),
-                                  child: Image.network(
-                                    post.imageUrls.first,
-                                    width: 100,
-                                    height: 75,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      width: 100,
-                                      height: 75,
-                                      color: AppColors.primarySubtle,
-                                      child: const Icon(
-                                        Icons.directions_car,
-                                        color: AppColors.icon,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.md),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              post.title,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700,
-                                                color: AppColors.textPrimary,
-                                              ),
-                                              maxLines: 1,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          StatusChip.fromStatus(post.status),
-                                        ],
-                                      ),
-                                      const SizedBox(height: AppSpacing.xs),
-                                      Text(
-                                        'Expected: ${post.formattedPrice}',
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.accent,
-                                        ),
-                                      ),
-                                      const SizedBox(height: AppSpacing.xs),
-                                      Wrap(
-                                        spacing: AppSpacing.xs,
-                                        runSpacing: AppSpacing.xxs,
-                                        children: [
-                                          SpecChip(
-                                            icon: Icons.speed,
-                                            label:
-                                                '${(post.mileage / 1000).toStringAsFixed(0)}k km',
-                                          ),
-                                          SpecChip(
-                                            icon: Icons
-                                                .local_gas_station_outlined,
-                                            label: post.fuelType,
-                                          ),
-                                          SpecChip(
-                                            icon: Icons.tune,
-                                            label: post.transmission,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            const Divider(
-                                height: 1, color: AppColors.borderLight),
-                            const SizedBox(height: AppSpacing.sm),
-                            Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.local_offer_outlined,
-                                      size: 16,
-                                      color: AppColors.success,
-                                    ),
-                                    const SizedBox(width: AppSpacing.xs),
-                                    Text(
-                                      '${post.offersCount} Dealer Purchase Offers Received',
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                OutlinedButton(
-                                  onPressed: () {},
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.md,
-                                      vertical: AppSpacing.xs,
-                                    ),
-                                    side: const BorderSide(
-                                        color: AppColors.border),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppSpacing.radiusSm),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'View Offers',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        itemCount: sellPosts.length,
+                        itemBuilder: (context, index) {
+                          return CustomerSellPostCard(
+                            post: sellPosts[index],
+                            onViewOffers: () {
+                              // TODO: Navigate to offers
+                            },
+                          );
+                        },
                       );
                     },
                   ),
