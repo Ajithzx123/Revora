@@ -1,161 +1,274 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/responsive_layout.dart';
-import 'widgets/hero_banner.dart';
-import 'widgets/action_card.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/section_header.dart';
+import '../../../../shared/widgets/dealer_match_card.dart';
+import '../providers/customer_providers.dart';
+import '../widgets/requirement_summary_card.dart';
+import '../widgets/customer_quote_card.dart';
 
-class CustomerHomeScreen extends StatelessWidget {
+class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final requirements = ref.watch(customerRequirementsProvider);
+    final allQuotes = ref.watch(allCustomerQuotesProvider);
+    final topDealers = ref.watch(topDealersProvider);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Revora', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () {
-              // Navigate to profile
-            },
+      backgroundColor: AppColors.background,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Hero Request Workflow Card
+                _buildWorkflowHero(context, ref),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // 2. Active Requirements Section
+                SectionHeader(
+                  title: 'Active Buy Requirements',
+                  subtitle: 'Dealers are preparing quotes for your requests',
+                  actionLabel: 'View All',
+                  onActionTap: () {
+                    ref.read(customerActiveTabProvider.notifier).state = 1;
+                  },
+                ),
+                if (requirements.isEmpty)
+                  _buildEmptyCard('No active requirements yet')
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: requirements.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.md),
+                    itemBuilder: (context, index) {
+                      final req = requirements[index];
+                      return RequirementSummaryCard(
+                        requirement: req,
+                        onViewQuotes: () {
+                          ref.read(customerActiveTabProvider.notifier).state =
+                              1;
+                        },
+                      );
+                    },
+                  ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // 3. Recent Quotes Received
+                SectionHeader(
+                  title: 'Recent Quotes Received',
+                  subtitle:
+                      'Compare pricing, vehicle specs, and dealer ratings',
+                  actionLabel: 'Compare All',
+                  onActionTap: () {
+                    ref.read(customerActiveTabProvider.notifier).state = 1;
+                  },
+                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount = constraints.maxWidth > 900
+                        ? 3
+                        : constraints.maxWidth > 600
+                        ? 2
+                        : 1;
+
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: AppSpacing.md,
+                        mainAxisSpacing: AppSpacing.md,
+                        childAspectRatio: 0.85,
+                      ),
+                      itemCount: allQuotes.length,
+                      itemBuilder: (context, index) {
+                        return CustomerQuoteCard(
+                          quote: allQuotes[index],
+                          onContact: () => context.push('/chat'),
+                          onAccept: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Quote accepted! Dealer notified.',
+                                ),
+                                backgroundColor: AppColors.success,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // 4. Verified Network Dealers
+                SectionHeader(
+                  title: 'Top Verified Dealers',
+                  subtitle: 'Vetted dealerships matching in your area',
+                ),
+                SizedBox(
+                  height: 180,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: topDealers.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: AppSpacing.md),
+                    itemBuilder: (context, index) {
+                      final dealer = topDealers[index];
+                      return DealerMatchCard(
+                        dealer: dealer,
+                        onConnect: () => context.push('/chat'),
+                        onViewProfile: () {},
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxxl),
+              ],
+            ),
           ),
-        ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: AppColors.primary),
-              child: Text('Dev Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Customer Flow'),
-              onTap: () {
-                Navigator.pop(context); // close drawer
-                context.go('/customer/home');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.store),
-              title: const Text('Dealer Flow'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/dealer/home');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings),
-              title: const Text('Admin Dashboard'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/admin/dashboard');
-              },
-            ),
-          ],
         ),
-      ),
-      body: ResponsiveLayout(
-        mobile: _buildBody(context, isDesktop: false),
-        desktop: _buildBody(context, isDesktop: true),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, {required bool isDesktop}) {
-    return SingleChildScrollView(
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          padding: EdgeInsets.all(isDesktop ? 32.0 : 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildWorkflowHero(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              const HeroBanner(),
-              SizedBox(height: isDesktop ? 32 : 24),
-              Text(
-                'What would you like to do?',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 16),
-              if (isDesktop)
-                Row(
-                  children: [
-                    Expanded(child: _buildBuyCard(context)),
-                    const SizedBox(width: 24),
-                    Expanded(child: _buildSellCard(context)),
-                  ],
-                )
-              else ...[
-                _buildBuyCard(context),
-                const SizedBox(height: 16),
-                _buildSellCard(context),
-              ],
-              SizedBox(height: isDesktop ? 48 : 32),
-              Text(
-                'My Activity',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 16),
-              // Placeholder for Activity Cards
-              InkWell(
-                onTap: () {
-                  context.push('/customer/my-requirements');
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xxs,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                  border: Border.all(
+                    color: AppColors.accent.withValues(alpha: 0.4),
                   ),
-                  child: Center(
-                    child: Text(
-                      'View all active requirements and listings.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
+                ),
+                child: const Text(
+                  'REQUEST-FIRST MARKETPLACE',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
                   ),
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.md),
+          const Text(
+            'Tell dealers what car you want.\nLet them compete for your deal.',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+              height: 1.25,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          const Text(
+            'Skip infinite browsing. Post your requirements or list your car, and get competitive verified dealer quotes directly.',
+            style: TextStyle(
+              color: Color(0xFF94A3B8),
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.sm,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => context.push('/post-requirement'),
+                icon: const Icon(Icons.add_circle_outline, size: 18),
+                label: const Text('Post Buy Requirement'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                    vertical: AppSpacing.md,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/sell-car'),
+                icon: const Icon(Icons.sell_outlined, size: 18),
+                label: const Text('Sell Your Car'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Color(0xFF475569)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                    vertical: AppSpacing.md,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildBuyCard(BuildContext context) {
-    return ActionCard(
-      title: 'I Want to Buy a Car',
-      subtitle: 'Post your requirements and dealers will send you their best quotes.',
-      icon: Icons.directions_car,
-      color: AppColors.primary,
-      onTap: () {
-        context.push('/customer/post-buy');
-      },
-    );
-  }
-
-  Widget _buildSellCard(BuildContext context) {
-    return ActionCard(
-      title: 'I Want to Sell My Car',
-      subtitle: 'List your car and get competitive purchase offers from dealers.',
-      icon: Icons.sell,
-      color: AppColors.accent,
-      onTap: () {
-        context.push('/customer/post-sell');
-      },
+  Widget _buildEmptyCard(String message) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border: Border.all(color: AppColors.border, width: 0.8),
+      ),
+      child: Center(
+        child: Text(
+          message,
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+      ),
     );
   }
 }

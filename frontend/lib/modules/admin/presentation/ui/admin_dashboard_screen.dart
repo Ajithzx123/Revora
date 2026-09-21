@@ -1,133 +1,319 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/responsive_layout.dart';
-import '../../../../shared/widgets/custom_card.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/section_header.dart';
+import '../../../../shared/widgets/kpi_tile.dart';
+import '../../../../shared/widgets/activity_tile.dart';
+import '../../../../shared/widgets/status_chip.dart';
+import '../providers/admin_providers.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kpis = ref.watch(adminKPIsProvider);
+    final pendingVerifications = ref.watch(pendingVerificationsProvider);
+    final activities = ref.watch(adminActivitiesProvider);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Revora Admin Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: ResponsiveLayout(
-        mobile: _buildContent(context, 1),
-        tablet: _buildContent(context, 2),
-        desktop: _buildContent(context, 4),
-      ),
-    );
-  }
+      backgroundColor: AppColors.background,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Marketplace Performance KPIs
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount = constraints.maxWidth > 900
+                        ? 4
+                        : constraints.maxWidth > 600
+                        ? 2
+                        : 2;
 
-  Widget _buildContent(BuildContext context, int crossAxisCount) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Platform Overview',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                    return GridView.count(
+                      crossAxisCount: crossAxisCount,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: AppSpacing.md,
+                      mainAxisSpacing: AppSpacing.md,
+                      childAspectRatio: constraints.maxWidth > 600 ? 1.6 : 1.3,
+                      children: [
+                        KpiTile(
+                          title: 'Verified Dealers',
+                          value: '${kpis.totalDealers}',
+                          icon: Icons.business,
+                          iconColor: AppColors.info,
+                          iconBgColor: AppColors.infoBg,
+                          trend: '+12 this month',
+                          isPositiveTrend: true,
+                          onTap: () {
+                            ref
+                                    .read(adminActiveNavIndexProvider.notifier)
+                                    .state =
+                                1;
+                          },
+                        ),
+                        KpiTile(
+                          title: 'Pending Verifications',
+                          value: '${pendingVerifications.length}',
+                          icon: Icons.pending_actions,
+                          iconColor: AppColors.warning,
+                          iconBgColor: AppColors.warningBg,
+                          trend: 'Action required',
+                          isPositiveTrend: false,
+                          onTap: () {
+                            ref
+                                    .read(adminActiveNavIndexProvider.notifier)
+                                    .state =
+                                1;
+                          },
+                        ),
+                        KpiTile(
+                          title: 'Active Requirements',
+                          value: '${kpis.activeRequirements}',
+                          icon: Icons.assignment_outlined,
+                          iconColor: AppColors.accent,
+                          iconBgColor: AppColors.accentLight,
+                          trend: '+45 today',
+                          isPositiveTrend: true,
+                          onTap: () {
+                            ref
+                                    .read(adminActiveNavIndexProvider.notifier)
+                                    .state =
+                                2;
+                          },
+                        ),
+                        KpiTile(
+                          title: 'Marketplace GMV',
+                          value: kpis.formattedGmv,
+                          icon: Icons.currency_rupee,
+                          iconColor: AppColors.success,
+                          iconBgColor: AppColors.successBg,
+                          trend: '${kpis.monthlyDealsCompleted} deals',
+                          isPositiveTrend: true,
+                        ),
+                      ],
+                    );
+                  },
                 ),
-          ),
-          const SizedBox(height: 24),
-          GridView.count(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.5,
-            children: [
-              _buildStatCard(context, 'Total Users', '12,450', Icons.people, AppColors.primary),
-              _buildStatCard(context, 'Active Dealers', '342', Icons.store, AppColors.accent),
-              _buildStatCard(context, 'Active Buy Requests', '1,105', Icons.list_alt, AppColors.success),
-              _buildStatCard(context, 'Completed Deals', '850', Icons.handshake, Colors.purple),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'Recent Activity',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 16),
-          _buildRecentActivityList(context),
-        ],
-      ),
-    );
-  }
+                const SizedBox(height: AppSpacing.xxl),
 
-  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color color) {
-    return CustomCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 40, color: color),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
+                // 2. Pending Verifications Quick Actions
+                SectionHeader(
+                  title: 'Pending Dealer Approvals',
+                  subtitle: 'KYC & Trade License verification queue',
+                  actionLabel: 'View Queue',
+                  onActionTap: () {
+                    ref.read(adminActiveNavIndexProvider.notifier).state = 1;
+                  },
                 ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentActivityList(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 5,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          return ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: AppColors.background,
-              child: Icon(Icons.handshake, color: AppColors.primary),
-            ),
-            title: const Text('New Deal Completed'),
-            subtitle: Text('REQ-${1000 + index} closed by Prime Motors'),
-            trailing: Text(
-              '${index * 2 + 1}h ago',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                if (pendingVerifications.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      border: Border.all(color: AppColors.border, width: 0.8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'All dealer applications are reviewed and up to date!',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: pendingVerifications.take(3).length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.md),
+                    itemBuilder: (context, index) {
+                      final v = pendingVerifications[index];
+                      return Container(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
+                          border: Border.all(
+                            color: AppColors.border,
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: AppColors.primarySubtle,
+                              child: Text(
+                                v.businessName[0],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        v.businessName,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      StatusChip.fromStatus(v.status),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Owner: ${v.ownerName} • ${v.city} • GST: ${v.gstin}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                OutlinedButton(
+                                  onPressed: () {
+                                    ref
+                                        .read(adminRepositoryProvider)
+                                        .rejectDealer(v.id);
+                                    ref
+                                        .read(
+                                          pendingVerificationsProvider.notifier,
+                                        )
+                                        .state = ref
+                                        .read(adminRepositoryProvider)
+                                        .getPendingVerifications();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Application rejected'),
+                                      ),
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.error,
+                                    side: const BorderSide(
+                                      color: AppColors.error,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.md,
+                                      vertical: AppSpacing.xs,
+                                    ),
+                                  ),
+                                  child: const Text('Reject'),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    ref
+                                        .read(adminRepositoryProvider)
+                                        .approveDealer(v.id);
+                                    ref
+                                        .read(
+                                          pendingVerificationsProvider.notifier,
+                                        )
+                                        .state = ref
+                                        .read(adminRepositoryProvider)
+                                        .getPendingVerifications();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Dealer approved & verified!',
+                                        ),
+                                        backgroundColor: AppColors.success,
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.success,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.md,
+                                      vertical: AppSpacing.xs,
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text('Verify & Approve'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // 3. Platform Activity Feed
+                const SectionHeader(
+                  title: 'Platform Audit & Activity Trail',
+                  subtitle: 'Recent system events across customers and dealers',
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    border: Border.all(color: AppColors.border, width: 0.8),
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    itemCount: activities.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1, color: AppColors.borderLight),
+                    itemBuilder: (context, index) {
+                      final act = activities[index];
+                      return ActivityTile(
+                        title: act.title,
+                        subtitle: act.subtitle,
+                        time: act.time,
+                        icon: act.type == 'flagged'
+                            ? Icons.warning_amber_rounded
+                            : act.type == 'deal'
+                            ? Icons.verified_outlined
+                            : Icons.business_outlined,
+                        iconColor: act.type == 'flagged'
+                            ? AppColors.error
+                            : act.type == 'deal'
+                            ? AppColors.success
+                            : AppColors.info,
+                        iconBgColor: act.type == 'flagged'
+                            ? AppColors.errorBg
+                            : act.type == 'deal'
+                            ? AppColors.successBg
+                            : AppColors.infoBg,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxxl),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
