@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../shared/widgets/adaptive_shell.dart';
 import '../../../../shared/widgets/app_sidebar.dart';
 import '../providers/customer_providers.dart';
@@ -54,6 +56,11 @@ class CustomerShell extends ConsumerWidget {
       CustomerProfileScreen(),
     ];
 
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.of(context).platformBrightness == Brightness.dark);
+
     return AdaptiveShell(
       title: 'Revora',
       roleBadge: 'Customer',
@@ -62,6 +69,17 @@ class CustomerShell extends ConsumerWidget {
       onItemSelected: (index) {
         ref.read(customerActiveTabProvider.notifier).state = index;
       },
+      desktopHeaderTrailing: IconButton(
+        tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+        icon: Icon(
+          isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          color: isDark ? Colors.amber : AppColors.textSecondary,
+          size: 20,
+        ),
+        onPressed: () {
+          ref.read(themeModeProvider.notifier).toggleTheme();
+        },
+      ),
       body: IndexedStack(index: activeIndex, children: screens),
     );
   }

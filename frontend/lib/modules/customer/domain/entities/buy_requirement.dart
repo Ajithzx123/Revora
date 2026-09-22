@@ -9,6 +9,7 @@ class BuyRequirement {
   final String fuelType;
   final String transmission;
   final String preferredCity;
+  final String? variant;
   final String status;
   final int quotesReceived;
   final DateTime createdAt;
@@ -17,6 +18,7 @@ class BuyRequirement {
     required this.id,
     required this.make,
     required this.model,
+    this.variant,
     required this.minYear,
     required this.maxYear,
     required this.minBudget,
@@ -29,6 +31,8 @@ class BuyRequirement {
     required this.createdAt,
   });
 
-  String get title => '$minYear-$maxYear $make $model';
+  String get title => variant != null && variant!.isNotEmpty
+      ? '$minYear-$maxYear $make $model ($variant)'
+      : '$minYear-$maxYear $make $model';
   String get budgetRange => '₹${(minBudget / 100000).toStringAsFixed(1)} - ${(maxBudget / 100000).toStringAsFixed(1)} Lakh';
 }

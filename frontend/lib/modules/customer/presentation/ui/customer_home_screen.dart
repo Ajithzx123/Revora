@@ -34,10 +34,9 @@ class CustomerHomeScreen extends ConsumerWidget {
                 _buildTopSection(context),
                 const SizedBox(height: AppSpacing.xl),
 
-                // 2. Cars for Sale by Owners (Posted directly by sellers)
+                // 2. Cars for Sale
                 SectionHeader(
-                  title: 'Cars For Sale',
-                  subtitle: 'Explore recent cars posted directly by sellers',
+                  title: 'For Sale',
                   actionLabel: 'View All',
                   onActionTap: () {
                     ref.read(customerActiveTabProvider.notifier).state = 2;
@@ -48,7 +47,6 @@ class CustomerHomeScreen extends ConsumerWidget {
                 else
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      // Calculate item width to display exactly 3 items with gaps on larger screens
                       final double itemWidth = constraints.maxWidth > 900
                           ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
                           : constraints.maxWidth > 600
@@ -69,7 +67,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                               width: itemWidth,
                               child: CustomerSellCarCard(
                                 post: post,
-                                imageHeight: 110,
+                                imageHeight: 105,
                               ),
                             );
                           },
@@ -77,12 +75,11 @@ class CustomerHomeScreen extends ConsumerWidget {
                       );
                     },
                   ),
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xl),
 
-                // 3. Active Requirements Section
+                // 3. Looking to Buy (Requirements)
                 SectionHeader(
-                  title: 'Active Buy Requirements',
-                  subtitle: 'Dealers are preparing quotes for your requests',
+                  title: 'Looking to Buy',
                   actionLabel: 'View All',
                   onActionTap: () {
                     ref.read(customerActiveTabProvider.notifier).state = 1;
@@ -93,7 +90,6 @@ class CustomerHomeScreen extends ConsumerWidget {
                 else
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      // Calculate item width to display exactly 3 items with gaps on larger screens
                       final double itemWidth = constraints.maxWidth > 900
                           ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
                           : constraints.maxWidth > 600
@@ -101,7 +97,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                               : constraints.maxWidth * 0.82;
 
                       return SizedBox(
-                        height: 345,
+                        height: 226,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
@@ -114,7 +110,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                               width: itemWidth,
                               child: RequirementSummaryCard(
                                 requirement: req,
-                                imageHeight: 110,
+                                imageHeight: 44,
                                 onViewQuotes: () {
                                   ref.read(customerActiveTabProvider.notifier).state =
                                       1;
@@ -126,13 +122,11 @@ class CustomerHomeScreen extends ConsumerWidget {
                       );
                     },
                   ),
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xl),
 
-                // 3. Recent Quotes Received
+                // 4. Recent Quotes Received
                 SectionHeader(
-                  title: 'Recent Quotes Received',
-                  subtitle:
-                      'Compare pricing, vehicle specs, and dealer ratings',
+                  title: 'Recent Quotes',
                   actionLabel: 'Compare All',
                   onActionTap: () {
                     ref.read(customerActiveTabProvider.notifier).state = 1;
@@ -140,7 +134,6 @@ class CustomerHomeScreen extends ConsumerWidget {
                 ),
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    // Calculate item width to display exactly 3 items with gaps on larger screens
                     final double itemWidth = constraints.maxWidth > 900
                         ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
                         : constraints.maxWidth > 600
@@ -182,10 +175,9 @@ class CustomerHomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxl),
 
-                // 4. Verified Network Dealers
-                SectionHeader(
+                // 5. Verified Network Dealers
+                const SectionHeader(
                   title: 'Top Verified Dealers',
-                  subtitle: 'Vetted dealerships matching in your area',
                 ),
                 SizedBox(
                   height: 180,

@@ -131,7 +131,7 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                                   crossAxisCount: crossAxisCount,
                                   crossAxisSpacing: AppSpacing.md,
                                   mainAxisSpacing: AppSpacing.md,
-                                  childAspectRatio: 0.72,
+                                  childAspectRatio: crossAxisCount > 1 ? 1.55 : 1.15,
                                 ),
                                 itemCount: requirements.length,
                                 itemBuilder: (context, index) {
