@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 import '../../domain/models/user_model.dart';
 import '../controllers/auth_controller.dart';
 
@@ -61,7 +60,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
     final size = MediaQuery.of(context).size;
     final isWide = size.width > 800;
 
@@ -84,11 +85,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: cs.primary,
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.25),
+                              color: cs.primary.withValues(alpha: 0.25),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -105,19 +106,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       'Welcome to Revora',
                       textAlign: TextAlign.center,
-                      style:
-                          (isDark
-                                  ? AppTextStyles.headlineLargeDark
-                                  : AppTextStyles.headlineLarge)
-                              .copyWith(fontWeight: FontWeight.w800),
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Sign in to manage quotes, listings, and deals',
                       textAlign: TextAlign.center,
-                      style: isDark
-                          ? AppTextStyles.bodyMediumDark
-                          : AppTextStyles.bodyMedium,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -126,23 +125,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.errorBg,
+                          color: colors.statusErrorBg,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.error),
+                          border: Border.all(color: colors.statusErrorFg),
                         ),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.error_outline,
-                              color: AppColors.error,
+                              color: colors.statusErrorFg,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 authState.errorMessage!,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.error,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colors.statusErrorFg,
                                 ),
                               ),
                             ),
@@ -155,9 +154,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Email Field
                     Text(
                       'Email Address',
-                      style: isDark
-                          ? AppTextStyles.labelMediumDark
-                          : AppTextStyles.labelMedium,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -186,9 +185,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: [
                         Text(
                           'Password',
-                          style: isDark
-                              ? AppTextStyles.labelMediumDark
-                              : AppTextStyles.labelMedium,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         TextButton(
                           onPressed: () {
@@ -207,8 +206,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           child: Text(
                             'Forgot?',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.accent,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: cs.secondary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -255,20 +254,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onPressed: authState.isLoading ? null : _onLogin,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: authState.isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: cs.onPrimary,
                               ),
                             )
                           : const Text(
@@ -282,21 +281,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 24),
 
                     // Sign up navigation
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           "Don't have an account?",
-                          style: isDark
-                              ? AppTextStyles.bodySmallDark
-                              : AppTextStyles.bodySmall,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                         TextButton(
                           onPressed: () => context.go('/register'),
                           child: Text(
                             'Create Account',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.accent,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: cs.secondary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

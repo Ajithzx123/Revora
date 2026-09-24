@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/revora_theme_colors.dart';
 import '../../../providers/car_selection_provider.dart';
 
 class ReviewSubmitStep extends StatelessWidget {
@@ -23,17 +23,13 @@ class ReviewSubmitStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+    final isDark = theme.brightness == Brightness.dark;
 
-    final titleColor = isDark ? Colors.white : AppColors.textPrimary;
-    final subtitleColor = isDark ? Colors.grey[400] : AppColors.textSecondary;
-
-    final heroCardBg = isDark
-        ? [const Color(0xFF282F3A), const Color(0xFF1E242B)]
-        : [Colors.white, const Color(0xFFF8FAFC)];
-    final heroBorder = isDark
-        ? AppColors.accent.withValues(alpha: 0.5)
-        : AppColors.accent.withValues(alpha: 0.3);
+    final heroCardBg = [colors.gradientStart, colors.gradientEnd];
+    final heroBorder = cs.secondary.withValues(alpha: isDark ? 0.5 : 0.3);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,17 +37,13 @@ class ReviewSubmitStep extends StatelessWidget {
         Text(
           'Review & Broadcast Requirement',
           style: TextStyle(
-            color: titleColor,
+            color: cs.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text(
-          'Verified dealers in ${state.preferredCity} will review your requirement and send competitive quotes directly to your dashboard.',
-          style: TextStyle(color: subtitleColor, fontSize: 13),
-        ),
-        const SizedBox(height: AppSpacing.xl),
+
 
         // Hero Card with Car Summary
         Container(
@@ -63,14 +55,11 @@ class ReviewSubmitStep extends StatelessWidget {
               colors: heroCardBg,
             ),
             borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-            border: Border.all(
-              color: heroBorder,
-              width: 1.5,
-            ),
+            border: Border.all(color: heroBorder, width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? AppColors.accent.withValues(alpha: 0.12)
+                    ? cs.secondary.withValues(alpha: 0.12)
                     : Colors.black.withValues(alpha: 0.04),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
@@ -84,10 +73,15 @@ class ReviewSubmitStep extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppColors.accent,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                      color: cs.secondary,
+                      borderRadius: BorderRadius.circular(
+                        AppSpacing.radiusPill,
+                      ),
                     ),
                     child: const Text(
                       'READY TO BROADCAST',
@@ -99,14 +93,14 @@ class ReviewSubmitStep extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Icon(Icons.verified_rounded, color: AppColors.accent, size: 20),
+                  Icon(Icons.verified_rounded, color: cs.secondary, size: 20),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 '${state.selectedBrand ?? ""} ${state.selectedModel ?? ""}',
-                style: TextStyle(
-                  color: isDark ? Colors.white : AppColors.textPrimary,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -115,47 +109,39 @@ class ReviewSubmitStep extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Variant: ${state.selectedVariant}',
-                  style: const TextStyle(
-                    color: AppColors.accent,
+                  style: TextStyle(
+                    color: cs.secondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
               const SizedBox(height: AppSpacing.md),
-              Divider(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : AppColors.border,
-              ),
+              Divider(color: Colors.white.withValues(alpha: 0.15)),
               const SizedBox(height: AppSpacing.sm),
 
               _buildSummaryRow(
                 'Budget Range',
                 '₹${(state.minBudget / 100000).toStringAsFixed(1)} - ${(state.maxBudget / 100000).toStringAsFixed(1)} Lakh',
                 Icons.account_balance_wallet_outlined,
-                isDark,
               ),
               const SizedBox(height: 10),
               _buildSummaryRow(
                 'Year Model',
                 '${state.minYear} - ${state.maxYear}',
                 Icons.calendar_today_outlined,
-                isDark,
               ),
               const SizedBox(height: 10),
               _buildSummaryRow(
                 'Fuel & Transmission',
                 '${state.fuelType} • ${state.transmission}',
                 Icons.local_gas_station_outlined,
-                isDark,
               ),
               const SizedBox(height: 10),
               _buildSummaryRow(
                 'Preferred City',
                 state.preferredCity,
                 Icons.location_on_outlined,
-                isDark,
               ),
             ],
           ),
@@ -166,11 +152,9 @@ class ReviewSubmitStep extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E2329) : Colors.white,
+            color: colors.cardBg,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.border,
-            ),
+            border: Border.all(color: colors.cardBorder),
             boxShadow: [
               if (!isDark)
                 BoxShadow(
@@ -185,10 +169,14 @@ class ReviewSubmitStep extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.15),
+                  color: colors.statusSuccessBg,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.shield_outlined, color: AppColors.success, size: 20),
+                child: Icon(
+                  Icons.shield_outlined,
+                  color: colors.statusSuccessFg,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -198,7 +186,7 @@ class ReviewSubmitStep extends StatelessWidget {
                     Text(
                       'Zero spam, 100% verified dealers only',
                       style: TextStyle(
-                        color: isDark ? Colors.white : AppColors.textPrimary,
+                        color: cs.onSurface,
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
@@ -206,7 +194,10 @@ class ReviewSubmitStep extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Only certified dealers who have matching stock will be permitted to quote.',
-                      style: TextStyle(color: subtitleColor, fontSize: 11),
+                      style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -223,7 +214,7 @@ class ReviewSubmitStep extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onSubmit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
+              backgroundColor: cs.secondary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -247,24 +238,25 @@ class ReviewSubmitStep extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryRow(String title, String value, IconData icon, bool isDark) {
-    final labelColor = isDark ? Colors.grey[400] : AppColors.textSecondary;
-    final valueColor = isDark ? Colors.white : AppColors.textPrimary;
-
+  Widget _buildSummaryRow(
+    String title,
+    String value,
+    IconData icon,
+  ) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: labelColor),
+        Icon(icon, size: 16, color: Colors.white70),
         const SizedBox(width: 8),
         Text(
           '$title:',
-          style: TextStyle(color: labelColor, fontSize: 13),
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(
-              color: valueColor,
+            style: const TextStyle(
+              color: Colors.white,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),

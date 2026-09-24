@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
+import '../../../../shared/widgets/theme_toggle_button.dart';
 import '../../domain/entities/buy_requirement.dart';
 import '../providers/car_selection_provider.dart';
 import '../providers/customer_providers.dart';
@@ -47,39 +47,33 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(carSelectionProvider);
     final notifier = ref.read(carSelectionProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final scaffoldBg = isDark ? const Color(0xFF131518) : AppColors.background;
-    final appBarBg = isDark ? const Color(0xFF131518) : Colors.white;
-    final backBtnBg = isDark ? const Color(0xFF22262C) : const Color(0xFFF1F5F9);
-    final backIconColor = isDark ? Colors.white : AppColors.primary;
-    final appBarTextColor = isDark ? Colors.white : AppColors.textPrimary;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
 
     return Scaffold(
-      backgroundColor: scaffoldBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: appBarBg,
+        backgroundColor: cs.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Divider(
             height: 1,
-            color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.border,
+            color: cs.outline,
           ),
         ),
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color: backBtnBg,
+              color: colors.iconBg,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.border,
-              ),
+              border: Border.all(color: cs.outline),
             ),
             child: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, size: 15, color: backIconColor),
+              icon: Icon(Icons.arrow_back_ios_new, size: 15, color: cs.onSurface),
               onPressed: () {
                 if (state.currentStep == BuyWizardStep.brand) {
                   context.pop();
@@ -99,7 +93,7 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
         title: Text(
           _getAppBarTitle(state.currentStep),
           style: TextStyle(
-            color: appBarTextColor,
+            color: cs.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.2,
@@ -107,24 +101,13 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
         ),
         centerTitle: false,
         actions: [
-          // Theme Toggle Icon
-          IconButton(
-            tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-            icon: Icon(
-              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-              color: isDark ? Colors.amber : AppColors.textSecondary,
-              size: 20,
-            ),
-            onPressed: () {
-              ref.read(themeModeProvider.notifier).toggleTheme();
-            },
-          ),
+          const ThemeToggleButton(),
           TextButton(
             onPressed: () => context.pop(),
             child: Text(
               'Cancel',
               style: TextStyle(
-                color: isDark ? Colors.grey[400] : AppColors.textSecondary,
+                color: cs.onSurfaceVariant,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -133,7 +116,8 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Center(
+      body: Align(
+        alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 680),
           child: SingleChildScrollView(
@@ -146,11 +130,12 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Progress Indicator
-                _buildProgressIndicator(state.currentStep, isDark),
+                _buildProgressIndicator(state.currentStep, cs, colors),
                 const SizedBox(height: AppSpacing.lg),
 
                 // 2. Animated locked-in summary chips at the top
-                if (state.selectedBrand != null)
+                if (state.selectedBrand != null &&
+                    state.currentStep.index >= BuyWizardStep.model.index)
                   SelectedSummaryChip(
                     label: 'Brand',
                     value: state.selectedBrand!,
@@ -229,11 +214,13 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
     }
   }
 
-  Widget _buildProgressIndicator(BuyWizardStep currentStep, bool isDark) {
+  Widget _buildProgressIndicator(
+    BuyWizardStep currentStep,
+    ColorScheme cs,
+    RevoraThemeColors colors,
+  ) {
     const steps = BuyWizardStep.values;
     final progress = (currentStep.index + 1) / steps.length;
-    final progressBg = isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE2E8F0);
-    final textColor = isDark ? Colors.grey[400] : AppColors.textSecondary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,8 +230,8 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
           children: [
             Text(
               'STEP ${currentStep.index + 1} OF ${steps.length}',
-              style: const TextStyle(
-                color: AppColors.accent,
+              style: TextStyle(
+                color: cs.secondary,
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.0,
@@ -253,7 +240,7 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
             Text(
               '${(progress * 100).toInt()}% completed',
               style: TextStyle(
-                color: textColor,
+                color: cs.onSurfaceVariant,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
@@ -265,8 +252,8 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
           borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
           child: LinearProgressIndicator(
             value: progress,
-            backgroundColor: progressBg,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
+            backgroundColor: colors.progressBg,
+            valueColor: AlwaysStoppedAnimation<Color>(cs.secondary),
             minHeight: 4,
           ),
         ),
@@ -364,7 +351,6 @@ class _BuyCarFlowScreenState extends ConsumerState<BuyCarFlowScreen> {
                   content: Text(
                     'Requirement for ${newReq.make} ${newReq.model} posted to dealers!',
                   ),
-                  backgroundColor: AppColors.success,
                   behavior: SnackBarBehavior.floating,
                 ),
               );

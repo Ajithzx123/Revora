@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 
 class KpiTile extends StatelessWidget {
   final String title;
@@ -26,8 +26,16 @@ class KpiTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveIconColor = iconColor ?? AppColors.accent;
-    final effectiveIconBg = iconBgColor ?? AppColors.accentLight;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+
+    final effectiveIconColor = iconColor ?? cs.secondary;
+    final effectiveIconBg = iconBgColor ?? colors.accentSubtle;
+
+    final isPositive = isPositiveTrend ?? true;
+    final trendBg = isPositive ? colors.statusSuccessBg : colors.statusErrorBg;
+    final trendFg = isPositive ? colors.statusSuccessFg : colors.statusErrorFg;
 
     return InkWell(
       onTap: onTap,
@@ -35,12 +43,14 @@ class KpiTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.cardBg,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.border, width: 0.8),
+          border: Border.all(color: colors.cardBorder, width: 0.8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(
+                alpha: theme.brightness == Brightness.dark ? 0.2 : 0.03,
+              ),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -68,9 +78,7 @@ class KpiTile extends StatelessWidget {
                       vertical: AppSpacing.xxs,
                     ),
                     decoration: BoxDecoration(
-                      color: (isPositiveTrend ?? true)
-                          ? AppColors.successBg
-                          : AppColors.errorBg,
+                      color: trendBg,
                       borderRadius: BorderRadius.circular(
                         AppSpacing.radiusPill,
                       ),
@@ -79,13 +87,9 @@ class KpiTile extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          (isPositiveTrend ?? true)
-                              ? Icons.trending_up
-                              : Icons.trending_down,
+                          isPositive ? Icons.trending_up : Icons.trending_down,
                           size: 12,
-                          color: (isPositiveTrend ?? true)
-                              ? AppColors.success
-                              : AppColors.error,
+                          color: trendFg,
                         ),
                         const SizedBox(width: 2),
                         Text(
@@ -93,9 +97,7 @@ class KpiTile extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: (isPositiveTrend ?? true)
-                                ? AppColors.success
-                                : AppColors.error,
+                            color: trendFg,
                           ),
                         ),
                       ],
@@ -109,20 +111,20 @@ class KpiTile extends StatelessWidget {
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: cs.onSurface,
                     letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                    color: cs.onSurfaceVariant,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

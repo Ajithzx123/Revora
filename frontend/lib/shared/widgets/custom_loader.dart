@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 
 class CustomLoader extends StatelessWidget {
   final bool isFullScreen;
@@ -11,8 +10,9 @@ class CustomLoader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spinner = const CircularProgressIndicator(
-      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+    final cs = Theme.of(context).colorScheme;
+    final spinner = CircularProgressIndicator(
+      valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
     );
 
     if (isFullScreen) {

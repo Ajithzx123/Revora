@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/revora_theme_colors.dart';
 
 /// Universal car display card matching modern aesthetic:
 /// - Pill badge (e.g., "Sale", "96% Match", "Active")
@@ -74,28 +74,34 @@ class _CarCardState extends State<CarCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.cardBg,
             borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
             border: Border.all(
-              color: _isHovered
-                  ? AppColors.textPrimary.withValues(alpha: 0.22)
-                  : const Color(0xFFE2E8F0),
+              color: _isHovered ? colors.cardHoverBorder : colors.cardBorder,
               width: 1.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: _isHovered
-                    ? Colors.black.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withValues(
+                  alpha: theme.brightness == Brightness.dark
+                      ? (_isHovered ? 0.3 : 0.15)
+                      : (_isHovered ? 0.08 : 0.03),
+                ),
                 blurRadius: _isHovered ? 14 : 6,
                 offset: Offset(0, _isHovered ? 5 : 2),
               ),
@@ -110,23 +116,25 @@ class _CarCardState extends State<CarCard> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (widget.badgeText != null && widget.badgeText!.isNotEmpty)
+                    if (widget.badgeText != null &&
+                        widget.badgeText!.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.md,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: widget.badgeBgColor ?? const Color(0xFFF1F5F9),
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusPill),
+                          color: widget.badgeBgColor ?? colors.subtleBg,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusPill,
+                          ),
                         ),
                         child: Text(
                           widget.badgeText!,
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
-                            color: widget.badgeTextColor ?? AppColors.textPrimary,
+                            color: widget.badgeTextColor ?? cs.onSurface,
                           ),
                         ),
                       )
@@ -140,23 +148,30 @@ class _CarCardState extends State<CarCard> {
                             setState(() => _liked = !_liked);
                             widget.onFavoriteChanged?.call(_liked);
                           },
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusPill),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusPill,
+                          ),
                           child: Container(
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
                               color: _liked
-                                  ? const Color(0xFFFFECEE)
-                                  : const Color(0xFFF1F5F9),
+                                  ? colors.heartLikedBg
+                                  : colors.heartUnlikedBg,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: _liked
+                                    ? colors.heartLikedFg.withValues(alpha: 0.3)
+                                    : colors.heartUnlikedBorder,
+                                width: 0.8,
+                              ),
                             ),
                             child: Icon(
                               _liked ? Icons.favorite : Icons.favorite_border,
                               size: 17,
                               color: _liked
-                                  ? const Color(0xFFEF4444)
-                                  : AppColors.textSecondary,
+                                  ? colors.heartLikedFg
+                                  : colors.heartUnlikedFg,
                             ),
                           ),
                         ),
@@ -179,25 +194,33 @@ class _CarCardState extends State<CarCard> {
                               width: double.infinity,
                               height: widget.imageHeight,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) =>
-                                  _buildImagePlaceholder(height: widget.imageHeight),
+                              errorBuilder: (_, _, _) => _buildImagePlaceholder(
+                                height: widget.imageHeight,
+                                colors: colors,
+                              ),
                             )
-                          : _buildImagePlaceholder(height: widget.imageHeight),
+                          : _buildImagePlaceholder(
+                              height: widget.imageHeight,
+                              colors: colors,
+                            ),
                     ),
                   )
                 else
                   Expanded(
                     child: Center(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
                         child: widget.imageUrl.isNotEmpty
                             ? Image.network(
                                 widget.imageUrl,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => _buildImagePlaceholder(),
+                                errorBuilder: (_, _, _) =>
+                                    _buildImagePlaceholder(colors: colors),
                               )
-                            : _buildImagePlaceholder(),
+                            : _buildImagePlaceholder(colors: colors),
                       ),
                     ),
                   ),
@@ -214,10 +237,10 @@ class _CarCardState extends State<CarCard> {
                         children: [
                           Text(
                             widget.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
+                              color: cs.onSurface,
                               letterSpacing: -0.3,
                             ),
                             maxLines: 1,
@@ -228,19 +251,19 @@ class _CarCardState extends State<CarCard> {
                               widget.location!.isNotEmpty)
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.location_on_outlined,
                                   size: 13,
-                                  color: AppColors.textSecondary,
+                                  color: cs.onSurfaceVariant,
                                 ),
                                 const SizedBox(width: 2),
                                 Expanded(
                                   child: Text(
                                     widget.location!,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
-                                      color: AppColors.textSecondary,
+                                      color: cs.onSurfaceVariant,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -251,9 +274,9 @@ class _CarCardState extends State<CarCard> {
                           else if (widget.subtitle != null)
                             Text(
                               widget.subtitle!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color: cs.onSurfaceVariant,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -267,19 +290,19 @@ class _CarCardState extends State<CarCard> {
                       children: [
                         Text(
                           widget.priceLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textMuted,
+                            color: colors.textMuted,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           widget.priceText,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                            color: cs.onSurface,
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -294,7 +317,9 @@ class _CarCardState extends State<CarCard> {
                   Wrap(
                     spacing: 6,
                     runSpacing: 4,
-                    children: widget.specs.map((s) => _buildSpecPill(s)).toList(),
+                    children: widget.specs
+                        .map((s) => _buildSpecPill(s, cs, colors))
+                        .toList(),
                   ),
                 ],
 
@@ -322,23 +347,23 @@ class _CarCardState extends State<CarCard> {
     );
   }
 
-  Widget _buildSpecPill(CarSpecItem item) {
+  Widget _buildSpecPill(
+    CarSpecItem item,
+    ColorScheme cs,
+    RevoraThemeColors colors,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: colors.chipBg,
         borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+        border: Border.all(color: colors.chipBorder, width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (item.icon != null) ...[
-            Icon(
-              item.icon,
-              size: 11,
-              color: item.color ?? AppColors.textSecondary,
-            ),
+            Icon(item.icon, size: 11, color: item.color ?? cs.onSurfaceVariant),
             const SizedBox(width: 4),
           ],
           Text(
@@ -346,7 +371,7 @@ class _CarCardState extends State<CarCard> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: item.color ?? AppColors.textPrimary,
+              color: item.color ?? cs.onSurface,
             ),
           ),
         ],
@@ -354,16 +379,19 @@ class _CarCardState extends State<CarCard> {
     );
   }
 
-  Widget _buildImagePlaceholder({double? height}) {
+  Widget _buildImagePlaceholder({
+    double? height,
+    required RevoraThemeColors colors,
+  }) {
     return Container(
       width: double.infinity,
       height: height,
-      color: const Color(0xFFF8FAFC),
+      color: colors.placeholderBg,
       child: Center(
         child: Icon(
           Icons.directions_car_filled_outlined,
           size: height != null ? (height * 0.45).clamp(24.0, 56.0) : 56,
-          color: const Color(0xFF94A3B8),
+          color: colors.placeholderIcon,
         ),
       ),
     );
@@ -375,9 +403,5 @@ class CarSpecItem {
   final IconData? icon;
   final Color? color;
 
-  const CarSpecItem({
-    required this.label,
-    this.icon,
-    this.color,
-  });
+  const CarSpecItem({required this.label, this.icon, this.color});
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/revora_theme_colors.dart';
 import '../../../../data/mock/car_catalogue.dart';
 
 class VariantSelectionStep extends StatelessWidget {
@@ -17,7 +17,11 @@ class VariantSelectionStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+    final isDark = theme.brightness == Brightness.dark;
+
     final models = CarCatalogue.getModelsForBrand(brand);
     final modelInfo = models.firstWhere(
       (m) => m.name.toLowerCase() == model.toLowerCase(),
@@ -29,9 +33,6 @@ class VariantSelectionStep extends StatelessWidget {
       ),
     );
 
-    final titleColor = isDark ? Colors.white : AppColors.textPrimary;
-    final subtitleColor = isDark ? Colors.grey[400] : AppColors.textSecondary;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -42,7 +43,7 @@ class VariantSelectionStep extends StatelessWidget {
               child: Text(
                 'Select $model Trim / Variant',
                 style: TextStyle(
-                  color: titleColor,
+                  color: cs.onSurface,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -52,13 +53,13 @@ class VariantSelectionStep extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.12),
+                color: colors.accentSubtle,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
               ),
               child: Text(
                 '${modelInfo.variants.length} Available',
-                style: const TextStyle(
-                  color: AppColors.accent,
+                style: TextStyle(
+                  color: cs.secondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -69,12 +70,13 @@ class VariantSelectionStep extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Pick the exact trim or variant configuration you want quotes for',
-          style: TextStyle(color: subtitleColor, fontSize: 13),
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
         ),
         const SizedBox(height: AppSpacing.lg),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
           itemCount: modelInfo.variants.length,
           separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
@@ -82,26 +84,25 @@ class VariantSelectionStep extends StatelessWidget {
             final isTop = index == modelInfo.variants.length - 1;
             final isPopular = index == 1 || index == 2;
 
-            final cardBg = isDark ? const Color(0xFF1F2329) : Colors.white;
             final borderColor = isTop
-                ? AppColors.accent.withValues(alpha: 0.4)
-                : (isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.border);
+                ? cs.secondary.withValues(alpha: 0.4)
+                : colors.cardBorder;
 
             final iconBoxBg = isTop
-                ? AppColors.accent.withValues(alpha: 0.15)
-                : (isDark ? const Color(0xFF2B313A) : const Color(0xFFF1F5F9));
+                ? colors.accentSubtle
+                : colors.iconBg;
 
             return Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => onVariantSelected(variantName),
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                splashColor: AppColors.accent.withValues(alpha: 0.12),
-                highlightColor: AppColors.accent.withValues(alpha: 0.06),
+                splashColor: cs.secondary.withValues(alpha: 0.12),
+                highlightColor: cs.secondary.withValues(alpha: 0.06),
                 child: Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: cardBg,
+                    color: colors.cardBg,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     border: Border.all(color: borderColor),
                     boxShadow: [
@@ -124,9 +125,7 @@ class VariantSelectionStep extends StatelessWidget {
                         ),
                         child: Icon(
                           isTop ? Icons.star_rounded : Icons.tune_rounded,
-                          color: isTop
-                              ? AppColors.accent
-                              : (isDark ? Colors.grey[400] : AppColors.primary),
+                          color: isTop ? cs.secondary : cs.primary,
                           size: 20,
                         ),
                       ),
@@ -141,7 +140,7 @@ class VariantSelectionStep extends StatelessWidget {
                                   child: Text(
                                     variantName,
                                     style: TextStyle(
-                                      color: titleColor,
+                                      color: cs.onSurface,
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -156,7 +155,7 @@ class VariantSelectionStep extends StatelessWidget {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.accent,
+                                      color: cs.secondary,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: const Text(
@@ -176,13 +175,13 @@ class VariantSelectionStep extends StatelessWidget {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.withValues(alpha: 0.15),
+                                      color: colors.statusInfoBg,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'POPULAR',
                                       style: TextStyle(
-                                        color: Color(0xFF0284C7),
+                                        color: colors.statusInfoFg,
                                         fontSize: 9,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -195,7 +194,7 @@ class VariantSelectionStep extends StatelessWidget {
                             Text(
                               'Standard key features & engine options available',
                               style: TextStyle(
-                                color: subtitleColor,
+                                color: cs.onSurfaceVariant,
                                 fontSize: 12,
                               ),
                             ),
@@ -203,9 +202,9 @@ class VariantSelectionStep extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.check_circle_outline,
-                        color: AppColors.accent,
+                        color: cs.secondary,
                         size: 20,
                       ),
                     ],

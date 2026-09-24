@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/dealer_match_card.dart';
 import '../providers/customer_providers.dart';
@@ -19,9 +19,10 @@ class CustomerHomeScreen extends ConsumerWidget {
     final requirements = ref.watch(customerRequirementsProvider);
     final allQuotes = ref.watch(allCustomerQuotesProvider);
     final topDealers = ref.watch(topDealersProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Center(
@@ -43,15 +44,15 @@ class CustomerHomeScreen extends ConsumerWidget {
                   },
                 ),
                 if (sellPosts.isEmpty)
-                  _buildEmptyCard('No cars listed for sale yet')
+                  _buildEmptyCard(context, 'No cars listed for sale yet')
                 else
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final double itemWidth = constraints.maxWidth > 900
                           ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
                           : constraints.maxWidth > 600
-                              ? (constraints.maxWidth - AppSpacing.md) / 2
-                              : constraints.maxWidth * 0.82;
+                          ? (constraints.maxWidth - AppSpacing.md) / 2
+                          : constraints.maxWidth * 0.82;
 
                       return SizedBox(
                         height: 345,
@@ -86,15 +87,15 @@ class CustomerHomeScreen extends ConsumerWidget {
                   },
                 ),
                 if (requirements.isEmpty)
-                  _buildEmptyCard('No active requirements yet')
+                  _buildEmptyCard(context, 'No active requirements yet')
                 else
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final double itemWidth = constraints.maxWidth > 900
                           ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
                           : constraints.maxWidth > 600
-                              ? (constraints.maxWidth - AppSpacing.md) / 2
-                              : constraints.maxWidth * 0.82;
+                          ? (constraints.maxWidth - AppSpacing.md) / 2
+                          : constraints.maxWidth * 0.82;
 
                       return SizedBox(
                         height: 226,
@@ -112,7 +113,11 @@ class CustomerHomeScreen extends ConsumerWidget {
                                 requirement: req,
                                 imageHeight: 44,
                                 onViewQuotes: () {
-                                  ref.read(customerActiveTabProvider.notifier).state =
+                                  ref
+                                          .read(
+                                            customerActiveTabProvider.notifier,
+                                          )
+                                          .state =
                                       1;
                                 },
                               ),
@@ -137,8 +142,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                     final double itemWidth = constraints.maxWidth > 900
                         ? (constraints.maxWidth - (2 * AppSpacing.md)) / 3
                         : constraints.maxWidth > 600
-                            ? (constraints.maxWidth - AppSpacing.md) / 2
-                            : constraints.maxWidth * 0.82;
+                        ? (constraints.maxWidth - AppSpacing.md) / 2
+                        : constraints.maxWidth * 0.82;
 
                     return SizedBox(
                       height: 345,
@@ -154,7 +159,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                             child: CustomerQuoteCard(
                               quote: allQuotes[index],
                               isHomeScreen: true,
-                              imageHeight: 110,
+                              imageHeight: 105,
                               onContact: () => context.push('/chat'),
                               onAccept: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -162,7 +167,6 @@ class CustomerHomeScreen extends ConsumerWidget {
                                     content: Text(
                                       'Quote accepted! Dealer notified.',
                                     ),
-                                    backgroundColor: AppColors.success,
                                   ),
                                 );
                               },
@@ -176,9 +180,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.xxl),
 
                 // 5. Verified Network Dealers
-                const SectionHeader(
-                  title: 'Top Verified Dealers',
-                ),
+                const SectionHeader(title: 'Top Verified Dealers'),
                 SizedBox(
                   height: 180,
                   child: ListView.separated(
@@ -206,13 +208,15 @@ class CustomerHomeScreen extends ConsumerWidget {
   }
 
   Widget _buildTopSection(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'What can we help you with today?',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: cs.onSurface,
             fontSize: 22,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.4,
@@ -235,7 +239,7 @@ class CustomerHomeScreen extends ConsumerWidget {
               emoji: '💰',
               title: 'Sell My Car',
               subtitle: 'Get offers from verified dealers',
-              accentColor: AppColors.accent,
+              accentColor: cs.secondary,
               onTap: () => context.push('/sell-car'),
             );
 
@@ -262,19 +266,19 @@ class CustomerHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyCard(String message) {
+  Widget _buildEmptyCard(BuildContext context, String message) {
+    final colors = context.revoraColors;
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.cardBg,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.border, width: 0.8),
+        border: Border.all(color: colors.cardBorder, width: 0.8),
       ),
       child: Center(
-        child: Text(
-          message,
-          style: const TextStyle(color: AppColors.textSecondary),
-        ),
+        child: Text(message, style: TextStyle(color: cs.onSurfaceVariant)),
       ),
     );
   }
@@ -304,6 +308,10 @@ class _CompactActionCardState extends State<_CompactActionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -317,19 +325,19 @@ class _CompactActionCardState extends State<_CompactActionCard> {
             vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.cardBg,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             border: Border.all(
-              color: _isHovered
-                  ? widget.accentColor
-                  : AppColors.border,
+              color: _isHovered ? widget.accentColor : colors.cardBorder,
               width: _isHovered ? 1.5 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: _isHovered
                     ? widget.accentColor.withValues(alpha: 0.12)
-                    : Colors.black.withValues(alpha: 0.03),
+                    : Colors.black.withValues(
+                        alpha: theme.brightness == Brightness.dark ? 0.2 : 0.03,
+                      ),
                 blurRadius: _isHovered ? 10 : 4,
                 offset: const Offset(0, 2),
               ),
@@ -359,19 +367,19 @@ class _CompactActionCardState extends State<_CompactActionCard> {
                   children: [
                     Text(
                       widget.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: cs.onSurface,
                         letterSpacing: -0.2,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       widget.subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
-                        color: AppColors.textSecondary,
+                        color: cs.onSurfaceVariant,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -403,4 +411,3 @@ class _CompactActionCardState extends State<_CompactActionCard> {
     );
   }
 }
-

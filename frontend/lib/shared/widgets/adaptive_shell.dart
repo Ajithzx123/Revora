@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 import 'app_sidebar.dart';
 import 'responsive_layout.dart';
+import 'theme_toggle_button.dart';
 
 class AdaptiveShell extends StatelessWidget {
   final String title;
@@ -28,12 +29,16 @@ class AdaptiveShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+
     return ResponsiveLayout(
       // 1. Mobile (<600px): BottomNavigationBar
       mobile: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: cs.surface,
           elevation: 0,
           scrolledUnderElevation: 1,
           title: Row(
@@ -42,7 +47,7 @@ class AdaptiveShell extends StatelessWidget {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: cs.secondary,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                 ),
                 child: const Center(
@@ -59,8 +64,8 @@ class AdaptiveShell extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 title,
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: cs.onSurface,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.3,
@@ -68,17 +73,18 @@ class AdaptiveShell extends StatelessWidget {
               ),
             ],
           ),
-          actions: desktopHeaderTrailing != null
-              ? [desktopHeaderTrailing!]
-              : null,
+          actions: [
+            const ThemeToggleButton(),
+            ?desktopHeaderTrailing,
+          ],
         ),
         body: body,
         floatingActionButton: floatingActionButton,
         bottomNavigationBar: NavigationBar(
           selectedIndex: selectedIndex,
           onDestinationSelected: onItemSelected,
-          backgroundColor: AppColors.surface,
-          indicatorColor: AppColors.accent.withValues(alpha: 0.15),
+          backgroundColor: cs.surface,
+          indicatorColor: cs.secondary.withValues(alpha: 0.15),
           destinations: items.map((item) {
             return NavigationDestination(
               icon: item.badgeCount != null && item.badgeCount! > 0
@@ -89,7 +95,7 @@ class AdaptiveShell extends StatelessWidget {
                   : Icon(item.icon),
               selectedIcon: Icon(
                 item.selectedIcon ?? item.icon,
-                color: AppColors.accent,
+                color: cs.secondary,
               ),
               label: item.label,
             );
@@ -99,24 +105,24 @@ class AdaptiveShell extends StatelessWidget {
 
       // 2. Tablet (600-1199px): NavigationRail
       tablet: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Row(
           children: [
             NavigationRail(
               selectedIndex: selectedIndex,
               onDestinationSelected: onItemSelected,
-              backgroundColor: AppColors.primary,
-              selectedIconTheme: const IconThemeData(color: AppColors.accent),
-              unselectedIconTheme: const IconThemeData(
-                color: Color(0xFF94A3B8),
+              backgroundColor: colors.sidebarBg,
+              selectedIconTheme: IconThemeData(color: cs.secondary),
+              unselectedIconTheme: IconThemeData(
+                color: colors.sidebarTextMuted,
               ),
-              selectedLabelTextStyle: const TextStyle(
-                color: AppColors.accent,
+              selectedLabelTextStyle: TextStyle(
+                color: cs.secondary,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),
-              unselectedLabelTextStyle: const TextStyle(
-                color: Color(0xFF94A3B8),
+              unselectedLabelTextStyle: TextStyle(
+                color: colors.sidebarTextMuted,
                 fontSize: 12,
               ),
               leading: Padding(
@@ -125,7 +131,7 @@ class AdaptiveShell extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.accent,
+                    color: cs.secondary,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   ),
                   child: const Center(
@@ -153,26 +159,31 @@ class AdaptiveShell extends StatelessWidget {
                 );
               }).toList(),
             ),
-            const VerticalDivider(
+            VerticalDivider(
               thickness: 1,
               width: 1,
-              color: Color(0xFF1E293B),
+              color: colors.sidebarBorder,
             ),
             Expanded(
               child: Column(
                 children: [
-                  if (desktopHeaderTrailing != null)
-                    Container(
-                      height: 56,
-                      color: AppColors.surface,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.lg,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [desktopHeaderTrailing!],
-                      ),
+                  Container(
+                    height: 56,
+                    color: cs.surface,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
                     ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const ThemeToggleButton(),
+                        if (desktopHeaderTrailing != null) ...[
+                          const SizedBox(width: AppSpacing.sm),
+                          desktopHeaderTrailing!,
+                        ],
+                      ],
+                    ),
+                  ),
                   Expanded(child: body),
                 ],
               ),
@@ -184,7 +195,7 @@ class AdaptiveShell extends StatelessWidget {
 
       // 3. Desktop (>=1200px): Full AppSidebar
       desktop: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Row(
           children: [
             AppSidebar(
@@ -199,7 +210,7 @@ class AdaptiveShell extends StatelessWidget {
                 children: [
                   Container(
                     height: 64,
-                    color: AppColors.surface,
+                    color: cs.surface,
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.xxl,
                     ),
@@ -208,18 +219,27 @@ class AdaptiveShell extends StatelessWidget {
                       children: [
                         Text(
                           items[selectedIndex].label,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: cs.onSurface,
                             letterSpacing: -0.3,
                           ),
                         ),
-                        ?desktopHeaderTrailing,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const ThemeToggleButton(),
+                            if (desktopHeaderTrailing != null) ...[
+                              const SizedBox(width: AppSpacing.md),
+                              desktopHeaderTrailing!,
+                            ],
+                          ],
+                        ),
                       ],
                     ),
                   ),
-                  const Divider(height: 1, color: AppColors.border),
+                  Divider(height: 1, color: cs.outline),
                   Expanded(child: body),
                 ],
               ),

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 import '../../domain/models/user_model.dart';
 import '../controllers/auth_controller.dart';
 
@@ -44,7 +43,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
 
     if (success && mounted) {
-      _navigateByRole(_selectedRole);
+      final user = ref.read(authControllerProvider).user;
+      if (user != null) {
+        _navigateByRole(user.role);
+      }
     }
   }
 
@@ -65,18 +67,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
     final size = MediaQuery.of(context).size;
     final isWide = size.width > 800;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/login'),
-        ),
-        title: const Text('Create Account'),
-      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -90,26 +87,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   children: [
                     Text(
                       'Join the Revora Network',
-                      style: (isDark
-                              ? AppTextStyles.headlineMediumDark
-                              : AppTextStyles.headlineMedium)
-                          .copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Buy, sell, and deal verified vehicles seamlessly',
-                      style: isDark
-                          ? AppTextStyles.bodyMediumDark
-                          : AppTextStyles.bodyMedium,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 24),
 
                     // Role selector segment
                     Text(
                       'I want to register as a:',
-                      style: isDark
-                          ? AppTextStyles.labelMediumDark
-                          : AppTextStyles.labelMedium,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     SegmentedButton<UserRole>(
@@ -137,9 +133,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     // Full Name Field
                     Text(
                       'Full Name',
-                      style: isDark
-                          ? AppTextStyles.labelMediumDark
-                          : AppTextStyles.labelMedium,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -161,9 +157,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     // Email Field
                     Text(
                       'Email Address',
-                      style: isDark
-                          ? AppTextStyles.labelMediumDark
-                          : AppTextStyles.labelMedium,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -189,9 +185,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     // Password Field
                     Text(
                       'Password',
-                      style: isDark
-                          ? AppTextStyles.labelMediumDark
-                          : AppTextStyles.labelMedium,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -234,14 +230,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.errorBg,
+                          color: colors.statusErrorBg,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.error),
+                          border: Border.all(color: colors.statusErrorFg),
                         ),
                         child: Text(
                           authState.errorMessage!,
-                          style: AppTextStyles.bodySmall
-                              .copyWith(color: AppColors.error),
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: colors.statusErrorFg),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -252,19 +248,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onPressed: authState.isLoading ? null : _onRegister,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: authState.isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: cs.onPrimary,
                               ),
                             )
                           : const Text(
@@ -283,16 +279,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       children: [
                         Text(
                           'Already have an account?',
-                          style: isDark
-                              ? AppTextStyles.bodySmallDark
-                              : AppTextStyles.bodySmall,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                         TextButton(
                           onPressed: () => context.go('/login'),
                           child: Text(
                             'Sign In',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.accent,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: cs.secondary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

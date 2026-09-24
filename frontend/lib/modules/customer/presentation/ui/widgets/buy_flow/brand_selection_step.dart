@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/revora_theme_colors.dart';
 import '../../../../data/mock/car_catalogue.dart';
 
 class BrandSelectionStep extends StatefulWidget {
@@ -27,7 +27,10 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+    final isDark = theme.brightness == Brightness.dark;
 
     final popularBrands = CarCatalogue.brands
         .where((b) => b.isPopular)
@@ -46,21 +49,15 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
     }
     final sortedKeys = grouped.keys.toList()..sort();
 
-    final searchBg = isDark ? const Color(0xFF24272C) : Colors.white;
-    final searchBorder = isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.border;
-    final textColor = isDark ? Colors.white : AppColors.textPrimary;
-    final hintColor = isDark ? Colors.grey[400] : AppColors.textMuted;
-    final sectionHeaderColor = isDark ? Colors.grey[400] : AppColors.textSecondary;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Search Input
         Container(
           decoration: BoxDecoration(
-            color: searchBg,
+            color: colors.searchBg,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: searchBorder),
+            border: Border.all(color: colors.searchBorder),
             boxShadow: [
               if (!isDark)
                 BoxShadow(
@@ -72,22 +69,22 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
           ),
           child: TextField(
             controller: _searchController,
-            style: TextStyle(color: textColor, fontSize: 15),
+            style: TextStyle(color: cs.onSurface, fontSize: 15),
             onChanged: (val) => setState(() => _query = val.trim()),
             decoration: InputDecoration(
               hintText: 'Search brands (e.g. Toyota, BMW, Hyundai)',
               hintStyle: TextStyle(
-                color: hintColor,
+                color: colors.textMuted,
                 fontSize: 14,
               ),
               prefixIcon: Icon(
                 Icons.search,
-                color: hintColor,
+                color: colors.textMuted,
                 size: 20,
               ),
               suffixIcon: _query.isNotEmpty
                   ? IconButton(
-                      icon: Icon(Icons.clear, color: hintColor, size: 18),
+                      icon: Icon(Icons.clear, color: colors.textMuted, size: 18),
                       onPressed: () {
                         _searchController.clear();
                         setState(() => _query = '');
@@ -111,7 +108,7 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
               Text(
                 'Popular Brands',
                 style: TextStyle(
-                  color: sectionHeaderColor,
+                  color: cs.onSurfaceVariant,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
@@ -121,13 +118,13 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.12),
+                  color: colors.accentSubtle,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Text(
+                child: Text(
                   'Top Picks',
                   style: TextStyle(
-                    color: AppColors.accent,
+                    color: cs.secondary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -148,7 +145,7 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
             ),
             itemBuilder: (context, index) {
               final brand = popularBrands[index];
-              return _buildPopularBrandCard(brand, isDark);
+              return _buildPopularBrandCard(brand, cs, colors, isDark);
             },
           ),
           const SizedBox(height: AppSpacing.xxl),
@@ -158,7 +155,7 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
         Text(
           'All Brands (A - Z)',
           style: TextStyle(
-            color: sectionHeaderColor,
+            color: cs.onSurfaceVariant,
             fontSize: 14,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
@@ -172,20 +169,13 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
               padding: const EdgeInsets.all(AppSpacing.xl),
               child: Text(
                 'No brand found for "$_query"',
-                style: TextStyle(color: hintColor, fontSize: 14),
+                style: TextStyle(color: colors.textMuted, fontSize: 14),
               ),
             ),
           )
         else
           ...sortedKeys.map((letter) {
             final list = grouped[letter]!;
-            final containerBg = isDark ? const Color(0xFF1E2126) : Colors.white;
-            final containerBorder = isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : AppColors.border;
-            final dividerColor = isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : AppColors.borderLight;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +185,7 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
                   child: Text(
                     letter,
                     style: TextStyle(
-                      color: textColor,
+                      color: cs.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -203,9 +193,9 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: containerBg,
+                    color: colors.cardBg,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    border: Border.all(color: containerBorder),
+                    border: Border.all(color: colors.cardBorder),
                     boxShadow: [
                       if (!isDark)
                         BoxShadow(
@@ -222,7 +212,7 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
                     separatorBuilder: (_, _) => Divider(
                       height: 1,
                       thickness: 0.8,
-                      color: dividerColor,
+                      color: colors.divider,
                     ),
                     itemBuilder: (context, idx) {
                       final b = list[idx];
@@ -242,13 +232,13 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
                           ),
                           child: Row(
                             children: [
-                              _buildBrandInitialBadge(b.name, isDark),
+                              _buildBrandInitialBadge(b.name, cs, colors),
                               const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: Text(
                                   b.name,
                                   style: TextStyle(
-                                    color: textColor,
+                                    color: cs.onSurface,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -256,7 +246,7 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
                               ),
                               Icon(
                                 Icons.chevron_right,
-                                color: isDark ? Colors.grey[600] : AppColors.icon,
+                                color: cs.onSurfaceVariant,
                                 size: 20,
                               ),
                             ],
@@ -273,25 +263,24 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
     );
   }
 
-  Widget _buildPopularBrandCard(CarBrand brand, bool isDark) {
-    final cardBg = isDark ? const Color(0xFF22262C) : Colors.white;
-    final iconBoxBg = isDark ? const Color(0xFF2D323A) : const Color(0xFFF1F5F9);
-    final cardBorder = isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.border;
-    final textColor = isDark ? Colors.white : AppColors.textPrimary;
-    final iconColor = isDark ? Colors.white : AppColors.primary;
-
+  Widget _buildPopularBrandCard(
+    CarBrand brand,
+    ColorScheme cs,
+    RevoraThemeColors colors,
+    bool isDark,
+  ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => widget.onBrandSelected(brand.name),
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        splashColor: AppColors.accent.withValues(alpha: 0.15),
-        highlightColor: AppColors.accent.withValues(alpha: 0.08),
+        splashColor: cs.secondary.withValues(alpha: 0.15),
+        highlightColor: cs.secondary.withValues(alpha: 0.08),
         child: Container(
           decoration: BoxDecoration(
-            color: cardBg,
+            color: colors.cardBg,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: cardBorder),
+            border: Border.all(color: colors.cardBorder),
             boxShadow: [
               if (!isDark)
                 BoxShadow(
@@ -308,20 +297,20 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: iconBoxBg,
+                  color: colors.iconBg,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Center(
                   child: brand.icon != null
                       ? Icon(
                           brand.icon,
-                          color: iconColor,
+                          color: cs.onSurface,
                           size: 26,
                         )
                       : Text(
                           brand.name.isNotEmpty ? brand.name[0] : '?',
                           style: TextStyle(
-                            color: iconColor,
+                            color: cs.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -332,7 +321,7 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
               Text(
                 brand.name,
                 style: TextStyle(
-                  color: textColor,
+                  color: cs.onSurface,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -347,23 +336,26 @@ class _BrandSelectionStepState extends State<BrandSelectionStep> {
     );
   }
 
-  Widget _buildBrandInitialBadge(String name, bool isDark) {
+  Widget _buildBrandInitialBadge(
+    String name,
+    ColorScheme cs,
+    RevoraThemeColors colors,
+  ) {
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '';
-    final badgeBg = isDark ? const Color(0xFF2B3038) : const Color(0xFFE2E8F0);
-    final badgeTextColor = isDark ? Colors.white70 : AppColors.primary;
 
     return Container(
       width: 34,
       height: 34,
       decoration: BoxDecoration(
-        color: badgeBg,
+        color: colors.chipBg,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.chipBorder, width: 0.8),
       ),
       child: Center(
         child: Text(
           initial,
           style: TextStyle(
-            color: badgeTextColor,
+            color: cs.onSurface,
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),

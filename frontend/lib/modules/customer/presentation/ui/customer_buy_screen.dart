@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../providers/customer_providers.dart';
 import '../widgets/requirement_summary_card.dart';
@@ -35,19 +35,22 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
   Widget build(BuildContext context) {
     final requirements = ref.watch(customerRequirementsProvider);
     final allQuotes = ref.watch(allCustomerQuotesProvider);
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
           Container(
-            color: AppColors.surface,
+            color: cs.surface,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: TabBar(
               controller: _tabController,
-              indicatorColor: AppColors.accent,
-              labelColor: AppColors.accent,
-              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: cs.secondary,
+              labelColor: cs.secondary,
+              unselectedLabelColor: cs.onSurfaceVariant,
               labelStyle: const TextStyle(fontWeight: FontWeight.w700),
               tabs: [
                 Tab(
@@ -58,8 +61,8 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                       const SizedBox(width: AppSpacing.xs),
                       Badge(
                         label: Text('${requirements.length}'),
-                        backgroundColor: AppColors.primarySubtle,
-                        textColor: AppColors.textPrimary,
+                        backgroundColor: colors.subtleBg,
+                        textColor: cs.onSurface,
                       ),
                     ],
                   ),
@@ -72,8 +75,8 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                       const SizedBox(width: AppSpacing.xs),
                       Badge(
                         label: Text('${allQuotes.length}'),
-                        backgroundColor: AppColors.accentLight,
-                        textColor: AppColors.accent,
+                        backgroundColor: colors.accentSubtle,
+                        textColor: cs.secondary,
                       ),
                     ],
                   ),
@@ -81,7 +84,7 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: cs.outline),
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -100,11 +103,12 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                             subtitle:
                                 'Requirements you posted that are visible to verified dealers',
                             trailing: ElevatedButton.icon(
-                              onPressed: () => context.push('/post-requirement'),
+                              onPressed: () =>
+                                  context.push('/post-requirement'),
                               icon: const Icon(Icons.add, size: 16),
                               label: const Text('New Requirement'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accent,
+                                backgroundColor: cs.secondary,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.md,
@@ -113,26 +117,30 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
-                                      AppSpacing.radiusSm),
+                                    AppSpacing.radiusSm,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                           LayoutBuilder(
                             builder: (context, constraints) {
-                              final crossAxisCount =
-                                  constraints.maxWidth > 700 ? 2 : 1;
+                              final crossAxisCount = constraints.maxWidth > 700
+                                  ? 2
+                                  : 1;
 
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate:
                                     SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: AppSpacing.md,
-                                  mainAxisSpacing: AppSpacing.md,
-                                  childAspectRatio: crossAxisCount > 1 ? 1.55 : 1.15,
-                                ),
+                                      crossAxisCount: crossAxisCount,
+                                      crossAxisSpacing: AppSpacing.md,
+                                      mainAxisSpacing: AppSpacing.md,
+                                      childAspectRatio: crossAxisCount > 1
+                                          ? 1.55
+                                          : 1.15,
+                                    ),
                                 itemCount: requirements.length,
                                 itemBuilder: (context, index) {
                                   return RequirementSummaryCard(
@@ -167,31 +175,33 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                           ),
                           LayoutBuilder(
                             builder: (context, constraints) {
-                              final crossAxisCount =
-                                  constraints.maxWidth > 700 ? 2 : 1;
+                              final crossAxisCount = constraints.maxWidth > 700
+                                  ? 2
+                                  : 1;
 
                               return GridView.builder(
                                 shrinkWrap: true,
-                                physics:
-                                    const NeverScrollableScrollPhysics(),
+                                physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate:
                                     SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: AppSpacing.md,
-                                  mainAxisSpacing: AppSpacing.md,
-                                  childAspectRatio: 0.72,
-                                ),
+                                      crossAxisCount: crossAxisCount,
+                                      crossAxisSpacing: AppSpacing.md,
+                                      mainAxisSpacing: AppSpacing.md,
+                                      childAspectRatio: 0.72,
+                                    ),
                                 itemCount: allQuotes.length,
                                 itemBuilder: (context, index) {
                                   return CustomerQuoteCard(
                                     quote: allQuotes[index],
                                     onContact: () => context.push('/chat'),
                                     onAccept: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
-                                          content: Text('Quote accepted! Dealer notified.'),
-                                          backgroundColor: AppColors.success,
+                                          content: Text(
+                                            'Quote accepted! Dealer notified.',
+                                          ),
                                         ),
                                       );
                                     },

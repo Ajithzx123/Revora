@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/revora_theme_colors.dart';
 
 class SelectedSummaryChip extends StatelessWidget {
   final String label;
@@ -18,23 +18,9 @@ class SelectedSummaryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final bgColor = isDark ? const Color(0xFF1E242B) : Colors.white;
-    final borderColor = isDark
-        ? AppColors.accent.withValues(alpha: 0.35)
-        : AppColors.accent.withValues(alpha: 0.25);
-    final shadowColor = isDark
-        ? Colors.black.withValues(alpha: 0.2)
-        : Colors.black.withValues(alpha: 0.04);
-    final iconBgColor = isDark
-        ? AppColors.accent.withValues(alpha: 0.15)
-        : AppColors.accentLight;
-    final labelColor = isDark ? Colors.grey[400] : AppColors.textSecondary;
-    final valueColor = isDark ? Colors.white : AppColors.textPrimary;
-    final btnBgColor = isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : AppColors.primarySubtle;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -43,15 +29,17 @@ class SelectedSummaryChip extends StatelessWidget {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: colors.cardBg,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(
-          color: borderColor,
+          color: cs.secondary.withValues(alpha: 0.3),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: shadowColor,
+            color: Colors.black.withValues(
+              alpha: theme.brightness == Brightness.dark ? 0.2 : 0.04,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -62,10 +50,10 @@ class SelectedSummaryChip extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.xs + 2),
             decoration: BoxDecoration(
-              color: iconBgColor,
+              color: colors.accentSubtle,
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
-            child: const Icon(Icons.check_circle, color: AppColors.accent, size: 18),
+            child: Icon(Icons.check_circle, color: cs.secondary, size: 18),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -76,7 +64,7 @@ class SelectedSummaryChip extends StatelessWidget {
                 Text(
                   label.toUpperCase(),
                   style: TextStyle(
-                    color: labelColor,
+                    color: cs.onSurfaceVariant,
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
@@ -86,7 +74,7 @@ class SelectedSummaryChip extends StatelessWidget {
                 Text(
                   value,
                   style: TextStyle(
-                    color: valueColor,
+                    color: cs.onSurface,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
@@ -101,22 +89,22 @@ class SelectedSummaryChip extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: btnBgColor,
+                color: colors.subtleBg,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'Change',
                     style: TextStyle(
-                      color: AppColors.accent,
+                      color: cs.secondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  Icon(Icons.edit, size: 12, color: AppColors.accent),
+                  const SizedBox(width: 4),
+                  Icon(Icons.edit, size: 12, color: cs.secondary),
                 ],
               ),
             ),

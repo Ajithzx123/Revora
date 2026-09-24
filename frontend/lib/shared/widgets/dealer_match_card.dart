@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 import '../domain/entities/dealer_info.dart';
 
 class DealerMatchCard extends StatelessWidget {
@@ -19,16 +19,21 @@ class DealerMatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       width: 260,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.cardBg,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.border, width: 0.8),
+        border: Border.all(color: colors.cardBorder, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -42,14 +47,14 @@ class DealerMatchCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: AppColors.primarySubtle,
+                backgroundColor: colors.subtleBg,
                 child: Text(
                   dealer.businessName.isNotEmpty
                       ? dealer.businessName[0].toUpperCase()
                       : 'D',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
+                    color: cs.primary,
                   ),
                 ),
               ),
@@ -63,10 +68,10 @@ class DealerMatchCard extends StatelessWidget {
                         Flexible(
                           child: Text(
                             dealer.businessName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                              color: cs.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -74,10 +79,10 @@ class DealerMatchCard extends StatelessWidget {
                         ),
                         if (dealer.isVerified) ...[
                           const SizedBox(width: 3),
-                          const Icon(
+                          Icon(
                             Icons.verified,
                             size: 14,
-                            color: AppColors.info,
+                            color: colors.statusInfoFg,
                           ),
                         ],
                       ],
@@ -88,18 +93,18 @@ class DealerMatchCard extends StatelessWidget {
                         const SizedBox(width: 2),
                         Text(
                           dealer.rating.toStringAsFixed(1),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '(${dealer.reviewsCount})',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textSecondary,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -115,27 +120,27 @@ class DealerMatchCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.location_on_outlined,
                     size: 14,
-                    color: AppColors.textSecondary,
+                    color: cs.onSurfaceVariant,
                   ),
                   const SizedBox(width: 2),
                   Text(
                     dealer.city,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: cs.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
               Text(
                 '${dealer.totalInventory} cars listed',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textMuted,
+                  color: colors.textMuted,
                 ),
               ),
             ],
@@ -150,17 +155,17 @@ class DealerMatchCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                       vertical: AppSpacing.xs,
                     ),
-                    side: const BorderSide(color: AppColors.border),
+                    side: BorderSide(color: cs.outline),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Profile',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: cs.onSurface,
                     ),
                   ),
                 ),
@@ -170,7 +175,7 @@ class DealerMatchCard extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onConnect,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
+                    backgroundColor: cs.secondary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       vertical: AppSpacing.xs,

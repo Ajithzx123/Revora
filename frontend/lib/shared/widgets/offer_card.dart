@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/revora_theme_colors.dart';
 import '../../core/utils/price_formatter.dart';
 import 'custom_card.dart';
 import 'custom_button.dart';
@@ -26,9 +26,14 @@ class OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
     final difference = offerPrice - askingPrice;
     final isPositive = difference >= 0;
-    
+    final positiveColor = colors.statusSuccessFg;
+    final negativeColor = colors.statusErrorFg;
+
     return CustomCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -37,10 +42,15 @@ class OfferCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                backgroundColor: cs.primary.withValues(alpha: 0.12),
                 child: Text(
-                  dealerName.substring(0, 1).toUpperCase(),
-                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                  dealerName.isNotEmpty
+                      ? dealerName.substring(0, 1).toUpperCase()
+                      : 'D',
+                  style: TextStyle(
+                    color: cs.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -50,27 +60,36 @@ class OfferCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          dealerName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Flexible(
+                          child: Text(
+                            dealerName,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: cs.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         if (isVerified) ...[
                           const SizedBox(width: 4),
-                          const Icon(Icons.verified, color: AppColors.success, size: 16),
+                          Icon(
+                            Icons.verified,
+                            color: colors.statusSuccessFg,
+                            size: 16,
+                          ),
                         ],
                       ],
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.star, color: AppColors.accent, size: 14),
+                        Icon(Icons.star, color: cs.secondary, size: 14),
                         const SizedBox(width: 4),
                         Text(
                           dealerRating.toStringAsFixed(1),
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -82,16 +101,16 @@ class OfferCard extends StatelessWidget {
                 children: [
                   Text(
                     PriceFormatter.formatINR(offerPrice),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: isPositive ? AppColors.success : AppColors.error,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: isPositive ? positiveColor : negativeColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     '${isPositive ? '+' : ''}${PriceFormatter.formatINR(difference)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isPositive ? AppColors.success : AppColors.error,
-                        ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: isPositive ? positiveColor : negativeColor,
+                    ),
                   ),
                 ],
               ),

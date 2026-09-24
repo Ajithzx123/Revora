@@ -21,30 +21,31 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    final cs = Theme.of(context).colorScheme;
+
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Placeholder splash branding layout
             Icon(
               Icons.directions_car_rounded,
               size: 100,
-              color: Color(0xFF0F172A),
+              color: cs.primary,
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Text(
               'Revora',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
-                color: Color(0xFF0F172A),
+                color: cs.primary,
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF006E6D)),
+              valueColor: AlwaysStoppedAnimation<Color>(cs.secondary),
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
+import 'theme_toggle_button.dart';
 
 class AppSidebarItem {
   final IconData icon;
@@ -36,12 +37,15 @@ class AppSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final colors = context.revoraColors;
+
     return Container(
       width: 250,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
+      decoration: BoxDecoration(
+        color: colors.sidebarBg,
         border: Border(
-          right: BorderSide(color: Color(0xFF1E293B), width: 1),
+          right: BorderSide(color: colors.sidebarBorder, width: 1),
         ),
       ),
       child: Column(
@@ -61,7 +65,7 @@ class AppSidebar extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.accent,
+                    color: cs.secondary,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   ),
                   child: const Center(
@@ -81,8 +85,8 @@ class AppSidebar extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: colors.sidebarText,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
@@ -95,14 +99,14 @@ class AppSidebar extends StatelessWidget {
                         vertical: 1,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withValues(alpha: 0.2),
+                        color: cs.secondary.withValues(alpha: 0.2),
                         borderRadius:
                             BorderRadius.circular(AppSpacing.radiusPill),
                       ),
                       child: Text(
                         roleBadge.toUpperCase(),
-                        style: const TextStyle(
-                          color: AppColors.accent,
+                        style: TextStyle(
+                          color: cs.secondary,
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
@@ -114,7 +118,7 @@ class AppSidebar extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(color: Color(0xFF1E293B), height: 1),
+          Divider(color: colors.sidebarBorder, height: 1),
           const SizedBox(height: AppSpacing.md),
 
           // Nav Items
@@ -139,14 +143,14 @@ class AppSidebar extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.accent.withValues(alpha: 0.15)
+                            ? colors.sidebarSelectedBg
                             : Colors.transparent,
                         borderRadius:
                             BorderRadius.circular(AppSpacing.radiusSm),
                         border: isSelected
-                            ? const Border(
+                            ? Border(
                                 left: BorderSide(
-                                  color: AppColors.accent,
+                                  color: cs.secondary,
                                   width: 3,
                                 ),
                               )
@@ -159,8 +163,8 @@ class AppSidebar extends StatelessWidget {
                                 ? (item.selectedIcon ?? item.icon)
                                 : item.icon,
                             color: isSelected
-                                ? AppColors.accent
-                                : const Color(0xFF94A3B8),
+                                ? cs.secondary
+                                : colors.sidebarTextMuted,
                             size: 20,
                           ),
                           const SizedBox(width: AppSpacing.md),
@@ -169,8 +173,8 @@ class AppSidebar extends StatelessWidget {
                               item.label,
                               style: TextStyle(
                                 color: isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF94A3B8),
+                                    ? colors.sidebarText
+                                    : colors.sidebarTextMuted,
                                 fontSize: 14,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
@@ -186,8 +190,8 @@ class AppSidebar extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? AppColors.accent
-                                    : const Color(0xFF334155),
+                                    ? cs.secondary
+                                    : colors.sidebarBorder,
                                 borderRadius: BorderRadius.circular(
                                     AppSpacing.radiusPill),
                               ),
@@ -210,13 +214,11 @@ class AppSidebar extends StatelessWidget {
           ),
 
           // Footer
-          if (footer != null) ...[
-            const Divider(color: Color(0xFF1E293B), height: 1),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: footer!,
-            ),
-          ],
+          Divider(color: colors.sidebarBorder, height: 1),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: footer ?? const SidebarThemeToggle(),
+          ),
         ],
       ),
     );

@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../modules/splash/presentation/ui/splash_screen.dart';
 import '../modules/customer/presentation/ui/customer_shell.dart';
-import '../modules/customer/presentation/ui/post_buy_requirement_screen.dart';
 import '../modules/customer/presentation/ui/buy_car_flow_screen.dart';
 import '../modules/customer/presentation/ui/post_sell_listing_screen.dart';
 import '../modules/customer/presentation/ui/my_requirements_screen.dart';

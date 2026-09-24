@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 
 class CustomTextField extends StatefulWidget {
   final String label;
@@ -38,6 +37,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -46,8 +47,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: widget.enabled
-                    ? AppColors.textPrimary
-                    : AppColors.textSecondary.withValues(alpha: 0.6),
+                    ? cs.onSurface
+                    : cs.onSurfaceVariant.withValues(alpha: 0.6),
               ),
         ),
         const SizedBox(height: 6),
@@ -66,7 +67,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.icon,
+                      color: cs.onSurfaceVariant,
                     ),
                     onPressed: () {
                       setState(() {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/revora_theme_colors.dart';
 import '../../../providers/car_selection_provider.dart';
 
 class RequirementDetailsStep extends StatefulWidget {
@@ -77,9 +77,9 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final titleColor = isDark ? Colors.white : AppColors.textPrimary;
-    final subtitleColor = isDark ? Colors.grey[400] : AppColors.textSecondary;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +87,7 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
         Text(
           'Preference & Budget Details',
           style: TextStyle(
-            color: titleColor,
+            color: cs.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -95,13 +95,14 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Set your acceptable manufacturing year, budget range, and fuel preference',
-          style: TextStyle(color: subtitleColor, fontSize: 13),
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
         ),
         const SizedBox(height: AppSpacing.xl),
 
         // 1. Year Range
         _buildSectionCard(
-          isDark: isDark,
+          cs: cs,
+          colors: colors,
           title: 'Manufacture Year',
           subtitle: '${_yearRange.start.round()} - ${_yearRange.end.round()}',
           child: Column(
@@ -111,8 +112,8 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
                 min: 2015,
                 max: 2025,
                 divisions: 10,
-                activeColor: AppColors.accent,
-                inactiveColor: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                activeColor: cs.secondary,
+                inactiveColor: colors.progressBg,
                 labels: RangeLabels(
                   '${_yearRange.start.round()}',
                   '${_yearRange.end.round()}',
@@ -127,8 +128,8 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('2015', style: TextStyle(color: subtitleColor, fontSize: 12)),
-                    Text('2025', style: TextStyle(color: subtitleColor, fontSize: 12)),
+                    Text('2015', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
+                    Text('2025', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
                   ],
                 ),
               ),
@@ -139,7 +140,8 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
 
         // 2. Budget Range
         _buildSectionCard(
-          isDark: isDark,
+          cs: cs,
+          colors: colors,
           title: 'Budget Range',
           subtitle: '₹${(_budgetRange.start / 100000).toStringAsFixed(1)}L - ₹${(_budgetRange.end / 100000).toStringAsFixed(1)}L',
           child: Column(
@@ -149,8 +151,8 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
                 min: 200000,
                 max: 5000000,
                 divisions: 48,
-                activeColor: AppColors.accent,
-                inactiveColor: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                activeColor: cs.secondary,
+                inactiveColor: colors.progressBg,
                 labels: RangeLabels(
                   '₹${(_budgetRange.start / 100000).toStringAsFixed(1)}L',
                   '₹${(_budgetRange.end / 100000).toStringAsFixed(1)}L',
@@ -165,8 +167,8 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('₹2 Lakh', style: TextStyle(color: subtitleColor, fontSize: 12)),
-                    Text('₹50 Lakh', style: TextStyle(color: subtitleColor, fontSize: 12)),
+                    Text('₹2 Lakh', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
+                    Text('₹50 Lakh', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
                   ],
                 ),
               ),
@@ -177,7 +179,8 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
 
         // 3. Fuel Type
         _buildSectionCard(
-          isDark: isDark,
+          cs: cs,
+          colors: colors,
           title: 'Fuel Type',
           subtitle: _selectedFuel,
           child: Wrap(
@@ -185,21 +188,17 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
             runSpacing: 8,
             children: fuelOptions.map((fuel) {
               final isSelected = _selectedFuel == fuel;
-              final chipBg = isDark ? const Color(0xFF2B313A) : const Color(0xFFF1F5F9);
-              final unselectedText = isDark ? Colors.grey[300] : AppColors.textPrimary;
 
               return ChoiceChip(
                 label: Text(fuel),
                 selected: isSelected,
-                selectedColor: AppColors.accent,
-                backgroundColor: chipBg,
+                selectedColor: cs.secondary,
+                backgroundColor: colors.chipBg,
                 side: BorderSide(
-                  color: isSelected
-                      ? AppColors.accent
-                      : (isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.border),
+                  color: isSelected ? cs.secondary : colors.chipBorder,
                 ),
                 labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : unselectedText,
+                  color: isSelected ? Colors.white : cs.onSurface,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
                 onSelected: (selected) {
@@ -216,7 +215,8 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
 
         // 4. Transmission
         _buildSectionCard(
-          isDark: isDark,
+          cs: cs,
+          colors: colors,
           title: 'Transmission',
           subtitle: _selectedTransmission,
           child: Wrap(
@@ -224,21 +224,17 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
             runSpacing: 8,
             children: transmissionOptions.map((trans) {
               final isSelected = _selectedTransmission == trans;
-              final chipBg = isDark ? const Color(0xFF2B313A) : const Color(0xFFF1F5F9);
-              final unselectedText = isDark ? Colors.grey[300] : AppColors.textPrimary;
 
               return ChoiceChip(
                 label: Text(trans),
                 selected: isSelected,
-                selectedColor: AppColors.accent,
-                backgroundColor: chipBg,
+                selectedColor: cs.secondary,
+                backgroundColor: colors.chipBg,
                 side: BorderSide(
-                  color: isSelected
-                      ? AppColors.accent
-                      : (isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.border),
+                  color: isSelected ? cs.secondary : colors.chipBorder,
                 ),
                 labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : unselectedText,
+                  color: isSelected ? Colors.white : cs.onSurface,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
                 onSelected: (selected) {
@@ -255,31 +251,28 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
 
         // 5. City
         _buildSectionCard(
-          isDark: isDark,
+          cs: cs,
+          colors: colors,
           title: 'Preferred City',
           subtitle: _selectedCity,
           child: DropdownButtonFormField<String>(
             initialValue: _selectedCity,
-            dropdownColor: isDark ? const Color(0xFF242930) : Colors.white,
+            dropdownColor: colors.cardBg,
             style: TextStyle(
-              color: isDark ? Colors.white : AppColors.textPrimary,
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
               filled: true,
-              fillColor: isDark ? const Color(0xFF1E2329) : const Color(0xFFF8FAFC),
+              fillColor: colors.searchBg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.border,
-                ),
+                borderSide: BorderSide(color: colors.searchBorder),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.border,
-                ),
+                borderSide: BorderSide(color: colors.searchBorder),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
@@ -303,7 +296,7 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
           child: ElevatedButton(
             onPressed: widget.onContinue,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
+              backgroundColor: cs.secondary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -328,29 +321,18 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
   }
 
   Widget _buildSectionCard({
-    required bool isDark,
+    required ColorScheme cs,
+    required RevoraThemeColors colors,
     required String title,
     required String subtitle,
     required Widget child,
   }) {
-    final cardBg = isDark ? const Color(0xFF1F2329) : Colors.white;
-    final cardBorder = isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.border;
-    final titleColor = isDark ? Colors.white : AppColors.textPrimary;
-
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: colors.cardBg,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: cardBorder),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-        ],
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,15 +343,15 @@ class _RequirementDetailsStepState extends State<RequirementDetailsStep> {
               Text(
                 title,
                 style: TextStyle(
-                  color: titleColor,
+                  color: cs.onSurface,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(
-                  color: AppColors.accent,
+                style: TextStyle(
+                  color: cs.secondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),

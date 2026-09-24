@@ -44,8 +44,9 @@ class CustomerSellScreen extends ConsumerWidget {
                       ),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
                       ),
                     ),
                   ),
@@ -100,8 +101,11 @@ class CustomerSellScreen extends ConsumerWidget {
         children: [
           const Row(
             children: [
-              Icon(Icons.verified_user_outlined,
-                  color: AppColors.accent, size: 20),
+              Icon(
+                Icons.verified_user_outlined,
+                color: AppColors.accent,
+                size: 20,
+              ),
               SizedBox(width: AppSpacing.sm),
               Text(
                 'How Selling Works on Revora',
@@ -138,8 +142,11 @@ class CustomerSellScreen extends ConsumerWidget {
       child: Center(
         child: Column(
           children: [
-            const Icon(Icons.directions_car_outlined,
-                size: 48, color: AppColors.icon),
+            const Icon(
+              Icons.directions_car_outlined,
+              size: 48,
+              color: AppColors.icon,
+            ),
             const SizedBox(height: AppSpacing.md),
             const Text(
               'No cars listed for sale yet',

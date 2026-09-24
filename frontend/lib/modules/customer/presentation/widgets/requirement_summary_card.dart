@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 import '../../domain/entities/buy_requirement.dart';
 
 class RequirementSummaryCard extends StatefulWidget {
@@ -62,6 +62,9 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
   @override
   Widget build(BuildContext context) {
     final req = widget.requirement;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -73,19 +76,19 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
           duration: const Duration(milliseconds: 180),
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.cardBg,
             borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
             border: Border.all(
-              color: _isHovered
-                  ? AppColors.textPrimary.withValues(alpha: 0.22)
-                  : const Color(0xFFE2E8F0),
+              color: _isHovered ? colors.cardHoverBorder : colors.cardBorder,
               width: 1.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: _isHovered
-                    ? Colors.black.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withValues(
+                  alpha: theme.brightness == Brightness.dark
+                      ? (_isHovered ? 0.3 : 0.15)
+                      : (_isHovered ? 0.08 : 0.03),
+                ),
                 blurRadius: _isHovered ? 12 : 6,
                 offset: Offset(0, _isHovered ? 4 : 2),
               ),
@@ -98,6 +101,7 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Top Row: Posted time + Favorite button
                 Row(
@@ -106,18 +110,18 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.schedule_rounded,
                           size: 12,
-                          color: AppColors.textMuted,
+                          color: colors.textMuted,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         Text(
                           _getPostedTimeAgo(req.createdAt),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -129,75 +133,79 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
                           setState(() => _isFavorite = !_isFavorite);
                           widget.onFavoriteChanged?.call(_isFavorite);
                         },
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusPill,
+                        ),
                         child: Container(
                           width: 26,
                           height: 26,
                           decoration: BoxDecoration(
                             color: _isFavorite
-                                ? const Color(0xFFFFECEE)
-                                : const Color(0xFFF8FAFC),
+                                ? colors.heartLikedBg
+                                : colors.heartUnlikedBg,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: _isFavorite
-                                  ? const Color(0xFFFECDD3)
-                                  : const Color(0xFFE2E8F0),
+                                  ? colors.heartLikedFg.withValues(alpha: 0.3)
+                                  : colors.heartUnlikedBorder,
                               width: 0.8,
                             ),
                           ),
                           child: Icon(
-                            _isFavorite ? Icons.favorite : Icons.favorite_border,
+                            _isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
                             size: 14,
                             color: _isFavorite
-                                ? const Color(0xFFEF4444)
-                                : AppColors.textSecondary,
+                                ? colors.heartLikedFg
+                                : colors.heartUnlikedFg,
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 9),
 
                 // Requirement Visual Container (Compact neutral container)
                 Container(
                   width: double.infinity,
                   height: widget.imageHeight ?? 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: colors.chipBg,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    border: Border.all(
-                      color: const Color(0xFFE2E8F0),
-                      width: 0.8,
-                    ),
+                    border: Border.all(color: colors.chipBorder, width: 0.8),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colors.cardBg,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFFE2E8F0),
+                            color: colors.chipBorder,
                             width: 0.8,
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.directions_car_filled_rounded,
                           size: 14,
-                          color: AppColors.textSecondary,
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 9),
                       Expanded(
                         child: Text(
                           'Seeking ${req.make} ${req.model}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: cs.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -206,71 +214,82 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 9),
 
                 // Name (No year) & Budget
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
                     Expanded(
                       child: Text(
                         '${req.make} ${req.model}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
+                          color: cs.onSurface,
                           letterSpacing: -0.3,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.xs),
+                    const SizedBox(width: 10),
                     Text(
                       req.budgetRange,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
+                        color: cs.onSurface,
                         letterSpacing: -0.2,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 9),
 
                 // Specs: Preferred City, Fuel, Min Year
                 Wrap(
-                  spacing: 5,
-                  runSpacing: 3,
+                  spacing: 6,
+                  runSpacing: 5,
                   children: [
                     _buildSpecChip(
                       Icons.location_on_outlined,
                       req.preferredCity,
+                      cs,
+                      colors,
                     ),
                     _buildSpecChip(
                       Icons.local_gas_station_outlined,
                       req.fuelType,
+                      cs,
+                      colors,
                     ),
                     _buildSpecChip(
                       Icons.calendar_today_outlined,
                       '${req.minYear}+',
+                      cs,
+                      colors,
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
 
                 // Action Button: Clean primary navy/slate button matching app buttons
                 SizedBox(
                   width: double.infinity,
+                  height: 36,
                   child: ElevatedButton(
                     onPressed: widget.onViewQuotes ?? widget.onTap,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      backgroundColor: cs.primary,
+                      foregroundColor: cs.onPrimary,
+                      padding: EdgeInsets.zero,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusPill,
+                        ),
                       ),
                     ),
                     child: const Row(
@@ -283,7 +302,7 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        SizedBox(width: 4),
+                        SizedBox(width: 6),
                         Icon(Icons.arrow_forward_rounded, size: 13),
                       ],
                     ),
@@ -297,25 +316,30 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
     );
   }
 
-  Widget _buildSpecChip(IconData icon, String label) {
+  Widget _buildSpecChip(
+    IconData icon,
+    String label,
+    ColorScheme cs,
+    RevoraThemeColors colors,
+  ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: colors.chipBg,
         borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+        border: Border.all(color: colors.chipBorder, width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 11, color: AppColors.textSecondary),
-          const SizedBox(width: 4),
+          Icon(icon, size: 11.5, color: cs.onSurfaceVariant),
+          const SizedBox(width: 5),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: cs.onSurface,
             ),
           ),
         ],
@@ -323,4 +347,3 @@ class _RequirementSummaryCardState extends State<RequirementSummaryCard> {
     );
   }
 }
-

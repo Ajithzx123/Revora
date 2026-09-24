@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/revora_theme_colors.dart';
 
 class StatusChip extends StatelessWidget {
   final String label;
+  final String? status;
   final Color? color;
   final Color? backgroundColor;
   final IconData? icon;
@@ -11,59 +12,66 @@ class StatusChip extends StatelessWidget {
   const StatusChip({
     super.key,
     required this.label,
+    this.status,
     this.color,
     this.backgroundColor,
     this.icon,
   });
 
   factory StatusChip.fromStatus(String status) {
-    Color fg;
-    Color bg;
-    IconData? ic;
-
-    switch (status.toLowerCase()) {
-      case 'active':
-      case 'approved':
-      case 'verified':
-      case 'completed':
-        fg = AppColors.success;
-        bg = AppColors.successBg;
-        ic = Icons.check_circle_outline;
-        break;
-      case 'pending':
-      case 'in review':
-      case 'in_review':
-        fg = AppColors.warning;
-        bg = AppColors.warningBg;
-        ic = Icons.schedule;
-        break;
-      case 'rejected':
-      case 'cancelled':
-      case 'flagged':
-        fg = AppColors.error;
-        bg = AppColors.errorBg;
-        ic = Icons.cancel_outlined;
-        break;
-      case 'new':
-      case 'quotes received':
-      case 'quoted':
-        fg = AppColors.info;
-        bg = AppColors.infoBg;
-        ic = Icons.info_outline;
-        break;
-      default:
-        fg = AppColors.textSecondary;
-        bg = AppColors.borderLight;
-        ic = null;
-    }
-
-    return StatusChip(label: status, color: fg, backgroundColor: bg, icon: ic);
+    return StatusChip(
+      label: status,
+      status: status,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final effectiveFg = color ?? AppColors.textSecondary;
-    final effectiveBg = backgroundColor ?? AppColors.borderLight;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final colors = context.revoraColors;
+
+    Color fg = color ?? cs.onSurfaceVariant;
+    Color bg = backgroundColor ?? colors.chipBg;
+    IconData? ic = icon;
+
+    if (status != null && color == null && backgroundColor == null) {
+      switch (status!.toLowerCase()) {
+        case 'active':
+        case 'approved':
+        case 'verified':
+        case 'completed':
+          fg = colors.statusSuccessFg;
+          bg = colors.statusSuccessBg;
+          ic ??= Icons.check_circle_outline;
+          break;
+        case 'pending':
+        case 'in review':
+        case 'in_review':
+          fg = colors.statusWarningFg;
+          bg = colors.statusWarningBg;
+          ic ??= Icons.schedule;
+          break;
+        case 'rejected':
+        case 'cancelled':
+        case 'flagged':
+          fg = colors.statusErrorFg;
+          bg = colors.statusErrorBg;
+          ic ??= Icons.cancel_outlined;
+          break;
+        case 'new':
+        case 'quotes received':
+        case 'quoted':
+          fg = colors.statusInfoFg;
+          bg = colors.statusInfoBg;
+          ic ??= Icons.info_outline;
+          break;
+        default:
+          fg = cs.onSurfaceVariant;
+          bg = colors.chipBg;
+          ic = null;
+      }
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -71,14 +79,20 @@ class StatusChip extends StatelessWidget {
         vertical: AppSpacing.xxs + 1,
       ),
       decoration: BoxDecoration(
-        color: effectiveBg,
+        color: bg,
         borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+        border: Border.all(
+          color: theme.brightness == Brightness.dark
+              ? fg.withValues(alpha: 0.25)
+              : Colors.transparent,
+          width: 0.8,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 12, color: effectiveFg),
+          if (ic != null) ...[
+            Icon(ic, size: 12, color: fg),
             const SizedBox(width: AppSpacing.xs),
           ],
           Text(
@@ -86,7 +100,7 @@ class StatusChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: effectiveFg,
+              color: fg,
               letterSpacing: 0.2,
             ),
           ),

@@ -11,6 +11,7 @@ class AppConstants {
   // Shared Preferences Keys
   static const String prefThemeMode = 'theme_mode';
   static const String prefLocale = 'app_locale';
+  static const String prefAccentColor = 'accent_color';
 
   // Pagination Constants
   static const int defaultPageSize = 20;

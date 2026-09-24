@@ -6,9 +6,5 @@ import 'init/app_initializer.dart';
 void main() async {
   await AppInitializer.initialize();
 
-  runApp(
-    const ProviderScope(
-      child: RevoraApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: RevoraApp()));
 }
