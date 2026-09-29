@@ -7,7 +7,13 @@ import 'package:revora/modules/customer/domain/entities/sell_post.dart';
 import 'package:revora/modules/customer/domain/entities/customer_activity.dart';
 import 'package:revora/shared/domain/entities/dealer_info.dart';
 
+import '../../../../core/config/app_config.dart';
+
 final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
+  if (AppConfig.instance.useMockData) {
+    return MockCustomerRepository();
+  }
+  // When remote API repository is implemented, return it here.
   return MockCustomerRepository();
 });
 

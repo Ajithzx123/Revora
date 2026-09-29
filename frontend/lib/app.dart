@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/accent_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
-import 'init/route_initializer.dart';
+import 'core/router/app_router.dart';
 
 class RevoraApp extends ConsumerWidget {
   const RevoraApp({super.key});

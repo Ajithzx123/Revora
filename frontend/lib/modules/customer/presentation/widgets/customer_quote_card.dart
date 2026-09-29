@@ -161,8 +161,9 @@ class _CustomerQuoteCardState extends State<CustomerQuoteCard> {
                                   ),
                                   const SizedBox(width: 3),
                                   ConstrainedBox(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 80),
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 80,
+                                    ),
                                     child: Text(
                                       quote.displayCity,
                                       style: TextStyle(
@@ -234,7 +235,8 @@ class _CustomerQuoteCardState extends State<CustomerQuoteCard> {
                             width: double.infinity,
                             height: widget.imageHeight ?? 105,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _buildPlaceholder(colors),
+                            errorBuilder: (_, _, _) =>
+                                _buildPlaceholder(colors),
                           )
                         : _buildPlaceholder(colors),
                   ),
@@ -362,10 +364,7 @@ class _CustomerQuoteCardState extends State<CustomerQuoteCard> {
                           onPressed: widget.onContact,
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            side: BorderSide(
-                              color: cs.outline,
-                              width: 1.0,
-                            ),
+                            side: BorderSide(color: cs.outline, width: 1.0),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 AppSpacing.radiusPill,
@@ -452,11 +451,7 @@ class _CustomerQuoteCardState extends State<CustomerQuoteCard> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 12,
-              color: cs.onSurfaceVariant,
-            ),
+            Icon(icon, size: 12, color: cs.onSurfaceVariant),
             const SizedBox(width: 5),
             Expanded(
               child: Text(

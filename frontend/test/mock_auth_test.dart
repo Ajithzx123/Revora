@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:revora/core/utils/storage_helper.dart';
 import 'package:revora/modules/auth/data/repositories/mock_auth_repository.dart';
-import 'package:revora/modules/auth/domain/models/user_model.dart';
+import 'package:revora/modules/auth/domain/entities/user.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

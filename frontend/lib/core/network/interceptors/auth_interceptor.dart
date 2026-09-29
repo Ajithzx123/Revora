@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../utils/storage_helper.dart';
-import '../api_endpoints.dart';
+import '../../constants/api_endpoints.dart';
 import '../../config/app_config.dart';
 
 class AuthInterceptor extends Interceptor {

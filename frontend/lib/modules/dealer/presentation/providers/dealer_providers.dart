@@ -7,7 +7,13 @@ import 'package:revora/modules/dealer/domain/entities/dealer_kpi.dart';
 import 'package:revora/modules/dealer/domain/entities/dealer_activity.dart';
 import 'package:revora/shared/domain/entities/vehicle.dart';
 
+import '../../../../core/config/app_config.dart';
+
 final dealerRepositoryProvider = Provider<DealerRepository>((ref) {
+  if (AppConfig.instance.useMockData) {
+    return MockDealerRepository();
+  }
+  // When remote API repository is implemented, return it here.
   return MockDealerRepository();
 });
 

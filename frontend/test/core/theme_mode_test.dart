@@ -7,7 +7,7 @@ import 'package:revora/core/theme/app_theme.dart';
 import 'package:revora/core/theme/revora_theme_colors.dart';
 import 'package:revora/core/theme/theme_provider.dart';
 import 'package:revora/core/utils/storage_helper.dart';
-import 'package:revora/shared/widgets/theme_toggle_button.dart';
+import 'package:revora/shared/presentation/widgets/theme_toggle_button.dart';
 
 void main() {
   setUp(() async {

@@ -7,7 +7,13 @@ import 'package:revora/modules/admin/domain/entities/admin_activity.dart';
 import 'package:revora/shared/domain/entities/vehicle.dart';
 import 'package:revora/modules/customer/domain/entities/buy_requirement.dart';
 
+import '../../../../core/config/app_config.dart';
+
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {
+  if (AppConfig.instance.useMockData) {
+    return MockAdminRepository();
+  }
+  // When remote API repository is implemented, return it here.
   return MockAdminRepository();
 });
 

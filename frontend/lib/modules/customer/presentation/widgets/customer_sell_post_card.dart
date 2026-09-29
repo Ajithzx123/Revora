@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/car_card.dart';
+import '../../../../shared/presentation/widgets/car_card.dart';
 import '../../domain/entities/sell_post.dart';
 
 class CustomerSellPostCard extends StatelessWidget {

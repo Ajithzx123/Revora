@@ -1,4 +1,4 @@
-import '../../domain/models/user_model.dart';
+import '../../domain/entities/user.dart';
 
 class MockAccount {
   final UserModel user;

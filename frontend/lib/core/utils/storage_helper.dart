@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../config/constants.dart';
+import '../storage/storage_keys.dart';
 
 class StorageHelper {
   StorageHelper._();
