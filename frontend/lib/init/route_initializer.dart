@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../modules/splash/presentation/ui/splash_screen.dart';
@@ -9,6 +9,7 @@ import '../modules/customer/presentation/ui/my_requirements_screen.dart';
 import '../modules/customer/presentation/ui/requirement_details_screen.dart';
 import '../modules/customer/presentation/ui/listing_details_screen.dart';
 import '../modules/customer/presentation/ui/quote_comparison_screen.dart';
+import '../modules/dealer/presentation/ui/dealer_application_screen.dart';
 import '../modules/dealer/presentation/ui/dealer_shell.dart';
 import '../modules/dealer/presentation/ui/send_quote_screen.dart';
 import '../modules/dealer/presentation/ui/make_offer_screen.dart';
@@ -131,7 +132,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Dealer Portal
       GoRoute(
         path: '/dealer/home',
-        builder: (context, state) => const DealerShell(),
+        builder: (context, state) => const _DealerGate(),
       ),
       GoRoute(
         path: '/dealer/send-quote/:id',
@@ -173,3 +174,16 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Dealers see the portal only once approved; until then, their application.
+/// A missing status means mock/demo data, which is treated as approved.
+class _DealerGate extends ConsumerWidget {
+  const _DealerGate();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(authControllerProvider.select((s) => s.user?.dealerStatus));
+    if (status == null || status == 'APPROVED') return const DealerShell();
+    return const DealerApplicationScreen();
+  }
+}
