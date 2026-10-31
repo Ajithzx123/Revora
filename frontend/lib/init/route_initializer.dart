@@ -67,7 +67,7 @@ String? guardRoute(AuthState auth, String location) {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
-  ref.listen<AuthState>(authControllerProvider, (_, __) => refresh.value++);
+  ref.listen<AuthState>(authControllerProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
   return GoRouter(
