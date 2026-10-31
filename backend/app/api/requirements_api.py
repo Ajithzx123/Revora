@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
@@ -10,6 +12,7 @@ from backend.app.core.dependencies import (
     require_customer,
 )
 from backend.app.models.marketplace_models import (
+    DealerStatus,
     BuyRequirement,
     DealerQuote,
     Dealer,
@@ -101,7 +104,7 @@ def get_user_requirements(
 
 @router.get("/{requirement_id}", response_model=BuyRequirementResponse)
 def get_requirement_detail(
-    requirement_id: int,
+    requirement_id: uuid.UUID,
     user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):
@@ -114,7 +117,7 @@ def get_requirement_detail(
         user_data.get("role") == "DEALER"
         and session.exec(
             select(Dealer).where(
-                Dealer.user_id == current_user_id(user_data), Dealer.verified == True  # noqa: E712
+                Dealer.user_id == current_user_id(user_data), Dealer.status == DealerStatus.APPROVED
             )
         ).first()
         is not None
@@ -147,7 +150,7 @@ def get_requirement_detail(
 
 @router.get("/{requirement_id}/quotes", response_model=List[DealerQuoteResponse])
 def get_quotes_for_requirement(
-    requirement_id: int,
+    requirement_id: uuid.UUID,
     user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):
@@ -183,7 +186,7 @@ def get_quotes_for_requirement(
 
 @router.patch("/{requirement_id}/close")
 def close_requirement(
-    requirement_id: int,
+    requirement_id: uuid.UUID,
     user_data: dict = Depends(require_customer),
     session: Session = Depends(get_session),
 ):

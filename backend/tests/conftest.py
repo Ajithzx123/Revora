@@ -1,23 +1,44 @@
 import os
 import sys
 import tempfile
+import time
+import uuid
 from pathlib import Path
 
-# Must run before any backend import: use a throwaway database.
+# Must run before any backend import: throwaway database + uploads, test signing secret.
 _tmp = tempfile.TemporaryDirectory()
+TEST_JWT_SECRET = "test-secret-test-secret-test-secret-0123456789"
 os.environ["DATABASE_URL"] = f"sqlite:///{_tmp.name}/test.db"
+os.environ["UPLOAD_DIR"] = f"{_tmp.name}/uploads"
 os.environ["ENVIRONMENT"] = "dev"
+os.environ["SUPABASE_JWT_SECRET"] = TEST_JWT_SECRET
+os.environ.pop("SUPABASE_URL", None)
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from jose import jwt  # noqa: E402
 from sqlmodel import Session, SQLModel  # noqa: E402
 
-from backend.app.core.security import hash_password  # noqa: E402
 from backend.app.database.base import create_db  # noqa: E402
 from backend.app.database.connection import engine  # noqa: E402
+from backend.app.models.marketplace_models import Dealer, DealerStatus  # noqa: E402
 from backend.app.models.user_model import User, UserRole  # noqa: E402
 from backend.main import app  # noqa: E402
+
+PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\n%%EOF"
+JPEG = b"\xff\xd8\xff\xe0" + bytes(32)
+
+
+def make_token(uid, email, *, secret=TEST_JWT_SECRET, alg="HS256", aud="authenticated", exp_in=3600):
+    claims = {
+        "sub": str(uid),
+        "email": email,
+        "aud": aud,
+        "role": "authenticated",
+        "exp": int(time.time()) + exp_in,
+    }
+    return jwt.encode(claims, secret, algorithm=alg)
 
 
 @pytest.fixture(autouse=True)
@@ -32,60 +53,66 @@ def client():
     return TestClient(app)
 
 
+class Auth(dict):
+    """Authorization headers, plus the actor's ids for convenience."""
+
+    user_id: uuid.UUID
+    dealer_id: uuid.UUID | None = None
+
+
 class Actors:
     def __init__(self, client):
         self.client = client
         self._n = 0
 
-    def _signup_login(self, **extra):
+    def _identity(self, prefix):
         self._n += 1
-        email = f"user{self._n}@example.com"
-        body = {
-            "name": f"User {self._n}",
-            "email": email,
-            "password": "Passw0rd!x",
-            "phone": f"90000000{self._n:02d}",
-            **extra,
-        }
-        r = self.client.post("/api/signup", json=body)
-        assert r.status_code == 200, r.text
-        r = self.client.post("/api/login", json={"email": email, "password": "Passw0rd!x"})
-        data = r.json()["data"]
-        return {"Authorization": f"Bearer {data['access_token']}"}, r.json()
+        uid = uuid.uuid4()
+        email = f"{prefix}{self._n}@example.com"
+        h = Auth(Authorization=f"Bearer {make_token(uid, email)}")
+        h.user_id = uid
+        return h
 
     def customer(self):
-        return self._signup_login()[0]
+        h = self._identity("customer")
+        r = self.client.post("/api/profile", headers=h, json={"name": "Cust", "city": "Bengaluru"})
+        assert r.status_code == 201, r.text
+        return h
 
-    def dealer(self):
-        return self._signup_login(
-            account_type="DEALER", business_name="Test Motors", city="Bengaluru"
-        )[0]
+    def dealer(self, *, approved=False):
+        h = self._identity("dealer")
+        r = self.client.post(
+            "/api/profile",
+            headers=h,
+            json={"name": "Dealer", "account_type": "DEALER", "business_name": "Test Motors", "city": "Bengaluru"},
+        )
+        assert r.status_code == 201, r.text
+        h.dealer_id = uuid.UUID(self.client.get("/api/dealers/me", headers=h).json()["id"])
+        if approved:
+            force_status(h.dealer_id, DealerStatus.APPROVED)
+        return h
 
     def admin(self):
-        self._n += 1
-        email = f"admin{self._n}@example.com"
+        h = self._identity("admin")
         with Session(engine) as s:
-            s.add(
-                User(
-                    name="Admin",
-                    email=email,
-                    password=hash_password("Passw0rd!x"),
-                    role=UserRole.ADMIN,
-                )
-            )
+            s.add(User(id=h.user_id, name="Admin", email=f"admin{self._n}@example.com", role=UserRole.ADMIN))
             s.commit()
-        r = self.client.post("/api/login", json={"email": email, "password": "Passw0rd!x"})
-        return {"Authorization": f"Bearer {r.json()['data']['access_token']}"}
+        # token email must match the stored profile only for display; role comes from the DB
+        return h
+
+
+def force_status(dealer_id, status):
+    """Test shortcut that skips the onboarding workflow (workflow tests do not use it)."""
+    with Session(engine) as s:
+        d = s.get(Dealer, dealer_id)
+        d.status = status
+        s.add(d)
+        s.commit()
 
 
 @pytest.fixture
 def actors(client):
     return Actors(client)
-
-
-def verify_dealer(client, admin_headers, dealer_id=1):
-    r = client.patch(f"/api/admin/dealers/{dealer_id}/verify", headers=admin_headers)
-    assert r.status_code == 200, r.text
 
 
 REQUIREMENT = {
@@ -105,3 +132,8 @@ LISTING = {
     "expected_price": 400000,
     "city": "Bengaluru",
 }
+CAR = {
+    "make": "Hyundai", "model": "i20", "year": 2021, "fuel": "Petrol",
+    "transmission": "Manual", "km": 20000, "price": 650000,
+}
+MISSING = "00000000-0000-0000-0000-000000000001"

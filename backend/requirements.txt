@@ -4,8 +4,8 @@ sqlmodel>=0.0.16,<0.0.28  # newer releases reject naive datetime.utcnow defaults
 pydantic>=2.6.0
 pydantic-settings>=2.2.0
 python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-bcrypt>=4.0.1,<4.1  # passlib 1.7.4 breaks with bcrypt>=4.1
+httpx>=0.27
+alembic>=1.13
 python-multipart>=0.0.9
 asyncpg>=0.29.0
 supabase>=2.3.0

@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from typing import List
@@ -10,6 +12,7 @@ from backend.app.core.dependencies import (
     require_customer,
 )
 from backend.app.models.marketplace_models import (
+    DealerStatus,
     SellListing,
     DealerOffer,
     Dealer,
@@ -106,7 +109,7 @@ def get_user_listings(
 
 @router.get("/{listing_id}", response_model=SellListingResponse)
 def get_listing_detail(
-    listing_id: int,
+    listing_id: uuid.UUID,
     user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):
@@ -119,7 +122,7 @@ def get_listing_detail(
         user_data.get("role") == "DEALER"
         and session.exec(
             select(Dealer).where(
-                Dealer.user_id == current_user_id(user_data), Dealer.verified == True  # noqa: E712
+                Dealer.user_id == current_user_id(user_data), Dealer.status == DealerStatus.APPROVED
             )
         ).first()
         is not None
@@ -152,7 +155,7 @@ def get_listing_detail(
 
 @router.get("/{listing_id}/offers", response_model=List[DealerOfferResponse])
 def get_offers_for_listing(
-    listing_id: int,
+    listing_id: uuid.UUID,
     user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):

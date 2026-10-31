@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 from datetime import datetime
 from sqlmodel import SQLModel, Field
@@ -13,18 +14,20 @@ class UserRole(str, Enum):
 
 
 class User(SQLModel, table=True):
-    id: Optional[int] = Field(
-        default=None,
-        primary_key=True
-    )
+    """Local profile for an identity managed by Supabase Auth.
+
+    `id` is the Supabase auth user id (the JWT `sub`). Passwords, OTPs and
+    sessions live in Supabase, never here. `role` is authoritative here and is
+    never taken from token metadata, which the client can edit.
+    """
+
+    id: uuid.UUID = Field(primary_key=True)
 
     name: str
     email: str = Field(unique=True, index=True)
-    password: str
     phone: Optional[str] = None
     role: UserRole = Field(default=UserRole.CUSTOMER)
     city: Optional[str] = None
     avatar_url: Optional[str] = None
-    email_verified: bool = Field(default=False)
-    email_verified_at: Optional[datetime] = None
+    is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -8,6 +8,7 @@ from backend.app.api.requirements_api import router as requirements_router
 from backend.app.api.sell_listings_api import router as sell_listings_router
 from backend.app.api.dealer_api import router as dealer_router
 from backend.app.api.admin_api import router as admin_router
+from backend.app.api.dealer_onboarding_api import router as dealer_onboarding_router
 
 app = FastAPI(
     title="Revora Marketplace API",
@@ -31,12 +32,15 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(requirements_router, prefix="/api")
 app.include_router(sell_listings_router, prefix="/api")
 app.include_router(dealer_router, prefix="/api")
+app.include_router(dealer_onboarding_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
 
 @app.on_event("startup")
 def startup():
-    create_db()
+    # Local convenience only. Staging/production schemas come from `alembic upgrade head`.
+    if settings.ENVIRONMENT == "dev" and settings.DATABASE_URL.startswith("sqlite"):
+        create_db()
 
 
 @app.get("/")

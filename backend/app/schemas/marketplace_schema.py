@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -16,8 +18,8 @@ class BuyRequirementCreate(BaseModel):
 
 
 class BuyRequirementResponse(BaseModel):
-    id: int
-    customer_id: int
+    id: UUID
+    customer_id: UUID
     make: str
     model: str
     year_min: int
@@ -45,8 +47,8 @@ class SellListingCreate(BaseModel):
 
 
 class SellListingResponse(BaseModel):
-    id: int
-    customer_id: int
+    id: UUID
+    customer_id: UUID
     make: str
     model: str
     year: int
@@ -74,8 +76,8 @@ class CarInventoryCreate(BaseModel):
 
 
 class CarInventoryResponse(BaseModel):
-    id: int
-    dealer_id: int
+    id: UUID
+    dealer_id: UUID
     make: str
     model: str
     year: int
@@ -90,19 +92,19 @@ class CarInventoryResponse(BaseModel):
 
 # --- Quotes ---
 class DealerQuoteCreate(BaseModel):
-    requirement_id: int
-    car_inventory_id: Optional[int] = None
+    requirement_id: UUID
+    car_inventory_id: Optional[UUID] = None
     quoted_price: int
     message: Optional[str] = None
 
 
 class DealerQuoteResponse(BaseModel):
-    id: int
-    dealer_id: int
+    id: UUID
+    dealer_id: UUID
     dealer_name: Optional[str] = None
     dealer_rating: Optional[float] = None
-    requirement_id: int
-    car_inventory_id: Optional[int]
+    requirement_id: UUID
+    car_inventory_id: Optional[UUID]
     quoted_price: int
     message: Optional[str]
     status: str
@@ -111,17 +113,17 @@ class DealerQuoteResponse(BaseModel):
 
 # --- Purchase Offers ---
 class DealerOfferCreate(BaseModel):
-    sell_listing_id: int
+    sell_listing_id: UUID
     offered_price: int
     message: Optional[str] = None
 
 
 class DealerOfferResponse(BaseModel):
-    id: int
-    dealer_id: int
+    id: UUID
+    dealer_id: UUID
     dealer_name: Optional[str] = None
     dealer_rating: Optional[float] = None
-    sell_listing_id: int
+    sell_listing_id: UUID
     offered_price: int
     message: Optional[str]
     status: str

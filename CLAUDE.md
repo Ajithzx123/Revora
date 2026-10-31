@@ -5,7 +5,7 @@ Revora is a **reverse car marketplace for India**: customers post what they want
 Read first: `plans/revora_plan_1_audit_and_features.md`, `plans/revora_plan_2_flows_and_rules.md`, `plans/revora_plan_3_screens_tech_roadmap.md`, `plans/revora_scenarios.md`, `design/DESIGN.md`.
 
 ## Stack (do not swap without approval)
-- Backend: `backend/` FastAPI + SQLModel, Postgres (Supabase) target, SQLite local only. Run from the repo root (`uvicorn backend.main:app --reload`) because imports use the `backend.app...` prefix.
+- Backend: `backend/` FastAPI + SQLModel, Postgres (Supabase) target, SQLite local only. Identity is Supabase Auth (the API verifies its JWT); schema changes go through Alembic (`backend/migrations`). Run from the repo root (`uvicorn backend.main:app --reload`) because imports use the `backend.app...` prefix.
 - Frontend: `frontend/` Flutter, Riverpod (`flutter_riverpod`), `go_router`, Dio, `supabase_flutter`, Outfit font via `google_fonts`.
 - Storage/Realtime/Push: Supabase Storage + Realtime, Firebase Cloud Messaging.
 
@@ -28,13 +28,13 @@ Read first: `plans/revora_plan_1_audit_and_features.md`, `plans/revora_plan_2_fl
 - Unverified vehicle info must never look verified: label source (Owner declared / Dealer claim / Verified).
 - Customer phone/contact is hidden from dealers until acceptance.
 - Money is integer rupees in API and DB; format only in the UI (lakh/crore) via `price_formatter.dart`.
-- IDs are UUID strings across DB, API and Flutter (pending decision D3 — confirm before schema work).
+- IDs are UUIDs across DB, API and Flutter. `user.id` is the Supabase auth user id.
 - Subscriptions never influence verification, matching rank or quote ranking.
 
 ## Backend rules
 - Every endpoint: authenticated + **role check** (`require_role`) + **ownership check** on the object. "Logged in" is never enough.
 - Pydantic schemas for all inputs/outputs; paginate every list; validate ranges (price > 0, year bounds, km plausible).
-- Schema changes via **Alembic migrations only** (no reliance on `create_all` once S0 is done).
+- Schema changes via **Alembic migrations only**; a test fails if models and migrations drift.
 - Idempotency key on payment/accept endpoints. Expiry via scheduled job, and re-checked at action time.
 - Rate-limit auth/OTP/quote/report endpoints. CORS restricted to known origins in non-dev.
 - Tests: pytest + httpx; a permission-matrix test per router; state-transition tests; a concurrency test for accept.
@@ -65,5 +65,5 @@ Read first: `plans/revora_plan_1_audit_and_features.md`, `plans/revora_plan_2_fl
 ## Definition of done (every slice)
 Acceptance criteria met · tests added and green · analyze/format clean · UI checked at 3 widths in light/dark · empty/loading/error states present · permissions tested · audit events for sensitive actions · docs/plan updated · no secrets, no TODOs left without a ticket.
 
-## Known issues to fix in S0 (do not copy these patterns)
-Auto-verified dealer in `send_quote`; dealer endpoints without role checks; unprotected admin/leads routes; demo role-by-email login in `auth_repository.dart`; default `SECRET_KEY`; open CORS; duplicate routes.
+## Fixed in S0/S1 (do not reintroduce)
+Auto-verified dealers; dealer endpoints without role checks; unprotected admin/leads routes; demo role-by-email login; default secret key; open CORS; duplicate routes; roles read from client-editable token metadata; custom password/session code (now Supabase).
