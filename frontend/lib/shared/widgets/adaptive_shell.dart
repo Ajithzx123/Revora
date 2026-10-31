@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import 'app_sidebar.dart';
+import 'floating_nav_bar.dart';
 import 'responsive_layout.dart';
 
 class AdaptiveShell extends StatelessWidget {
@@ -33,67 +34,50 @@ class AdaptiveShell extends StatelessWidget {
       mobile: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
-          elevation: 0,
-          scrolledUnderElevation: 1,
+          backgroundColor: AppColors.background,
+          titleSpacing: AppSpacing.lg,
           title: Row(
             children: [
               Container(
-                width: 28,
-                height: 28,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Center(
-                  child: Text(
-                    'R',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                alignment: Alignment.center,
+                child: Text(
+                  'R',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.onAccent,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
+              const SizedBox(width: AppSpacing.md),
+              Flexible(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ),
             ],
           ),
-          actions: desktopHeaderTrailing != null
-              ? [desktopHeaderTrailing!]
-              : null,
+          actions: [
+            ?desktopHeaderTrailing,
+            const SizedBox(width: AppSpacing.sm),
+          ],
         ),
         body: body,
         floatingActionButton: floatingActionButton,
-        bottomNavigationBar: NavigationBar(
+        bottomNavigationBar: FloatingNavBar(
+          items: items,
           selectedIndex: selectedIndex,
-          onDestinationSelected: onItemSelected,
-          backgroundColor: AppColors.surface,
-          indicatorColor: AppColors.accent.withValues(alpha: 0.15),
-          destinations: items.map((item) {
-            return NavigationDestination(
-              icon: item.badgeCount != null && item.badgeCount! > 0
-                  ? Badge(
-                      label: Text('${item.badgeCount}'),
-                      child: Icon(item.icon),
-                    )
-                  : Icon(item.icon),
-              selectedIcon: Icon(
-                item.selectedIcon ?? item.icon,
-                color: AppColors.accent,
-              ),
-              label: item.label,
-            );
-          }).toList(),
+          onSelected: onItemSelected,
         ),
       ),
 

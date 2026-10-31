@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_text_styles.dart';
 
-/// Universal car display card matching modern aesthetic:
-/// - Pill badge (e.g., "Sale", "96% Match", "Active")
-/// - Heart/Favorite button (interactive or custom action)
-/// - Centered hero car image
-/// - Title & Location / Subtitle
-/// - Right-aligned "Price" header & Price tag
-/// - Spec chips / pills for extra details (Year, Km, Fuel, Rating, etc.)
-/// - Customizable action button(s) at bottom
+/// Photo-first card used for cars, requirements and quotes.
+/// Photo on top with a status pill and a save button, then title, price,
+/// spec chips and the call-to-action(s). It fills a bounded height (horizontal
+/// carousels) by pinning the actions to the bottom, and sizes to its content
+/// in vertical lists.
 class CarCard extends StatefulWidget {
   final String imageUrl;
   final String title;
@@ -56,7 +54,8 @@ class CarCard extends StatefulWidget {
 
 class _CarCardState extends State<CarCard> {
   late bool _liked;
-  bool _isHovered = false;
+  bool _hovered = false;
+  bool _pressed = false;
 
   @override
   void initState() {
@@ -67,304 +66,266 @@ class _CarCardState extends State<CarCard> {
   @override
   void didUpdateWidget(covariant CarCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.isFavorite != widget.isFavorite) {
-      _liked = widget.isFavorite;
-    }
+    if (oldWidget.isFavorite != widget.isFavorite) _liked = widget.isFavorite;
   }
 
   @override
   Widget build(BuildContext context) {
+    final tappable = widget.onTap != null;
+    final raised = _hovered && tappable;
+
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: tappable ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            border: Border.all(
-              color: _isHovered
-                  ? AppColors.textPrimary.withValues(alpha: 0.22)
-                  : const Color(0xFFE2E8F0),
-              width: 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: _isHovered
-                    ? Colors.black.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.03),
-                blurRadius: _isHovered ? 14 : 6,
-                offset: Offset(0, _isHovered ? 5 : 2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Top Badges Row: Pill Badge (e.g. Sale, Match %) + Favorite Button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (widget.badgeText != null && widget.badgeText!.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: widget.badgeBgColor ?? const Color(0xFFF1F5F9),
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusPill),
-                        ),
-                        child: Text(
-                          widget.badgeText!,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: widget.badgeTextColor ?? AppColors.textPrimary,
-                          ),
-                        ),
-                      )
-                    else
-                      const SizedBox.shrink(),
-                    if (widget.showFavorite)
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            setState(() => _liked = !_liked);
-                            widget.onFavoriteChanged?.call(_liked);
-                          },
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusPill),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: _liked
-                                  ? const Color(0xFFFFECEE)
-                                  : const Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _liked ? Icons.favorite : Icons.favorite_border,
-                              size: 17,
-                              color: _liked
-                                  ? const Color(0xFFEF4444)
-                                  : AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      const SizedBox.shrink(),
-                  ],
+        onTapDown: tappable ? (_) => setState(() => _pressed = true) : null,
+        onTapUp: tappable ? (_) => setState(() => _pressed = false) : null,
+        onTapCancel: tappable ? () => setState(() => _pressed = false) : null,
+        child: AnimatedScale(
+          scale: _pressed ? 0.985 : 1,
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            transform: Matrix4.translationValues(0, raised ? -2 : 0, 0),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: raised ? 0.10 : 0.04),
+                  blurRadius: raised ? 22 : 10,
+                  offset: Offset(0, raised ? 10 : 4),
                 ),
-
-                const SizedBox(height: 6),
-
-                // 2. Centered Car Hero Showcase
-                if (widget.imageHeight != null)
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      child: widget.imageUrl.isNotEmpty
-                          ? Image.network(
-                              widget.imageUrl,
-                              width: double.infinity,
-                              height: widget.imageHeight,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) =>
-                                  _buildImagePlaceholder(height: widget.imageHeight),
-                            )
-                          : _buildImagePlaceholder(height: widget.imageHeight),
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                        child: widget.imageUrl.isNotEmpty
-                            ? Image.network(
-                                widget.imageUrl,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => _buildImagePlaceholder(),
-                              )
-                            : _buildImagePlaceholder(),
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(height: AppSpacing.sm),
-
-                // 3. Title + Location / Subtitle + Price Info
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -0.3,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 3),
-                          if (widget.location != null &&
-                              widget.location!.isNotEmpty)
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.location_on_outlined,
-                                  size: 13,
-                                  color: AppColors.textSecondary,
-                                ),
-                                const SizedBox(width: 2),
-                                Expanded(
-                                  child: Text(
-                                    widget.location!,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            )
-                          else if (widget.subtitle != null)
-                            Text(
-                              widget.subtitle!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          widget.priceLabel,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.priceText,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                // 4. Spec Details Chips
-                if (widget.specs.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: widget.specs.map((s) => _buildSpecPill(s)).toList(),
-                  ),
-                ],
-
-                // 5. Actions row if provided
-                if (widget.primaryAction != null ||
-                    widget.secondaryAction != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      if (widget.secondaryAction != null)
-                        Expanded(child: widget.secondaryAction!),
-                      if (widget.secondaryAction != null &&
-                          widget.primaryAction != null)
-                        const SizedBox(width: AppSpacing.sm),
-                      if (widget.primaryAction != null)
-                        Expanded(child: widget.primaryAction!),
-                    ],
-                  ),
-                ],
               ],
             ),
+            clipBehavior: Clip.antiAlias,
+            child: LayoutBuilder(builder: (context, constraints) {
+              final bounded = constraints.hasBoundedHeight;
+              final body = _body(context);
+              return Column(
+                mainAxisSize: bounded ? MainAxisSize.max : MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _photo(),
+                  if (bounded) Expanded(child: body) else body,
+                ],
+              );
+            }),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSpecPill(CarSpecItem item) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget _photo() {
+    final height = widget.imageHeight ?? 150;
+    return SizedBox(
+      height: height,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          if (item.icon != null) ...[
-            Icon(
-              item.icon,
-              size: 11,
-              color: item.color ?? AppColors.textSecondary,
-            ),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            item.label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: item.color ?? AppColors.textPrimary,
+          widget.imageUrl.isEmpty
+              ? _placeholder()
+              : Image.network(
+                  widget.imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) =>
+                      progress == null ? child : _placeholder(),
+                  errorBuilder: (_, _, _) => _placeholder(),
+                ),
+          // Soft scrim so the pill and heart stay legible on bright photos.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.center,
+                colors: [Color(0x66000000), Color(0x00000000)],
+              ),
             ),
           ),
+          if (widget.badgeText != null)
+            Positioned(
+              left: 10,
+              top: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: widget.badgeBgColor ?? Colors.white,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Text(
+                  widget.badgeText!,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: widget.badgeTextColor ?? AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ),
+          if (widget.showFavorite)
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Semantics(
+                button: true,
+                label: _liked ? 'Remove from saved' : 'Save',
+                child: Material(
+                  color: Colors.white.withValues(alpha: 0.94),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () {
+                      setState(() => _liked = !_liked);
+                      widget.onFavoriteChanged?.call(_liked);
+                    },
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(
+                        _liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        size: 20,
+                        color: _liked ? AppColors.error : AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildImagePlaceholder({double? height}) {
-    return Container(
-      width: double.infinity,
-      height: height,
-      color: const Color(0xFFF8FAFC),
-      child: Center(
-        child: Icon(
-          Icons.directions_car_filled_outlined,
-          size: height != null ? (height * 0.45).clamp(24.0, 56.0) : 56,
-          color: const Color(0xFF94A3B8),
+  Widget _body(BuildContext context) {
+    final hasActions = widget.primaryAction != null || widget.secondaryAction != null;
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.titleLarge.copyWith(fontSize: 16),
+          ),
+          if (widget.subtitle != null || widget.location != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              widget.location ?? widget.subtitle!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodySmall,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(widget.priceText, maxLines: 1, style: AppTextStyles.price),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(widget.priceLabel.toUpperCase(), style: AppTextStyles.overline.copyWith(fontSize: 10)),
+            ],
+          ),
+          if (widget.specs.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [for (final s in widget.specs) _SpecPill(item: s)],
+            ),
+          ],
+          if (hasActions) ...[
+            const Spacer(),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                if (widget.secondaryAction != null) ...[
+                  Expanded(child: _compact(context, widget.secondaryAction!)),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                if (widget.primaryAction != null)
+                  Expanded(
+                    flex: widget.secondaryAction != null ? 2 : 1,
+                    child: _compact(context, widget.primaryAction!),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Buttons inside a card are a little shorter than full-width page buttons.
+  Widget _compact(BuildContext context, Widget button) {
+    final theme = Theme.of(context);
+    final style = ButtonStyle(
+      minimumSize: const WidgetStatePropertyAll(Size(0, 44)),
+      padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
+      textStyle: WidgetStatePropertyAll(AppTextStyles.labelLarge.copyWith(fontSize: 14)),
+    );
+    return Theme(
+      data: theme.copyWith(
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: (theme.elevatedButtonTheme.style ?? const ButtonStyle()).merge(style),
         ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: (theme.filledButtonTheme.style ?? const ButtonStyle()).merge(style),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: (theme.outlinedButtonTheme.style ?? const ButtonStyle()).merge(style),
+        ),
+      ),
+      child: SizedBox(width: double.infinity, child: button),
+    );
+  }
+
+  Widget _placeholder() => Container(
+        color: AppColors.primarySubtle,
+        alignment: Alignment.center,
+        child: const Icon(Icons.directions_car_filled_outlined, size: 44, color: AppColors.textMuted),
+      );
+}
+
+class _SpecPill extends StatelessWidget {
+  final CarSpecItem item;
+  const _SpecPill({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = item.color ?? AppColors.textPrimary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.primarySubtle,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (item.icon != null) ...[
+            Icon(item.icon, size: 14, color: item.color ?? AppColors.textSecondary),
+            const SizedBox(width: 5),
+          ],
+          Text(
+            item.label,
+            style: AppTextStyles.labelMedium.copyWith(fontSize: 12.5, color: color),
+          ),
+        ],
       ),
     );
   }

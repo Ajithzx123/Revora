@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_text_styles.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -29,24 +30,13 @@ class SectionHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
+                Semantics(
+                  header: true,
+                  child: Text(title, style: AppTextStyles.titleLarge),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    subtitle!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  Text(subtitle!, style: AppTextStyles.bodySmall),
                 ],
               ],
             ),
@@ -56,30 +46,15 @@ class SectionHeader extends StatelessWidget {
             TextButton(
               onPressed: onActionTap,
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
-                ),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                minimumSize: const Size(48, 40),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    actionLabel!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.accent,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  const Icon(
-                    Icons.arrow_forward,
-                    size: 14,
-                    color: AppColors.accent,
-                  ),
+                  Text(actionLabel!, style: const TextStyle(color: AppColors.accentDeep)),
+                  const SizedBox(width: AppSpacing.xs),
+                  const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.accentDeep),
                 ],
               ),
             ),

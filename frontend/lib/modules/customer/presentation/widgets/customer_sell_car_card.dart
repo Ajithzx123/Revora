@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/car_card.dart';
 import '../../domain/entities/sell_post.dart';
 
@@ -46,8 +45,8 @@ class CustomerSellCarCard extends StatelessWidget {
       priceText: post.formattedPrice,
       priceLabel: 'Price',
       badgeText: post.status.toUpperCase(),
-      badgeBgColor: const Color(0xFFEFF6FF),
-      badgeTextColor: const Color(0xFF2563EB),
+      badgeBgColor: AppColors.infoBg,
+      badgeTextColor: AppColors.info,
       imageHeight: imageHeight,
       onTap: () => context.push('/customer/listing/${post.id}'),
       specs: [
@@ -68,24 +67,9 @@ class CustomerSellCarCard extends StatelessWidget {
         ),
       ],
       // Replaced contact button with "View Details"
-      primaryAction: ElevatedButton(
+      primaryAction: FilledButton(
         onPressed: () => context.push('/customer/listing/${post.id}'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-          ),
-        ),
-        child: const Text(
-          'View Details',
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        child: const Text('View details'),
       ),
     );
   }

@@ -2,127 +2,59 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
+/// Sora for headlines and prices (geometric, confident); DM Sans for everything
+/// you read (warm, very legible). Two families, three weights.
 class AppTextStyles {
   AppTextStyles._();
 
-  static TextStyle get displayLarge => GoogleFonts.outfit(
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle _head(double size, FontWeight weight, Color color,
+          {double height = 1.2, double spacing = -0.3}) =>
+      GoogleFonts.sora(
+        fontSize: size,
+        fontWeight: weight,
+        color: color,
+        height: height,
+        letterSpacing: spacing,
+      );
 
-  static TextStyle get headlineLarge => GoogleFonts.outfit(
-    fontSize: 28,
-    fontWeight: FontWeight.bold,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle _body(double size, FontWeight weight, Color color,
+          {double height = 1.45, double spacing = 0}) =>
+      GoogleFonts.dmSans(
+        fontSize: size,
+        fontWeight: weight,
+        color: color,
+        height: height,
+        letterSpacing: spacing,
+      );
 
-  static TextStyle get headlineMedium => GoogleFonts.outfit(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
+  // ---- Light ----
+  static TextStyle get displayLarge => _head(34, FontWeight.w700, AppColors.textPrimary, height: 1.1, spacing: -0.8);
+  static TextStyle get headlineLarge => _head(28, FontWeight.w700, AppColors.textPrimary, height: 1.15, spacing: -0.6);
+  static TextStyle get headlineMedium => _head(22, FontWeight.w600, AppColors.textPrimary, height: 1.2);
+  static TextStyle get titleLarge => _head(18, FontWeight.w600, AppColors.textPrimary, height: 1.25, spacing: -0.2);
+  static TextStyle get bodyLarge => _body(16, FontWeight.w400, AppColors.textPrimary, height: 1.5);
+  static TextStyle get bodyMedium => _body(15, FontWeight.w400, AppColors.textSecondary);
+  static TextStyle get bodySmall => _body(13, FontWeight.w400, AppColors.textSecondary, height: 1.4);
+  static TextStyle get labelLarge => _body(15, FontWeight.w700, AppColors.textPrimary, height: 1.3);
+  static TextStyle get labelMedium => _body(13, FontWeight.w600, AppColors.textPrimary, height: 1.3);
+  static TextStyle get labelSmall => _body(11.5, FontWeight.w600, AppColors.textSecondary, height: 1.3, spacing: 0.2);
 
-  static TextStyle get titleLarge => GoogleFonts.outfit(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
+  /// Prices and big numbers: tabular figures so columns of prices line up.
+  static TextStyle get price => _head(22, FontWeight.w700, AppColors.textPrimary, height: 1.1, spacing: -0.4)
+      .copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
 
-  static TextStyle get bodyLarge => GoogleFonts.outfit(
-    fontSize: 16,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textPrimary,
-  );
+  /// Small caps-style section label.
+  static TextStyle get overline => _body(11, FontWeight.w700, AppColors.textSecondary, height: 1.3, spacing: 1.1);
 
-  static TextStyle get bodyMedium => GoogleFonts.outfit(
-    fontSize: 14,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textSecondary,
-  );
-
-  static TextStyle get bodySmall => GoogleFonts.outfit(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textSecondary,
-  );
-
-  static TextStyle get labelLarge => GoogleFonts.outfit(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get labelMedium => GoogleFonts.outfit(
-    fontSize: 13,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get labelSmall => GoogleFonts.outfit(
-    fontSize: 11,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
-  );
-
-  // Dark equivalents
-  static TextStyle get displayLargeDark => GoogleFonts.outfit(
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
-    color: AppColors.textPrimaryDark,
-  );
-
-  static TextStyle get headlineLargeDark => GoogleFonts.outfit(
-    fontSize: 28,
-    fontWeight: FontWeight.bold,
-    color: AppColors.textPrimaryDark,
-  );
-
-  static TextStyle get headlineMediumDark => GoogleFonts.outfit(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimaryDark,
-  );
-
-  static TextStyle get titleLargeDark => GoogleFonts.outfit(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimaryDark,
-  );
-
-  static TextStyle get bodyLargeDark => GoogleFonts.outfit(
-    fontSize: 16,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textPrimaryDark,
-  );
-
-  static TextStyle get bodyMediumDark => GoogleFonts.outfit(
-    fontSize: 14,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textSecondaryDark,
-  );
-
-  static TextStyle get bodySmallDark => GoogleFonts.outfit(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textSecondaryDark,
-  );
-
-  static TextStyle get labelLargeDark => GoogleFonts.outfit(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimaryDark,
-  );
-
-  static TextStyle get labelMediumDark => GoogleFonts.outfit(
-    fontSize: 13,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textPrimaryDark,
-  );
-
-  static TextStyle get labelSmallDark => GoogleFonts.outfit(
-    fontSize: 11,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondaryDark,
-  );
+  // ---- Dark ----
+  static TextStyle get displayLargeDark => displayLarge.copyWith(color: AppColors.textPrimaryDark);
+  static TextStyle get headlineLargeDark => headlineLarge.copyWith(color: AppColors.textPrimaryDark);
+  static TextStyle get headlineMediumDark => headlineMedium.copyWith(color: AppColors.textPrimaryDark);
+  static TextStyle get titleLargeDark => titleLarge.copyWith(color: AppColors.textPrimaryDark);
+  static TextStyle get bodyLargeDark => bodyLarge.copyWith(color: AppColors.textPrimaryDark);
+  static TextStyle get bodyMediumDark => bodyMedium.copyWith(color: AppColors.textSecondaryDark);
+  static TextStyle get bodySmallDark => bodySmall.copyWith(color: AppColors.textSecondaryDark);
+  static TextStyle get labelLargeDark => labelLarge.copyWith(color: AppColors.textPrimaryDark);
+  static TextStyle get labelMediumDark => labelMedium.copyWith(color: AppColors.textPrimaryDark);
+  static TextStyle get labelSmallDark => labelSmall.copyWith(color: AppColors.textSecondaryDark);
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/responsive_card_grid.dart';
+import '../widgets/buy_lead_card.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/kpi_tile.dart';
-import '../../../../shared/widgets/match_badge.dart';
-import '../../../../shared/widgets/spec_chip.dart';
 import '../providers/dealer_providers.dart';
 
 class DealerHomeScreen extends ConsumerWidget {
@@ -97,110 +97,14 @@ class DealerHomeScreen extends ConsumerWidget {
                     ref.read(dealerActiveTabProvider.notifier).state = 1;
                   },
                 ),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: buyLeads.take(3).length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.md),
-                  itemBuilder: (context, index) {
-                    final lead = buyLeads[index];
-                    return Container(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusMd,
-                        ),
-                        border: Border.all(color: AppColors.border, width: 0.8),
+                ResponsiveCardGrid(
+                  children: [
+                    for (final lead in buyLeads.take(3))
+                      BuyLeadCard(
+                        lead: lead,
+                        onSendQuote: () => context.push('/dealer/send-quote/${lead.id}'),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    lead.title,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  MatchBadge(percentage: lead.matchPercentage),
-                                ],
-                              ),
-                              Text(
-                                lead.budgetRange,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.accent,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            'Customer: ${lead.customerName} • ${lead.customerCity}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Wrap(
-                            spacing: AppSpacing.xs,
-                            runSpacing: AppSpacing.xxs,
-                            children: [
-                              SpecChip(
-                                icon: Icons.local_gas_station_outlined,
-                                label: lead.fuelType,
-                              ),
-                              SpecChip(
-                                icon: Icons.tune,
-                                label: lead.transmission,
-                              ),
-                              SpecChip(
-                                icon: Icons.forum_outlined,
-                                label: '${lead.quotesCount} quotes sent',
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () =>
-                                    context.push('/dealer/send-quote/${lead.id}'),
-                                icon: const Icon(Icons.reply, size: 16),
-                                label: const Text('Send Quote From Inventory'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.accent,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.lg,
-                                    vertical: AppSpacing.sm,
-                                  ),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSpacing.radiusSm,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                  ],
                 ),
                 const SizedBox(height: AppSpacing.xxl),
 

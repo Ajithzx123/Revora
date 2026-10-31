@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/responsive_card_grid.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../providers/customer_providers.dart';
 import '../widgets/customer_sell_post_card.dart';
@@ -13,71 +14,63 @@ class CustomerSellScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sellPosts = ref.watch(customerSellPostsProvider);
+    final t = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/customer/post-sell'),
+        backgroundColor: AppColors.accent,
+        foregroundColor: AppColors.onAccent,
+        elevation: 2,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Sell a car'),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 96),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
+            constraints: const BoxConstraints(maxWidth: 1100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Callout banner: How Selling on Revora works
-                _buildHowItWorksBanner(context),
+                const _HowItWorks(),
                 const SizedBox(height: AppSpacing.xxl),
-
-                SectionHeader(
-                  title: 'My Listed Cars',
-                  subtitle: 'Cars you put up for verified dealers to bid on',
-                  trailing: ElevatedButton.icon(
-                    onPressed: () => context.push('/customer/post-sell'),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Sell Another Car'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
-                      ),
-                    ),
-                  ),
+                const SectionHeader(
+                  title: 'Your listed cars',
+                  subtitle: 'Verified dealers bid on these',
                 ),
-
                 if (sellPosts.isEmpty)
-                  _buildEmptyState(context)
-                else
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final crossAxisCount = constraints.maxWidth > 700 ? 2 : 1;
-
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: AppSpacing.md,
-                          mainAxisSpacing: AppSpacing.md,
-                          childAspectRatio: 0.72,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpacing.xxl),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.directions_car_outlined, size: 44, color: AppColors.textMuted),
+                        const SizedBox(height: AppSpacing.md),
+                        Text('No cars listed yet', style: t.titleMedium),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'List your car once and dealers compete to buy it.',
+                          textAlign: TextAlign.center,
+                          style: t.bodySmall,
                         ),
-                        itemCount: sellPosts.length,
-                        itemBuilder: (context, index) {
-                          return CustomerSellPostCard(
-                            post: sellPosts[index],
-                            onViewOffers: () {
-                              // TODO: Navigate to offers
-                            },
-                          );
-                        },
-                      );
-                    },
+                      ],
+                    ),
+                  )
+                else
+                  ResponsiveCardGrid(
+                    children: [
+                      for (final post in sellPosts)
+                        CustomerSellPostCard(
+                          post: post,
+                          onViewOffers: () => context.push('/customer/listing/${post.id}'),
+                        ),
+                    ],
                   ),
               ],
             ),
@@ -86,86 +79,78 @@ class CustomerSellScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildHowItWorksBanner(BuildContext context) {
+/// Three steps, shown as a row of numbered tiles on wide screens and a column on phones.
+class _HowItWorks extends StatelessWidget {
+  const _HowItWorks();
+
+  static const _steps = [
+    ('Post your car', 'Add details and photos in a couple of minutes.'),
+    ('Dealers bid', 'Verified dealers send itemised purchase offers.'),
+    ('You choose', 'Compare offers and accept the best one.'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.border, width: 0.8),
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.verified_user_outlined,
-                  color: AppColors.accent, size: 20),
-              SizedBox(width: AppSpacing.sm),
-              Text(
-                'How Selling Works on Revora',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+      child: LayoutBuilder(builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 640;
+        final tiles = [
+          for (var i = 0; i < _steps.length; i++)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                  alignment: Alignment.center,
+                  child: Text('${i + 1}', style: t.labelLarge?.copyWith(color: AppColors.onAccent)),
                 ),
-              ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_steps[i].$1, style: t.titleSmall?.copyWith(color: Colors.white)),
+                      const SizedBox(height: 2),
+                      Text(
+                        _steps[i].$2,
+                        style: t.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.72)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ];
+        if (wide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < tiles.length; i++) ...[
+                Expanded(child: tiles[i]),
+                if (i < tiles.length - 1) const SizedBox(width: AppSpacing.xl),
+              ],
             ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          const Text(
-            '1. Post your car details & upload photos\n2. Verified dealers evaluate & submit direct purchase bids\n3. Compare bids and pick the highest offer with no hidden cuts',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.border, width: 0.8),
-      ),
-      child: Center(
-        child: Column(
+          );
+        }
+        return Column(
           children: [
-            const Icon(Icons.directions_car_outlined,
-                size: 48, color: AppColors.icon),
-            const SizedBox(height: AppSpacing.md),
-            const Text(
-              'No cars listed for sale yet',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            const Text(
-              'Sell directly to network dealers at the best market price',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            ElevatedButton(
-              onPressed: () => context.push('/customer/post-sell'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Post Car for Sale'),
-            ),
+            for (var i = 0; i < tiles.length; i++) ...[
+              tiles[i],
+              if (i < tiles.length - 1) const SizedBox(height: AppSpacing.lg),
+            ],
           ],
-        ),
-      ),
+        );
+      }),
     );
   }
 }

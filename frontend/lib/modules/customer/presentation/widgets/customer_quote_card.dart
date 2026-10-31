@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/car_card.dart';
 import '../../domain/entities/quote.dart';
 
@@ -30,9 +29,9 @@ class CustomerQuoteCard extends StatelessWidget {
       location: '${quote.dealerName} • ${quote.dealerCity}',
       priceText: quote.formattedPrice,
       priceLabel: 'Price',
-      badgeText: isHomeScreen ? '🔥 FEATURED' : '${quote.matchPercentage}% Match',
-      badgeBgColor: isHomeScreen ? const Color(0xFFFFECEE) : const Color(0xFFF1F5F9),
-      badgeTextColor: isHomeScreen ? AppColors.error : AppColors.textPrimary,
+      badgeText: isHomeScreen ? 'FEATURED' : '${quote.matchPercentage}% MATCH',
+      badgeBgColor: isHomeScreen ? AppColors.accent : AppColors.successBg,
+      badgeTextColor: isHomeScreen ? AppColors.onAccent : AppColors.success,
       specs: [
         CarSpecItem(
           icon: Icons.calendar_today_outlined,
@@ -49,45 +48,16 @@ class CustomerQuoteCard extends StatelessWidget {
         CarSpecItem(
           icon: Icons.star_rounded,
           label: quote.dealerRating.toStringAsFixed(1),
-          color: Colors.amber.shade700,
+          color: AppColors.warning,
         ),
       ],
       secondaryAction: OutlinedButton(
         onPressed: onContact,
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          side: const BorderSide(color: Color(0xFFCBD5E1)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-          ),
-        ),
-        child: const Text(
-          'Contact',
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
+        child: const Text('Chat'),
       ),
-      primaryAction: ElevatedButton(
+      primaryAction: FilledButton(
         onPressed: onAccept,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-          ),
-        ),
-        child: const Text(
-          'Accept Deal',
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        child: const Text('Accept deal'),
       ),
     );
   }

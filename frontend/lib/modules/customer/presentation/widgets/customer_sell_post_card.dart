@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/car_card.dart';
 import '../../domain/entities/sell_post.dart';
 
@@ -24,7 +23,7 @@ class CustomerSellPostCard extends StatelessWidget {
         badgeColor = AppColors.success;
         break;
       case 'pending':
-        badgeColor = Colors.orange;
+        badgeColor = AppColors.warning;
         break;
       case 'sold':
         badgeColor = AppColors.primary;
@@ -38,7 +37,7 @@ class CustomerSellPostCard extends StatelessWidget {
       title: post.title,
       location: 'Posted recently',
       priceText: post.formattedPrice,
-      priceLabel: 'Expected Price',
+      priceLabel: 'Asking',
       badgeText: post.status.toUpperCase(),
       badgeBgColor: badgeColor,
       badgeTextColor: badgeTextColor,
@@ -57,28 +56,13 @@ class CustomerSellPostCard extends StatelessWidget {
         ),
         CarSpecItem(
           icon: Icons.local_offer_outlined,
-          label: '${post.offersCount} Offers',
+          label: post.offersCount == 1 ? '1 offer' : '${post.offersCount} offers',
           color: AppColors.success,
         ),
       ],
-      primaryAction: ElevatedButton(
+      primaryAction: FilledButton(
         onPressed: onViewOffers,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-          ),
-        ),
-        child: Text(
-          'View ${post.offersCount} Offers',
-          style: const TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        child: Text(post.offersCount == 1 ? 'View 1 offer' : 'View ${post.offersCount} offers'),
       ),
     );
   }

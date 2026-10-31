@@ -259,33 +259,31 @@ class _AdminDealerDetailScreenState extends ConsumerState<AdminDealerDetailScree
     final canReview = app.status == DealerStatus.pending && !_busy;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(doc.type?.label ?? doc.originalName, style: AppTextStyles.labelLarge),
-                Text(text, style: AppTextStyles.bodySmall.copyWith(color: color)),
-                if (doc.reviewNote != null) Text(doc.reviewNote!, style: AppTextStyles.bodySmall),
+          Text(doc.type?.label ?? doc.originalName, style: AppTextStyles.labelLarge),
+          Text(text, style: AppTextStyles.bodySmall.copyWith(color: color)),
+          if (doc.reviewNote != null) Text(doc.reviewNote!, style: AppTextStyles.bodySmall),
+          Wrap(
+            children: [
+              TextButton(onPressed: () => _viewDocument(doc), child: const Text('View')),
+              if (canReview) ...[
+                TextButton(
+                  onPressed: doc.status == DocumentStatus.accepted
+                      ? null
+                      : () => _run(() => _repo.reviewDocument(widget.dealerId, doc.id, accept: true),
+                          success: 'Document accepted'),
+                  child: const Text('Accept'),
+                ),
+                TextButton(
+                  onPressed: () => _rejectDocument(doc),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                  child: const Text('Reject'),
+                ),
               ],
-            ),
+            ],
           ),
-          TextButton(onPressed: () => _viewDocument(doc), child: const Text('View')),
-          if (canReview) ...[
-            TextButton(
-              onPressed: doc.status == DocumentStatus.accepted
-                  ? null
-                  : () => _run(() => _repo.reviewDocument(widget.dealerId, doc.id, accept: true),
-                      success: 'Document accepted'),
-              child: const Text('Accept'),
-            ),
-            TextButton(
-              onPressed: () => _rejectDocument(doc),
-              style: TextButton.styleFrom(foregroundColor: AppColors.error),
-              child: const Text('Reject'),
-            ),
-          ],
         ],
       ),
     );

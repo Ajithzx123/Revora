@@ -151,7 +151,6 @@ class DealerProfileScreen extends ConsumerWidget {
                         trailing: Switch(
                           value: true,
                           onChanged: (_) {},
-                          activeThumbColor: AppColors.accent,
                         ),
                         onTap: () {},
                       ),

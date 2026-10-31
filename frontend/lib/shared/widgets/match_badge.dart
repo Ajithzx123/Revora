@@ -13,7 +13,7 @@ class MatchBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHighMatch = percentage >= 85;
-    final fg = isHighMatch ? AppColors.accent : AppColors.info;
+    final fg = isHighMatch ? AppColors.accentDeep : AppColors.info;
     final bg = isHighMatch ? AppColors.accentLight : AppColors.infoBg;
 
     return Container(
@@ -34,8 +34,8 @@ class MatchBadge extends StatelessWidget {
           Text(
             '$percentage% Match',
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
               color: fg,
             ),
           ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/supabase/supabase_service.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../domain/models/user_model.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../controllers/auth_controller.dart';
+import 'auth_scaffold.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,9 +17,16 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'customer@revora.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  // Demo accounts exist only in mock mode (debug builds).
+  static const _demoAccounts = [
+    ('Customer', 'buyer@revora.com'),
+    ('Dealer', 'dealer@revora.com'),
+    ('Admin', 'admin@revora.com'),
+  ];
 
   @override
   void dispose() {
@@ -26,289 +35,177 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _onLogin() async {
+  // After a successful sign-in the router sends each role to its own home.
+  Future<void> _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    await ref.read(authControllerProvider.notifier).signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+  }
 
+  Future<void> _onForgotPassword() async {
     final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    final success = await ref
-        .read(authControllerProvider.notifier)
-        .signIn(email: email, password: password);
-
-    if (success && mounted) {
-      final user = ref.read(authControllerProvider).user;
-      if (user != null) {
-        _navigateByRole(user.role);
-      }
+    if (!email.contains('@')) {
+      _toast('Enter your email above first, then tap "Forgot password?".');
+      return;
+    }
+    if (AppConfig.instance.useMockData) {
+      _toast('Demo mode: password reset is not available.');
+      return;
+    }
+    try {
+      await SupabaseService.instance.client?.auth.resetPasswordForEmail(email);
+      _toast('If an account exists for $email, a reset link is on its way.');
+    } catch (_) {
+      _toast('Could not send the reset email. Please try again.');
     }
   }
 
-  void _navigateByRole(UserRole role) {
-    switch (role) {
-      case UserRole.customer:
-        context.go('/customer/home');
-        break;
-      case UserRole.dealer:
-        context.go('/dealer/home');
-        break;
-      case UserRole.admin:
-        context.go('/admin/dashboard');
-        break;
-    }
+  void _toast(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
-    final isWide = size.width > 800;
+    final auth = ref.watch(authControllerProvider);
+    final t = Theme.of(context).textTheme;
+    final demo = AppConfig.instance.useMockData;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: isWide ? 440 : 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Brand / Logo Section
-                    Center(
-                      child: Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.25),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.directions_car_filled_rounded,
-                          size: 38,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Welcome to Revora',
-                      textAlign: TextAlign.center,
-                      style:
-                          (isDark
-                                  ? AppTextStyles.headlineLargeDark
-                                  : AppTextStyles.headlineLarge)
-                              .copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Sign in to manage quotes, listings, and deals',
-                      textAlign: TextAlign.center,
-                      style: isDark
-                          ? AppTextStyles.bodyMediumDark
-                          : AppTextStyles.bodyMedium,
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Error Banner
-                    if (authState.errorMessage != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.errorBg,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.error),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: AppColors.error,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                authState.errorMessage!,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-
-                    // Email Field
-                    Text(
-                      'Email Address',
-                      style: isDark
-                          ? AppTextStyles.labelMediumDark
-                          : AppTextStyles.labelMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        hintText: 'customer@..., dealer@..., or admin@...',
-                        prefixIcon: Icon(Icons.email_outlined, size: 20),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email address';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Password Field
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Password',
-                          style: isDark
-                              ? AppTextStyles.labelMediumDark
-                              : AppTextStyles.labelMedium,
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Password reset link sent (demo)',
-                                ),
-                              ),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'Forgot?',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _onLogin(),
-                      decoration: InputDecoration(
-                        hintText: 'Enter your password',
-                        prefixIcon: const Icon(
-                          Icons.lock_outline_rounded,
-                          size: 20,
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Submit Button
-                    ElevatedButton(
-                      onPressed: authState.isLoading ? null : _onLogin,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: authState.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Sign up navigation
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account?",
-                          style: isDark
-                              ? AppTextStyles.bodySmallDark
-                              : AppTextStyles.bodySmall,
-                        ),
-                        TextButton(
-                          onPressed: () => context.go('/register'),
-                          child: Text(
-                            'Create Account',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+    return AuthScaffold(
+      title: 'Welcome back',
+      subtitle: 'Sign in to see your quotes and offers.',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (auth.errorMessage != null) ...[
+              _ErrorBanner(message: auth.errorMessage!),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.email],
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.mail_outline_rounded),
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Enter your email';
+                if (!v.contains('@')) return 'That email does not look right';
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.password],
+              onFieldSubmitted: (_) => _onLogin(),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                suffixIcon: IconButton(
+                  tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
+              validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
             ),
-          ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _onForgotPassword,
+                child: const Text('Forgot password?'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            FilledButton(
+              onPressed: auth.isLoading ? null : _onLogin,
+              child: auth.isLoading
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                    )
+                  : const Text('Sign in'),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text('New to Revora?', style: t.bodyMedium),
+                TextButton(
+                  onPressed: () => context.go('/register'),
+                  child: const Text('Create an account'),
+                ),
+              ],
+            ),
+            if (demo) ...[
+              const SizedBox(height: AppSpacing.lg),
+              Text('DEMO ACCOUNTS', style: t.labelSmall?.copyWith(letterSpacing: 1.2)),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final (label, email) in _demoAccounts)
+                    ActionChip(
+                      label: Text(label),
+                      onPressed: () {
+                        _emailController.text = email;
+                        _passwordController.text = 'password123';
+                        setState(() {});
+                      },
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  final String message;
+  const _ErrorBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.errorBg,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
         ),
       ),
     );

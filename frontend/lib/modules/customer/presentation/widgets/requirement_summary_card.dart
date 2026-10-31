@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/car_card.dart';
 import '../../domain/entities/buy_requirement.dart';
 
@@ -77,25 +76,12 @@ class RequirementSummaryCard extends StatelessWidget {
           color: AppColors.success,
         ),
       ],
-      primaryAction: ElevatedButton(
+      primaryAction: FilledButton(
         onPressed: onViewQuotes,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-          ),
-        ),
         child: Text(
           requirement.quotesReceived > 0
-              ? 'View ${requirement.quotesReceived} Quotes'
-              : 'View Requirement',
-          style: const TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-          ),
+              ? 'View ${requirement.quotesReceived} quotes'
+              : 'View request',
         ),
       ),
     );

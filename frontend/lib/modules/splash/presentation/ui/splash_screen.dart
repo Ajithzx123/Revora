@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -8,45 +9,72 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (mounted) {
-        context.go('/login');
-      }
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+      ..forward();
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (mounted) context.go('/login');
     });
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    final fade = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    return Scaffold(
+      backgroundColor: AppColors.primary,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Placeholder splash branding layout
-            Icon(
-              Icons.directions_car_rounded,
-              size: 100,
-              color: Color(0xFF0F172A),
+        child: FadeTransition(
+          opacity: fade,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.92, end: 1.0).animate(fade),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'R',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          color: AppColors.onAccent,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Revora',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Post once. Dealers compete.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                ),
+              ],
             ),
-            SizedBox(height: 24),
-            Text(
-              'Revora',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-            SizedBox(height: 12),
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF006E6D)),
-            ),
-          ],
+          ),
         ),
       ),
     );
