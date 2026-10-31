@@ -8,11 +8,15 @@ class AuthState {
   final String? errorMessage;
   final bool isInitialized;
 
+  /// Set after sign-up when the user must confirm their email before signing in.
+  final String? pendingConfirmationEmail;
+
   const AuthState({
     this.user,
     this.isLoading = false,
     this.errorMessage,
     this.isInitialized = false,
+    this.pendingConfirmationEmail,
   });
 
   bool get isAuthenticated => user != null;
@@ -22,6 +26,8 @@ class AuthState {
     bool? isLoading,
     String? errorMessage,
     bool? isInitialized,
+    String? pendingConfirmationEmail,
+    bool clearPendingConfirmation = false,
     bool clearUser = false,
     bool clearError = false,
   }) {
@@ -30,6 +36,9 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       isInitialized: isInitialized ?? this.isInitialized,
+      pendingConfirmationEmail: clearPendingConfirmation
+          ? null
+          : (pendingConfirmationEmail ?? this.pendingConfirmationEmail),
     );
   }
 }
@@ -88,20 +97,34 @@ class AuthController extends StateNotifier<AuthState> {
     required String password,
     required String fullName,
     required UserRole role,
+    String? businessName,
+    String? city,
   }) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      clearPendingConfirmation: true,
+    );
     try {
       final user = await _repository.signUpWithEmailPassword(
         email: email,
         password: password,
         fullName: fullName,
         role: role,
+        businessName: businessName,
+        city: city,
       );
       state = state.copyWith(
         user: user,
         isLoading: false,
       );
       return true;
+    } on EmailConfirmationRequired catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        pendingConfirmationEmail: e.email,
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

@@ -18,6 +18,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _businessController = TextEditingController();
+  final _cityController = TextEditingController();
   UserRole _selectedRole = UserRole.customer;
   bool _obscurePassword = true;
 
@@ -26,6 +28,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _businessController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 
@@ -41,10 +45,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           password: password,
           fullName: name,
           role: _selectedRole,
+          businessName: _selectedRole == UserRole.dealer
+              ? _businessController.text.trim()
+              : null,
+          city: _selectedRole == UserRole.dealer
+              ? _cityController.text.trim()
+              : null,
         );
 
     if (success && mounted) {
-      _navigateByRole(_selectedRole);
+      // The role comes from the backend, not from what was picked on this form.
+      final user = ref.read(authControllerProvider).user;
+      if (user != null) _navigateByRole(user.role);
     }
   }
 
@@ -68,6 +80,52 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
     final isWide = size.width > 800;
+
+    final pendingEmail = authState.pendingConfirmationEmail;
+    if (pendingEmail != null) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.mark_email_read_outlined,
+                        size: 64, color: AppColors.accent),
+                    const SizedBox(height: 20),
+                    Text('Check your email',
+                        style: isDark
+                            ? AppTextStyles.headlineMediumDark
+                            : AppTextStyles.headlineMedium,
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    Text(
+                      'We sent a confirmation link to $pendingEmail. '
+                      'Open it, then come back and sign in.',
+                      style: isDark
+                          ? AppTextStyles.bodyMediumDark
+                          : AppTextStyles.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: () {
+                        ref.read(authControllerProvider.notifier).clearError();
+                        context.go('/login');
+                      },
+                      child: const Text('Go to sign in'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -157,6 +215,47 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       },
                     ),
                     const SizedBox(height: 18),
+
+                    if (_selectedRole == UserRole.dealer) ...[
+                      Text(
+                        'Business Name',
+                        style: isDark
+                            ? AppTextStyles.labelMediumDark
+                            : AppTextStyles.labelMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _businessController,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          hintText: 'Apex Motors',
+                          prefixIcon: Icon(Icons.storefront_outlined, size: 20),
+                        ),
+                        validator: (value) => (value == null || value.trim().isEmpty)
+                            ? 'Please enter your business name'
+                            : null,
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'City',
+                        style: isDark
+                            ? AppTextStyles.labelMediumDark
+                            : AppTextStyles.labelMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _cityController,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          hintText: 'Bengaluru',
+                          prefixIcon: Icon(Icons.location_city_outlined, size: 20),
+                        ),
+                        validator: (value) => (value == null || value.trim().isEmpty)
+                            ? 'Please enter your city'
+                            : null,
+                      ),
+                      const SizedBox(height: 18),
+                    ],
 
                     // Email Field
                     Text(

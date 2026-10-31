@@ -49,6 +49,8 @@ class MockAuthRepository implements AuthRepository {
     required String password,
     required String fullName,
     required UserRole role,
+    String? businessName,
+    String? city,
   }) async {
     await Future.delayed(const Duration(milliseconds: 400));
 

@@ -19,6 +19,7 @@ enum UserRole {
       case 'dealer':
         return UserRole.dealer;
       case 'admin':
+      case 'root_admin':
         return UserRole.admin;
       case 'customer':
       default:
@@ -35,6 +36,10 @@ class UserModel {
   final String? phone;
   final String? avatarUrl;
 
+  /// Dealer application status from the backend (DRAFT, PENDING, NEEDS_CHANGES,
+  /// APPROVED, REJECTED, SUSPENDED). Null for non-dealers.
+  final String? dealerStatus;
+
   const UserModel({
     required this.id,
     required this.email,
@@ -42,6 +47,7 @@ class UserModel {
     required this.role,
     this.phone,
     this.avatarUrl,
+    this.dealerStatus,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -52,6 +58,7 @@ class UserModel {
       role: UserRole.fromString(json['role'] as String?),
       phone: json['phone'] as String?,
       avatarUrl: json['avatar_url'] as String?,
+      dealerStatus: json['dealer_status'] as String?,
     );
   }
 
@@ -63,6 +70,7 @@ class UserModel {
       'role': role.name,
       'phone': phone,
       'avatar_url': avatarUrl,
+      'dealer_status': dealerStatus,
     };
   }
 
@@ -73,6 +81,7 @@ class UserModel {
     UserRole? role,
     String? phone,
     String? avatarUrl,
+    String? dealerStatus,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -81,6 +90,7 @@ class UserModel {
       role: role ?? this.role,
       phone: phone ?? this.phone,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      dealerStatus: dealerStatus ?? this.dealerStatus,
     );
   }
 }
