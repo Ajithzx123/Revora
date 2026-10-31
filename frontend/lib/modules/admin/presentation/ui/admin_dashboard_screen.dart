@@ -5,8 +5,10 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/kpi_tile.dart';
 import '../../../../shared/widgets/activity_tile.dart';
-import '../../../../shared/widgets/status_chip.dart';
+import '../../../../core/network/api_error.dart';
+import '../providers/admin_dealer_review_providers.dart';
 import '../providers/admin_providers.dart';
+import 'admin_dealer_detail_screen.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -14,7 +16,6 @@ class AdminDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kpis = ref.watch(adminKPIsProvider);
-    final pendingVerifications = ref.watch(pendingVerificationsProvider);
     final activities = ref.watch(adminActivitiesProvider);
 
     return Scaffold(
@@ -61,7 +62,10 @@ class AdminDashboardScreen extends ConsumerWidget {
                         ),
                         KpiTile(
                           title: 'Pending Verifications',
-                          value: '${pendingVerifications.length}',
+                          value: ref.watch(adminPendingDealersProvider).maybeWhen(
+                            data: (items) => '${items.length}',
+                            orElse: () => '—',
+                          ),
                           icon: Icons.pending_actions,
                           iconColor: AppColors.warning,
                           iconBgColor: AppColors.warningBg,
@@ -113,157 +117,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     ref.read(adminActiveNavIndexProvider.notifier).state = 1;
                   },
                 ),
-                if (pendingVerifications.isEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      border: Border.all(color: AppColors.border, width: 0.8),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'All dealer applications are reviewed and up to date!',
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                    ),
-                  )
-                else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: pendingVerifications.take(3).length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.md),
-                    itemBuilder: (context, index) {
-                      final v = pendingVerifications[index];
-                      return Container(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.radiusMd,
-                          ),
-                          border: Border.all(
-                            color: AppColors.border,
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundColor: AppColors.primarySubtle,
-                              child: Text(
-                                v.businessName[0],
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        v.businessName,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: AppSpacing.sm),
-                                      StatusChip.fromStatus(v.status),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Owner: ${v.ownerName} • ${v.city} • GST: ${v.gstin}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                OutlinedButton(
-                                  onPressed: () {
-                                    ref
-                                        .read(adminRepositoryProvider)
-                                        .rejectDealer(v.id);
-                                    ref
-                                        .read(
-                                          pendingVerificationsProvider.notifier,
-                                        )
-                                        .state = ref
-                                        .read(adminRepositoryProvider)
-                                        .getPendingVerifications();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Application rejected'),
-                                      ),
-                                    );
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.error,
-                                    side: const BorderSide(
-                                      color: AppColors.error,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.md,
-                                      vertical: AppSpacing.xs,
-                                    ),
-                                  ),
-                                  child: const Text('Reject'),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ref
-                                        .read(adminRepositoryProvider)
-                                        .approveDealer(v.id);
-                                    ref
-                                        .read(
-                                          pendingVerificationsProvider.notifier,
-                                        )
-                                        .state = ref
-                                        .read(adminRepositoryProvider)
-                                        .getPendingVerifications();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Dealer approved & verified!',
-                                        ),
-                                        backgroundColor: AppColors.success,
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.success,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.md,
-                                      vertical: AppSpacing.xs,
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  child: const Text('Verify & Approve'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                const _PendingDealersPreview(),
                 const SizedBox(height: AppSpacing.xxl),
 
                 // 3. Platform Activity Feed
@@ -315,6 +169,85 @@ class AdminDashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The first few dealer applications waiting for review (real data).
+class _PendingDealersPreview extends ConsumerWidget {
+  const _PendingDealersPreview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pending = ref.watch(adminPendingDealersProvider);
+
+    Widget box(Widget child) => Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(color: AppColors.border, width: 0.8),
+          ),
+          child: child,
+        );
+
+    return pending.when(
+      loading: () => box(const Center(child: CircularProgressIndicator())),
+      error: (e, _) => box(Text(apiErrorMessage(e),
+          style: const TextStyle(color: AppColors.textSecondary))),
+      data: (items) => items.isEmpty
+          ? box(const Center(
+              child: Text(
+                'No dealer applications are waiting for review.',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ))
+          : Column(
+              children: [
+                for (final d in items.take(3)) ...[
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      border: Border.all(color: AppColors.border, width: 0.8),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(d.businessName,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  )),
+                              Text(d.city,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  )),
+                            ],
+                          ),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => AdminDealerDetailScreen(dealerId: d.id),
+                            ),
+                          ),
+                          child: const Text('Review'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              ],
+            ),
     );
   }
 }

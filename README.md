@@ -37,3 +37,12 @@ flutter test
 flutter analyze
 ```
 Release builds always use the real backend (`USE_MOCK_DATA` is ignored).
+
+### Running against the real backend and Supabase
+```bash
+# terminal 1 (repo root)
+SUPABASE_URL=https://hjvzirkdnoaqahzusdbj.supabase.co backend/.venv/bin/uvicorn backend.main:app --reload
+# terminal 2
+cd frontend && flutter run -d chrome --dart-define=USE_MOCK_DATA=false
+```
+The project requires email confirmation: after signing up, open the link Supabase emails you, then sign in. A dealer lands on the application screen until an admin approves them. To make an admin, sign up normally, then in the database set that user's `role` to `ADMIN` in the `user` table.
