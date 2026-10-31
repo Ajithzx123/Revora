@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from backend.app.core.config import settings
 from backend.app.database.base import create_db
 
 from backend.app.api.auth_api import router as auth_router
@@ -14,10 +15,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Enable CORS for Flutter Web & Mobile dev
+# Browser origins come from CORS_ORIGINS (dev also allows any localhost port).
+# Mobile apps are not subject to CORS.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

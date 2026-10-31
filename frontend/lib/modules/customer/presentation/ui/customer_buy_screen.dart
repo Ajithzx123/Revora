@@ -100,7 +100,7 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                             subtitle:
                                 'Requirements you posted that are visible to verified dealers',
                             trailing: ElevatedButton.icon(
-                              onPressed: () => context.push('/post-requirement'),
+                              onPressed: () => context.push('/customer/post-buy'),
                               icon: const Icon(Icons.add, size: 16),
                               label: const Text('New Requirement'),
                               style: ElevatedButton.styleFrom(

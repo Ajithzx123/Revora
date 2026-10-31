@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
 enum Environment {
   dev,
   staging,
@@ -45,6 +47,8 @@ enum Environment {
   }
 
   bool get useMockData {
+    // Mock data can never be enabled in a release build.
+    if (kReleaseMode) return false;
     return const bool.fromEnvironment('USE_MOCK_DATA', defaultValue: true);
   }
 }

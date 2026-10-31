@@ -75,26 +75,9 @@ class SupabaseAuthRepository implements AuthRepository {
       }
     }
 
-    // Fallback / Demo mode if Supabase isn't active or credentials are mock
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    // Simple demo role detection by email
-    UserRole detectedRole = UserRole.customer;
-    if (email.contains('dealer')) {
-      detectedRole = UserRole.dealer;
-    } else if (email.contains('admin')) {
-      detectedRole = UserRole.admin;
-    }
-
-    final mockUser = UserModel(
-      id: 'demo-user-${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      fullName: email.split('@').first.toUpperCase(),
-      role: detectedRole,
-    );
-
-    await _persistSession(mockUser);
-    return mockUser;
+    // Never fall back to a fake session: demos use MockAuthRepository
+    // (USE_MOCK_DATA, debug builds only).
+    throw Exception('Sign-in is unavailable right now. Please try again later.');
   }
 
   @override
@@ -104,6 +87,10 @@ class SupabaseAuthRepository implements AuthRepository {
     required String fullName,
     required UserRole role,
   }) async {
+    // Self-service signup can only create customers or dealer applicants.
+    if (role == UserRole.admin) {
+      throw Exception('This account type cannot be created from the app.');
+    }
     if (_supabase.isInitialized && _supabase.client != null) {
       try {
         final res = await _supabase.client!.auth.signUp(
@@ -135,17 +122,7 @@ class SupabaseAuthRepository implements AuthRepository {
       }
     }
 
-    // Demo Mode signup
-    await Future.delayed(const Duration(milliseconds: 600));
-    final mockUser = UserModel(
-      id: 'demo-user-${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      fullName: fullName.isEmpty ? email.split('@').first : fullName,
-      role: role,
-    );
-
-    await _persistSession(mockUser);
-    return mockUser;
+    throw Exception('Sign-up is unavailable right now. Please try again later.');
   }
 
   @override

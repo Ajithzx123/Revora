@@ -29,7 +29,7 @@ class DealerInventoryScreen extends ConsumerWidget {
                   title: 'Dealership Inventory',
                   subtitle: '${inventory.length} cars currently in your showroom',
                   trailing: ElevatedButton.icon(
-                    onPressed: () => context.push('/add-inventory'),
+                    onPressed: () => context.push('/dealer/add-car'),
                     icon: const Icon(Icons.add, size: 16),
                     label: const Text('Add Vehicle'),
                     style: ElevatedButton.styleFrom(

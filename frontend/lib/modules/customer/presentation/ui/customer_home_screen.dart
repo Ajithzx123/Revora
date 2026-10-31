@@ -236,7 +236,7 @@ class CustomerHomeScreen extends ConsumerWidget {
               title: 'Buy a Car',
               subtitle: "Tell us what you're looking for",
               accentColor: const Color(0xFF2563EB),
-              onTap: () => context.push('/post-requirement'),
+              onTap: () => context.push('/customer/post-buy'),
             );
 
             final sellCard = _CompactActionCard(
@@ -244,7 +244,7 @@ class CustomerHomeScreen extends ConsumerWidget {
               title: 'Sell My Car',
               subtitle: 'Get offers from verified dealers',
               accentColor: AppColors.accent,
-              onTap: () => context.push('/sell-car'),
+              onTap: () => context.push('/customer/post-sell'),
             );
 
             if (isWide) {

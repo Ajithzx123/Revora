@@ -177,7 +177,7 @@ class DealerHomeScreen extends ConsumerWidget {
                             children: [
                               ElevatedButton.icon(
                                 onPressed: () =>
-                                    context.push('/send-quote/${lead.id}'),
+                                    context.push('/dealer/send-quote/${lead.id}'),
                                 icon: const Icon(Icons.reply, size: 16),
                                 label: const Text('Send Quote From Inventory'),
                                 style: ElevatedButton.styleFrom(

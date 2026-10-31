@@ -5,8 +5,10 @@ import hashlib
 import secrets
 
 
-SECRET_KEY = "revora_secret_key"
-ALGORITHM = "HS256"
+from backend.app.core.config import settings
+
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 30
 PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 30

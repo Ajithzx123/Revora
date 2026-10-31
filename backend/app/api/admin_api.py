@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlmodel import Session, select
-from typing import List, Dict, Any
 
 from backend.app.database.session import get_session
-from backend.app.core.dependencies import require_admin
+from backend.app.core.dependencies import current_user_id, require_admin
+from backend.app.models.audit_model import AuditEvent
 from backend.app.models.user_model import User
 from backend.app.models.marketplace_models import (
     Dealer,
@@ -16,38 +17,55 @@ from backend.app.models.marketplace_models import (
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
-@router.get("/metrics")
-def get_admin_metrics(session: Session = Depends(get_session)):
-    users_count = len(session.exec(select(User)).all())
-    dealers_count = len(session.exec(select(Dealer)).all())
-    reqs_count = len(session.exec(select(BuyRequirement)).all())
-    listings_count = len(session.exec(select(SellListing)).all())
-    quotes_count = len(session.exec(select(DealerQuote)).all())
-    offers_count = len(session.exec(select(DealerOffer)).all())
+def _count(session: Session, model) -> int:
+    return session.exec(select(func.count()).select_from(model)).one()
 
+
+@router.get("/metrics")
+def get_admin_metrics(
+    _admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
     return {
-        "total_users": users_count,
-        "active_dealers": dealers_count,
-        "buy_requirements": reqs_count,
-        "sell_listings": listings_count,
-        "quotes_exchanged": quotes_count,
-        "purchase_offers": offers_count,
+        "total_users": _count(session, User),
+        "active_dealers": _count(session, Dealer),
+        "buy_requirements": _count(session, BuyRequirement),
+        "sell_listings": _count(session, SellListing),
+        "quotes_exchanged": _count(session, DealerQuote),
+        "purchase_offers": _count(session, DealerOffer),
         "platform_status": "OPERATIONAL",
     }
 
 
 @router.get("/dealers")
-def list_dealers(session: Session = Depends(get_session)):
-    dealers = session.exec(select(Dealer)).all()
-    return dealers
+def list_dealers(
+    _admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    return session.exec(select(Dealer)).all()
 
 
 @router.patch("/dealers/{dealer_id}/verify")
-def verify_dealer(dealer_id: int, session: Session = Depends(get_session)):
+def verify_dealer(
+    dealer_id: int,
+    admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
     dealer = session.get(Dealer, dealer_id)
     if not dealer:
         raise HTTPException(status_code=404, detail="Dealer not found")
+    if dealer.verified:
+        return {"status": True, "message": "Dealer already verified"}
+
     dealer.verified = True
     session.add(dealer)
+    session.add(
+        AuditEvent(
+            actor_user_id=current_user_id(admin),
+            action="DEALER_VERIFIED",
+            entity_type="dealer",
+            entity_id=dealer.id,
+        )
+    )
     session.commit()
     return {"status": True, "message": "Dealer verified successfully"}

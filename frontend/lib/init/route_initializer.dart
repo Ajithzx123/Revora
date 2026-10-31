@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../modules/splash/presentation/ui/splash_screen.dart';
@@ -17,10 +18,63 @@ import '../shared/presentation/ui/chat_screen.dart';
 
 import '../modules/auth/presentation/ui/login_screen.dart';
 import '../modules/auth/presentation/ui/register_screen.dart';
+import '../modules/auth/domain/models/user_model.dart';
+import '../modules/auth/presentation/controllers/auth_controller.dart';
+
+const _publicPaths = {'/splash', '/login', '/register'};
+
+String _homeFor(UserRole role) {
+  switch (role) {
+    case UserRole.customer:
+      return '/customer/home';
+    case UserRole.dealer:
+      return '/dealer/home';
+    case UserRole.admin:
+      return '/admin/dashboard';
+  }
+}
+
+/// Sends signed-out users to /login and keeps each role inside its own area.
+/// This is a UX guard only; the API enforces the real permissions.
+@visibleForTesting
+String? guardRoute(AuthState auth, String location) {
+  final isPublic = _publicPaths.contains(location);
+  final user = auth.user;
+
+  if (user == null) {
+    if (isPublic) return null;
+    // Session restore still running: keep the splash screen up.
+    return auth.isInitialized ? '/login' : '/splash';
+  }
+
+  if (location == '/login' || location == '/register') {
+    return _homeFor(user.role);
+  }
+
+  final area = {
+    '/customer': UserRole.customer,
+    '/dealer': UserRole.dealer,
+    '/admin': UserRole.admin,
+  };
+  for (final entry in area.entries) {
+    if ((location == entry.key || location.startsWith('${entry.key}/')) &&
+        user.role != entry.value) {
+      return _homeFor(user.role);
+    }
+  }
+  return null;
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final refresh = ValueNotifier<int>(0);
+  ref.listen<AuthState>(authControllerProvider, (_, __) => refresh.value++);
+  ref.onDispose(refresh.dispose);
+
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: refresh,
+    redirect: (context, state) =>
+        guardRoute(ref.read(authControllerProvider), state.matchedLocation),
     routes: [
       GoRoute(
         path: '/splash',
@@ -41,16 +95,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CustomerShell(),
       ),
       GoRoute(
-        path: '/post-requirement',
-        builder: (context, state) => const PostBuyRequirementScreen(),
-      ),
-      GoRoute(
         path: '/customer/post-buy',
         builder: (context, state) => const PostBuyRequirementScreen(),
-      ),
-      GoRoute(
-        path: '/sell-car',
-        builder: (context, state) => const PostSellListingScreen(),
       ),
       GoRoute(
         path: '/customer/post-sell',
@@ -88,13 +134,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DealerShell(),
       ),
       GoRoute(
-        path: '/send-quote/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return SendQuoteScreen(leadId: id);
-        },
-      ),
-      GoRoute(
         path: '/dealer/send-quote/:id',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
@@ -109,10 +148,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/add-inventory',
-        builder: (context, state) => const AddCarToInventoryScreen(),
-      ),
-      GoRoute(
         path: '/dealer/add-car',
         builder: (context, state) => const AddCarToInventoryScreen(),
       ),
@@ -120,10 +155,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Admin Portal
       GoRoute(
         path: '/admin/dashboard',
-        builder: (context, state) => const AdminShell(),
-      ),
-      GoRoute(
-        path: '/admin',
         builder: (context, state) => const AdminShell(),
       ),
 

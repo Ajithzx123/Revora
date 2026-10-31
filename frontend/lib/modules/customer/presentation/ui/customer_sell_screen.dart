@@ -32,7 +32,7 @@ class CustomerSellScreen extends ConsumerWidget {
                   title: 'My Listed Cars',
                   subtitle: 'Cars you put up for verified dealers to bid on',
                   trailing: ElevatedButton.icon(
-                    onPressed: () => context.push('/sell-car'),
+                    onPressed: () => context.push('/customer/post-sell'),
                     icon: const Icon(Icons.add, size: 16),
                     label: const Text('Sell Another Car'),
                     style: ElevatedButton.styleFrom(
@@ -156,7 +156,7 @@ class CustomerSellScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             ElevatedButton(
-              onPressed: () => context.push('/sell-car'),
+              onPressed: () => context.push('/customer/post-sell'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,

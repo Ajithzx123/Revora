@@ -1,4 +1,5 @@
-from backend.app.models.user_model import User
+from backend.app.models.user_model import User, UserRole
+from backend.app.models.marketplace_models import Dealer
 from backend.app.models.session_model import UserSession
 from backend.app.models.password_reset_model import PasswordResetToken
 from backend.app.models.email_verification_model import EmailVerificationToken
@@ -67,21 +68,43 @@ def create_token_pair(session: Session, user: User, device_id=None, ip_address=N
     }
 
 
-def signup_user(name: str, email: str, password: str, phone: str):
+def signup_user(
+    name: str,
+    email: str,
+    password: str,
+    phone: str,
+    account_type: str = "CUSTOMER",
+    business_name: str | None = None,
+    city: str | None = None,
+):
 
     hashed_password = hash_password(password)
 
+    is_dealer = account_type == "DEALER"
     new_user = User(
         name=name,
         email=email,
         password=hashed_password,
         phone=phone,
+        role=UserRole.DEALER if is_dealer else UserRole.CUSTOMER,
+        city=city,
     )
 
     with Session(engine) as session:
         session.add(new_user)
         session.commit()
         session.refresh(new_user)
+        if is_dealer:
+            # Never verified at signup: an admin must approve the application.
+            session.add(
+                Dealer(
+                    user_id=new_user.id,
+                    business_name=business_name,
+                    city=city,
+                    verified=False,
+                )
+            )
+            session.commit()
         create_email_verification(session, new_user)
 
     return serialize_user(new_user)

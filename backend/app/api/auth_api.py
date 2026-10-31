@@ -37,6 +37,9 @@ def signup(request: SignupRequest):
         request.email,
         request.password,
         request.phone,
+        account_type=request.account_type,
+        business_name=request.business_name,
+        city=request.city,
     )
 
     return {"status": True, "message": "User Created", "data": user}

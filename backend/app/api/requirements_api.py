@@ -3,7 +3,12 @@ from sqlmodel import Session, select
 from typing import List
 
 from backend.app.database.session import get_session
-from backend.app.core.dependencies import require_auth
+from backend.app.core.dependencies import (
+    ADMIN_ROLES,
+    current_user_id,
+    require_auth,
+    require_customer,
+)
 from backend.app.models.marketplace_models import (
     BuyRequirement,
     DealerQuote,
@@ -21,10 +26,10 @@ router = APIRouter(prefix="/requirements", tags=["Requirements"])
 @router.post("/", response_model=BuyRequirementResponse)
 def create_requirement(
     req_data: BuyRequirementCreate,
-    user_data: dict = Depends(require_auth),
+    user_data: dict = Depends(require_customer),
     session: Session = Depends(get_session),
 ):
-    customer_id = user_data.get("sub") or user_data.get("id")
+    customer_id = current_user_id(user_data)
     requirement = BuyRequirement(
         customer_id=customer_id,
         make=req_data.make,
@@ -60,10 +65,10 @@ def create_requirement(
 
 @router.get("/", response_model=List[BuyRequirementResponse])
 def get_user_requirements(
-    user_data: dict = Depends(require_auth),
+    user_data: dict = Depends(require_customer),
     session: Session = Depends(get_session),
 ):
-    customer_id = user_data.get("sub") or user_data.get("id")
+    customer_id = current_user_id(user_data)
     statement = select(BuyRequirement).where(BuyRequirement.customer_id == customer_id)
     requirements = session.exec(statement).all()
 
@@ -97,12 +102,27 @@ def get_user_requirements(
 @router.get("/{requirement_id}", response_model=BuyRequirementResponse)
 def get_requirement_detail(
     requirement_id: int,
+    user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):
     req = session.get(BuyRequirement, requirement_id)
     if not req:
         raise HTTPException(status_code=404, detail="Requirement not found")
-        
+    is_owner = req.customer_id == current_user_id(user_data)
+    is_admin = user_data.get("role") in ADMIN_ROLES
+    is_dealer = (
+        user_data.get("role") == "DEALER"
+        and session.exec(
+            select(Dealer).where(
+                Dealer.user_id == current_user_id(user_data), Dealer.verified == True  # noqa: E712
+            )
+        ).first()
+        is not None
+    )
+    if not (is_owner or is_admin or is_dealer):
+        # 404, not 403: do not reveal that the id exists
+        raise HTTPException(status_code=404, detail="Requirement not found")
+
     quotes_count = len(
         session.exec(
             select(DealerQuote).where(DealerQuote.requirement_id == req.id)
@@ -128,8 +148,15 @@ def get_requirement_detail(
 @router.get("/{requirement_id}/quotes", response_model=List[DealerQuoteResponse])
 def get_quotes_for_requirement(
     requirement_id: int,
+    user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):
+    # Sealed bidding: only the requirement's owner (or an admin) sees quotes.
+    req = session.get(BuyRequirement, requirement_id)
+    if not req or not (
+        req.customer_id == current_user_id(user_data) or user_data.get("role") in ADMIN_ROLES
+    ):
+        raise HTTPException(status_code=404, detail="Requirement not found")
     quotes = session.exec(
         select(DealerQuote).where(DealerQuote.requirement_id == requirement_id)
     ).all()
@@ -157,11 +184,11 @@ def get_quotes_for_requirement(
 @router.patch("/{requirement_id}/close")
 def close_requirement(
     requirement_id: int,
-    user_data: dict = Depends(require_auth),
+    user_data: dict = Depends(require_customer),
     session: Session = Depends(get_session),
 ):
     req = session.get(BuyRequirement, requirement_id)
-    if not req:
+    if not req or req.customer_id != current_user_id(user_data):
         raise HTTPException(status_code=404, detail="Requirement not found")
     req.status = "CLOSED"
     session.add(req)

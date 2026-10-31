@@ -186,7 +186,7 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                                       children: [
                                         ElevatedButton.icon(
                                           onPressed: () => context.push(
-                                              '/send-quote/${lead.id}'),
+                                              '/dealer/send-quote/${lead.id}'),
                                           icon:
                                               const Icon(Icons.send, size: 16),
                                           label: const Text('Send Quote'),
