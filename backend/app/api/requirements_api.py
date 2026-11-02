@@ -28,7 +28,7 @@ from backend.app.schemas.requirement_schema import (
     RequirementResponse,
     RequirementUpdate,
 )
-from backend.app.services import matching_service
+from backend.app.services import matching_service, quote_service
 from backend.app.services import requirement_workflow as workflow
 
 router = APIRouter(prefix="/requirements", tags=["Requirements"])
@@ -297,25 +297,9 @@ def get_quotes_for_requirement(
         req.customer_id == current_user_id(user_data) or user_data.get("role") in ADMIN_ROLES
     ):
         raise HTTPException(status_code=404, detail="Requirement not found")
+    quote_service.expire_due_quotes(session)
+    session.commit()
     quotes = session.exec(
-        select(DealerQuote).where(DealerQuote.requirement_id == requirement_id)
+        select(DealerQuote).where(DealerQuote.requirement_id == requirement_id).order_by(DealerQuote.quoted_price)
     ).all()
-
-    result = []
-    for q in quotes:
-        dealer = session.get(Dealer, q.dealer_id)
-        result.append(
-            DealerQuoteResponse(
-                id=q.id,
-                dealer_id=q.dealer_id,
-                dealer_name=dealer.business_name if dealer else "Dealer",
-                dealer_rating=dealer.rating if dealer else None,
-                requirement_id=q.requirement_id,
-                vehicle_id=q.vehicle_id,
-                quoted_price=q.quoted_price,
-                message=q.message,
-                status=q.status,
-                created_at=q.created_at,
-            )
-        )
-    return result
+    return [quote_service.quote_response(session, q) for q in quotes]

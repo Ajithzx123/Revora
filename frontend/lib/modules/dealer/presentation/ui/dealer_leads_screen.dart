@@ -9,6 +9,7 @@ import '../../../../shared/widgets/section_header.dart';
 import '../../domain/repositories/buy_leads_repository.dart';
 import '../providers/dealer_providers.dart';
 import '../widgets/buy_lead_card.dart';
+import '../widgets/my_quotes_view.dart';
 
 /// Two lists a dealer works from: buyers who want a car (send a quote) and
 /// owners who want to sell one (make an offer).
@@ -26,7 +27,7 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -74,6 +75,7 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
             tabs: [
               _tab('Buyer requests', buyLeads.length),
               _tab('Cars to buy', sellLeads.length),
+              const Tab(text: 'My quotes'),
             ],
           ),
           Expanded(
@@ -131,6 +133,7 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                     ],
                   ),
                 ),
+                const MyQuotesView(),
               ],
             ),
           ),

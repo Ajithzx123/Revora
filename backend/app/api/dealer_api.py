@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from sqlmodel import func
@@ -22,7 +22,7 @@ from backend.app.models.marketplace_models import (
 )
 from backend.app.models.user_model import User
 from backend.app.schemas.requirement_schema import BuyLeadResponse
-from backend.app.services import matching_service
+from backend.app.services import matching_service, quote_service
 from backend.app.schemas.marketplace_schema import (
     SellListingResponse,
     DealerQuoteCreate,
@@ -143,8 +143,6 @@ def send_quote(
     dealer: Dealer = Depends(require_verified_dealer),
     session: Session = Depends(get_session),
 ):
-    if quote_data.quoted_price <= 0:
-        raise HTTPException(status_code=422, detail="Quoted price must be positive")
     requirement = session.get(BuyRequirement, quote_data.requirement_id)
     if (
         requirement is None
@@ -177,23 +175,16 @@ def send_quote(
         quoted_price=quote_data.quoted_price,
         message=quote_data.message,
         status="PENDING",
+        kind=quote_service.kind_for(session, dealer, quote_data.requirement_id),
+        valid_until=datetime.utcnow() + timedelta(hours=quote_data.valid_hours),
+        delivery_days=quote_data.delivery_days,
+        warranty_months=quote_data.warranty_months,
     )
     session.add(quote)
+    quote_service.audit(session, dealer.user_id, "QUOTE_SUBMITTED", quote, f"price {quote.quoted_price}")
     session.commit()
     session.refresh(quote)
-
-    return DealerQuoteResponse(
-        id=quote.id,
-        dealer_id=quote.dealer_id,
-        dealer_name=dealer.business_name,
-        dealer_rating=dealer.rating,
-        requirement_id=quote.requirement_id,
-        vehicle_id=quote.vehicle_id,
-        quoted_price=quote.quoted_price,
-        message=quote.message,
-        status=quote.status,
-        created_at=quote.created_at,
-    )
+    return quote_service.quote_response(session, quote)
 
 
 # --- Dealer Sends Purchase Offer on Sell Listing ---

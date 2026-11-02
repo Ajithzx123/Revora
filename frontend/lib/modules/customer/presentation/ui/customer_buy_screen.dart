@@ -148,10 +148,7 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                             for (final q in allQuotes)
                               CustomerQuoteCard(
                                 quote: q,
-                                onContact: () => context.push('/chat'),
-                                onAccept: () => ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Quote accepted. The dealer has been notified.')),
-                                ),
+                                onAccept: () => context.push('/customer/requirement/${q.requirementId}'),
                               ),
                           ],
                         ),

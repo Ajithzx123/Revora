@@ -207,13 +207,50 @@ class SellListing(SQLModel, table=True):
 
 
 class DealerQuote(SQLModel, table=True):
+    """One dealer's current price for one request. Earlier prices live in QuoteRevision."""
+
     id: uuid.UUID = Field(default_factory=_id, primary_key=True)
     dealer_id: uuid.UUID = Field(foreign_key="dealer.id", index=True)
     requirement_id: uuid.UUID = Field(foreign_key="buyrequirement.id", index=True)
     vehicle_id: Optional[uuid.UUID] = Field(default=None, foreign_key="vehicle.id")
-    quoted_price: int
+    quoted_price: int  # the all-in total the buyer pays, Rs
     message: Optional[str] = None
-    status: str = Field(default="PENDING")  # PENDING, ACCEPTED, REJECTED, EXPIRED, UNAVAILABLE, REQUOTE_REQUESTED, CLOSED_BY_CUSTOMER
+    # PENDING (live), ACCEPTED, REJECTED, NOT_SELECTED, WITHDRAWN, EXPIRED, UNAVAILABLE,
+    # REQUOTE_REQUESTED, CLOSED_BY_CUSTOMER
+    status: str = Field(default="PENDING")
+    status_reason: Optional[str] = None
+    kind: str = Field(default="IN_STOCK")  # IN_STOCK, ALTERNATIVE (other model), SOURCED (not in stock)
+    revision: int = Field(default=1)
+    valid_until: Optional[datetime] = None
+    delivery_days: Optional[int] = None
+    warranty_months: Optional[int] = None
+    accepted_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+
+class QuoteRevision(SQLModel, table=True):
+    """Every price a quote has had, so a revision never erases history."""
+
+    id: uuid.UUID = Field(default_factory=_id, primary_key=True)
+    quote_id: uuid.UUID = Field(foreign_key="dealerquote.id", index=True)
+    revision: int
+    price: int
+    message: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class QuoteRound(SQLModel, table=True):
+    """One counter-offer in a price negotiation on a quote (at most 5 per quote)."""
+
+    id: uuid.UUID = Field(default_factory=_id, primary_key=True)
+    quote_id: uuid.UUID = Field(foreign_key="dealerquote.id", index=True)
+    round_no: int
+    by: str  # CUSTOMER or DEALER
+    price: int
+    note: Optional[str] = None
+    status: str = Field(default="OPEN")  # OPEN, AGREED, DECLINED, COUNTERED, SUPERSEDED, EXPIRED
+    valid_until: datetime
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 

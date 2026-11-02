@@ -1,242 +1,242 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/utils/price_formatter.dart';
-import '../../../../../shared/widgets/custom_button.dart';
-import '../../../../../shared/widgets/car_card.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/network/api_error.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/price_formatter.dart';
+import '../../domain/repositories/buy_leads_repository.dart';
+import '../../domain/repositories/dealer_quotes_repository.dart';
 import '../providers/dealer_providers.dart';
 
+/// Build a quote for one buyer request: pick the car (or quote a car you will source),
+/// set the all-in price, how long it holds, delivery and warranty.
 class SendQuoteScreen extends ConsumerStatefulWidget {
   final String leadId;
 
-  const SendQuoteScreen({
-    super.key,
-    required this.leadId,
-  });
+  const SendQuoteScreen({super.key, required this.leadId});
 
   @override
   ConsumerState<SendQuoteScreen> createState() => _SendQuoteScreenState();
 }
 
 class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
-  String? _selectedCarId;
-  late final TextEditingController _priceController;
-  late final TextEditingController _noteController;
-
-  @override
-  void initState() {
-    super.initState();
-    _priceController = TextEditingController();
-    _noteController = TextEditingController();
-  }
+  final _form = GlobalKey<FormState>();
+  final _price = TextEditingController();
+  final _note = TextEditingController();
+  final _delivery = TextEditingController();
+  final _warranty = TextEditingController();
+  String? _carId;
+  int _validHours = 72;
+  bool _sending = false;
 
   @override
   void dispose() {
-    _priceController.dispose();
-    _noteController.dispose();
+    _price.dispose();
+    _note.dispose();
+    _delivery.dispose();
+    _warranty.dispose();
     super.dispose();
+  }
+
+  int? _int(TextEditingController c) => int.tryParse(c.text.replaceAll(',', '').trim());
+
+  Future<void> _send(bool sourced) async {
+    if (!_form.currentState!.validate()) return;
+    setState(() => _sending = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    try {
+      await ref.read(dealerQuotesRepositoryProvider).send(QuoteDraft(
+            requirementId: widget.leadId,
+            vehicleId: sourced ? null : _carId,
+            price: _int(_price)!,
+            message: _note.text,
+            validHours: _validHours,
+            deliveryDays: _int(_delivery),
+            warrantyMonths: _int(_warranty),
+          ));
+      ref.invalidate(myQuotesProvider);
+      ref.invalidate(buyLeadsProvider);
+      messenger.showSnackBar(const SnackBar(content: Text('Quote sent. You will be told if the buyer counters.')));
+      if (router.canPop()) router.pop();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(apiErrorMessage(e))));
+      if (mounted) setState(() => _sending = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final inventory = ref.watch(dealerInventoryProvider);
-    final buyLeads = ref.watch(dealerBuyLeadsProvider);
-    final lead = buyLeads.firstWhere(
-      (l) => l.id == widget.leadId,
-      orElse: () => buyLeads.first,
-    );
+    final t = Theme.of(context).textTheme;
+    final inventory = ref.watch(dealerInventoryProvider).where((v) => v.isAvailable).toList();
+    final leads = ref.watch(dealerBuyLeadsProvider).where((l) => l.id == widget.leadId);
+    final lead = leads.isEmpty ? null : leads.first;
 
-    // Auto-select first car if none selected
-    if (_selectedCarId == null && inventory.isNotEmpty) {
-      _selectedCarId = inventory.first.id;
-      _priceController.text = inventory.first.price.toString();
+    if (lead == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Send quote')),
+        body: const Center(child: Text('This request is no longer available to you.')),
+      );
     }
+    // A sourcing match has no car of yours behind it; the quote is for a car you will find.
+    final sourced = lead.matchTier == 3;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Send Quote'),
-      ),
+      appBar: AppBar(title: const Text('Send quote')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                border: Border.all(color: AppColors.border),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: Form(
+              key: _form,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Buyer Requirement: ${lead.minYear}+ ${lead.make} ${lead.model}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Customer Budget: ${PriceFormatter.formatINR(lead.maxBudget)}  •  ${lead.customerCity}  •  ${lead.fuelType}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      border: Border.all(color: AppColors.border),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(lead.title, style: t.titleMedium),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'Budget up to ${PriceFormatter.formatINR(lead.maxBudget)} · ${lead.customerCity} · ${lead.fuelType}',
+                          style: t.bodySmall,
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.xl),
+                  if (sourced) ...[
+                    Text('You will source this car', style: t.titleMedium),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'The buyer sees that the car is not in your stock yet. Say how many days delivery will take.',
+                      style: t.bodySmall,
+                    ),
+                  ] else ...[
+                    Text('Which car are you quoting?', style: t.titleMedium),
+                    const SizedBox(height: AppSpacing.sm),
+                    if (inventory.isEmpty)
+                      Text('You have no available cars. Add one to your inventory first.', style: t.bodySmall)
+                    else
+                      RadioGroup<String>(
+                        groupValue: _carId,
+                        onChanged: (v) => setState(() {
+                          _carId = v;
+                          final car = inventory.firstWhere((c) => c.id == v);
+                          _price.text = car.price.round().toString();
+                        }),
+                        child: Column(
+                          children: [
+                            for (final car in inventory)
+                              RadioListTile<String>(
+                                value: car.id,
+                                contentPadding: EdgeInsets.zero,
+                                title: Text('${car.year} ${car.make} ${car.model}'),
+                                subtitle: Text(
+                                  '${PriceFormatter.formatINR(car.price)} · ${PriceFormatter.formatKm(car.mileage)} · ${car.fuelType}',
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                  const SizedBox(height: AppSpacing.xl),
+                  TextFormField(
+                    controller: _price,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Total price the buyer pays (₹)',
+                      helperText: 'Include everything: registration, handling and delivery. The buyer sees this exact amount.',
+                      helperMaxLines: 2,
+                      prefixIcon: Icon(Icons.currency_rupee, size: 20),
+                    ),
+                    validator: (v) {
+                      final n = int.tryParse((v ?? '').replaceAll(',', '').trim());
+                      if (n == null || n <= 0) return 'Enter the total price';
+                      if (n > 500000000) return 'That looks too high';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _delivery,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Delivery in (days)'),
+                          validator: (v) {
+                            if ((v ?? '').trim().isEmpty) return sourced ? 'Required' : null;
+                            final n = int.tryParse(v!.trim());
+                            return n == null || n < 0 || n > 180 ? '0 to 180' : null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _warranty,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Warranty (months)'),
+                          validator: (v) {
+                            if ((v ?? '').trim().isEmpty) return null;
+                            final n = int.tryParse(v!.trim());
+                            return n == null || n < 0 || n > 120 ? '0 to 120' : null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  DropdownButtonFormField<int>(
+                    initialValue: _validHours,
+                    decoration: const InputDecoration(labelText: 'Price holds for'),
+                    items: const [
+                      DropdownMenuItem(value: 24, child: Text('24 hours')),
+                      DropdownMenuItem(value: 48, child: Text('2 days')),
+                      DropdownMenuItem(value: 72, child: Text('3 days')),
+                      DropdownMenuItem(value: 168, child: Text('7 days')),
+                    ],
+                    onChanged: (v) => setState(() => _validHours = v ?? 72),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  TextFormField(
+                    controller: _note,
+                    maxLines: 3,
+                    maxLength: 1000,
+                    decoration: const InputDecoration(
+                      labelText: 'Note to the buyer (optional)',
+                      hintText: 'e.g. First owner, service history available',
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _sending || (!sourced && _carId == null) ? null : () => _send(sourced),
+                      child: Text(_sending ? 'Sending…' : 'Send quote'),
+                    ),
+                  ),
+                  if (!sourced && _carId == null && inventory.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Text('Choose a car to continue.', style: t.bodySmall),
+                    ),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              'Select a car from your inventory to quote:',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (inventory.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: const Text(
-                  'No cars in inventory yet. Add cars to your inventory first.',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: inventory.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppSpacing.md),
-                itemBuilder: (context, index) {
-                  final car = inventory[index];
-                  final isSelected = _selectedCarId == car.id;
-
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    onTap: () {
-                      setState(() {
-                        _selectedCarId = car.id;
-                        _priceController.text = car.price.toString();
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.accent
-                              : AppColors.border,
-                          width: isSelected ? 2 : 1,
-                        ),
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusMd),
-                      ),
-                      child: SizedBox(
-                        height: 380,
-                        child: CarCard(
-                          imageUrl: car.imageUrl,
-                          title: '${car.year} ${car.make} ${car.model}',
-                          location: 'In Inventory',
-                          priceText: PriceFormatter.formatINR(car.price),
-                          badgeText: isSelected ? 'Selected' : 'Available',
-                          badgeBgColor: isSelected
-                              ? AppColors.accentLight
-                              : const Color(0xFFF1F5F9),
-                          badgeTextColor: isSelected
-                              ? AppColors.accent
-                              : AppColors.textPrimary,
-                          showFavorite: false,
-                          specs: [
-                            CarSpecItem(
-                              icon: Icons.calendar_today_outlined,
-                              label: '${car.year}',
-                            ),
-                            CarSpecItem(
-                              icon: Icons.speed,
-                              label: PriceFormatter.formatKm(car.mileage),
-                            ),
-                            CarSpecItem(
-                              icon: Icons.local_gas_station_outlined,
-                              label: car.fuelType,
-                            ),
-                            CarSpecItem(
-                              icon: Icons.tune,
-                              label: car.transmission,
-                            ),
-                          ],
-                          primaryAction: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.accent
-                                  : AppColors.primarySubtle,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              isSelected ? 'Selected Car' : 'Select This Car',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            const SizedBox(height: AppSpacing.xl),
-            TextFormField(
-              controller: _priceController,
-              decoration: const InputDecoration(
-                labelText: 'Final Quoted Price (₹)',
-                prefixIcon: Icon(Icons.currency_rupee, size: 20),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextFormField(
-              controller: _noteController,
-              decoration: const InputDecoration(
-                labelText: 'Add a note to customer (Optional)',
-                hintText: 'e.g. Certified with 1-year comprehensive warranty',
-                alignLabelWithHint: true,
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            CustomButton(
-              text: 'Send Quote to Customer',
-              onPressed: _selectedCarId != null
-                  ? () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Quote sent successfully to customer!'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
-                    }
-                  : null,
-            ),
-          ],
+          ),
         ),
       ),
     );

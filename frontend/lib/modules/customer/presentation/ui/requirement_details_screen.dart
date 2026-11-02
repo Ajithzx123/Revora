@@ -7,9 +7,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/price_formatter.dart';
 import '../../../../shared/widgets/responsive_card_grid.dart';
 import '../../domain/entities/buy_requirement.dart';
-import '../providers/customer_providers.dart';
 import '../providers/requirements_provider.dart';
+import '../../domain/entities/quote.dart';
+import '../../domain/repositories/quotes_repository.dart';
 import '../widgets/customer_quote_card.dart';
+import '../widgets/quote_actions.dart';
 
 /// One request: what was asked for, its status, the actions the buyer can take
 /// (edit, pause, close), and the quotes that came back.
@@ -97,7 +99,9 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
 
   Widget _body(BuyRequirement req, RequirementsNotifier notifier) {
     final t = Theme.of(context).textTheme;
-    final quotes = ref.watch(customerQuotesProvider(req.id));
+    final quotesAsync = ref.watch(requirementQuotesProvider(req.id));
+    final quotes = quotesAsync.valueOrNull ?? const <Quote>[];
+    final actions = QuoteActions(context, ref);
     final canManage = req.isEditable && !_busy;
 
     return SingleChildScrollView(
@@ -151,7 +155,31 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              if (quotes.isEmpty)
+              if (quotesAsync.isLoading && quotes.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(AppSpacing.xxl),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (quotesAsync.hasError && quotes.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text('Could not load the quotes.'),
+                      TextButton(
+                        onPressed: () => ref.invalidate(requirementQuotesProvider(req.id)),
+                        child: const Text('Try again'),
+                      ),
+                    ],
+                  ),
+                )
+              else if (quotes.isEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -166,7 +194,10 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         req.isOpen
-                            ? 'No quotes yet. Dealers usually reply within a few hours.'
+                            ? (req.dealersNotified == 0
+                                ? 'We are finding dealers for this request. Quotes will appear here.'
+                                : '${req.dealersNotified} dealer${req.dealersNotified == 1 ? '' : 's'} notified. '
+                                    'Quotes usually arrive within a few hours.')
                             : req.isPaused
                                 ? 'This request is paused. Resume it to receive quotes.'
                                 : 'This request is closed.',
@@ -182,10 +213,11 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
                     for (final quote in quotes)
                       CustomerQuoteCard(
                         quote: quote,
-                        onContact: () => context.push('/chat/${quote.dealerId}'),
-                        onAccept: () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Accepted the quote from ${quote.dealerName}.')),
-                        ),
+                        onAccept: () => actions.accept(quote),
+                        onCounter: () => actions.counter(quote),
+                        onReject: () => actions.reject(quote),
+                        onTakeCounter: () => actions.respond(quote, 'ACCEPT'),
+                        onDeclineCounter: () => actions.respond(quote, 'DECLINE'),
                       ),
                   ],
                 ),
