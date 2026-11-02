@@ -27,6 +27,8 @@ from backend.app.models.user_model import User, UserRole  # noqa: E402
 from backend.main import app  # noqa: E402
 
 PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\n%%EOF"
+PNG = b"\x89PNG\r\n\x1a\n" + bytes(40)
+WEBP = b"RIFF\x24\x00\x00\x00WEBPVP8 " + bytes(40)
 JPEG = b"\xff\xd8\xff\xe0" + bytes(32)
 
 
@@ -119,7 +121,7 @@ REQUIREMENT = {
     "make": "Hyundai",
     "model": "i20",
     "year_min": 2021,
-    "budget": 700000,
+    "budget_max": 700000,
     "city": "Bengaluru",
 }
 LISTING = {
@@ -133,7 +135,13 @@ LISTING = {
     "city": "Bengaluru",
 }
 CAR = {
+    "registration_no": "KA01AB1001",
     "make": "Hyundai", "model": "i20", "year": 2021, "fuel": "Petrol",
     "transmission": "Manual", "km": 20000, "price": 650000,
 }
+
+
+def car(n=1, **overrides):
+    """A valid vehicle payload with its own registration number."""
+    return {**CAR, "registration_no": f"KA01AB{1000 + n}", **overrides}
 MISSING = "00000000-0000-0000-0000-000000000001"

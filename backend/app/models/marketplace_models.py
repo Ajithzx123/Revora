@@ -77,34 +77,89 @@ class DealerDocument(SQLModel, table=True):
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
 
 
-class CarInventory(SQLModel, table=True):
+class VehicleStatus(str, Enum):
+    AVAILABLE = "AVAILABLE"
+    RESERVED = "RESERVED"
+    SOLD = "SOLD"
+
+
+class Vehicle(SQLModel, table=True):
+    """A car in a dealer's stock. Separate from quotes: a quote *refers* to a vehicle."""
+
     id: uuid.UUID = Field(default_factory=_id, primary_key=True)
     dealer_id: uuid.UUID = Field(foreign_key="dealer.id", index=True)
+    registration_no: str = Field(unique=True, index=True)  # normalised, e.g. KA01AB1234
     make: str
     model: str
+    variant: Optional[str] = None
     year: int
     fuel: str
     transmission: str
     km: int
-    price: int
-    images_csv: str = Field(default="")  # Comma-separated URLs
-    status: str = Field(default="AVAILABLE")  # AVAILABLE, RESERVED, SOLD
+    owners: int = Field(default=1)
+    color: Optional[str] = None
+    body_type: Optional[str] = None
+    price: int                                   # asking price, Rs
+    min_price: Optional[int] = None              # private floor; never sent to buyers
+    description: Optional[str] = None
+    status: VehicleStatus = Field(default=VehicleStatus.AVAILABLE, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class VehicleMedia(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=_id, primary_key=True)
+    vehicle_id: uuid.UUID = Field(foreign_key="vehicle.id", index=True)
+    storage_key: str
+    content_type: str
+    size_bytes: int
+    position: int = Field(default=0)  # 0 is the cover photo
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RequirementStatus(str, Enum):
+    OPEN = "OPEN"
+    PAUSED = "PAUSED"
+    QUOTE_ACCEPTED = "QUOTE_ACCEPTED"
+    IN_TRANSACTION = "IN_TRANSACTION"
+    COMPLETED = "COMPLETED"
+    EXPIRED = "EXPIRED"
+    CANCELLED = "CANCELLED"
+
+
+class Urgency(str, Enum):
+    NOW = "NOW"
+    WITHIN_2_WEEKS = "WITHIN_2_WEEKS"
+    WITHIN_60_DAYS = "WITHIN_60_DAYS"
 
 
 class BuyRequirement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=_id, primary_key=True)
     customer_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     make: str
-    model: str
+    model: Optional[str] = None            # None = any model of this make
+    variant: Optional[str] = None
     year_min: int
-    budget: int
+    year_max: Optional[int] = None
+    budget_min: int = Field(default=0)
+    budget_max: int
     fuel: Optional[str] = None
     transmission: Optional[str] = None
+    body_type: Optional[str] = None
+    max_km: Optional[int] = None
+    max_owners: Optional[int] = None
     city: str
+    radius_km: int = Field(default=50)
+    urgency: Urgency = Field(default=Urgency.WITHIN_2_WEEKS)
+    needs_finance: bool = Field(default=False)
+    has_exchange: bool = Field(default=False)
+    # Comma-separated field names the buyer marked as hard requirements; the rest are soft.
+    must_have_csv: str = Field(default="")
     notes: Optional[str] = None
-    status: str = Field(default="ACTIVE")  # ACTIVE, CLOSED, FULFILLED
+    status: RequirementStatus = Field(default=RequirementStatus.OPEN, index=True)
+    expires_at: datetime
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class SellListing(SQLModel, table=True):
@@ -127,10 +182,10 @@ class DealerQuote(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=_id, primary_key=True)
     dealer_id: uuid.UUID = Field(foreign_key="dealer.id", index=True)
     requirement_id: uuid.UUID = Field(foreign_key="buyrequirement.id", index=True)
-    car_inventory_id: Optional[uuid.UUID] = Field(default=None, foreign_key="carinventory.id")
+    vehicle_id: Optional[uuid.UUID] = Field(default=None, foreign_key="vehicle.id")
     quoted_price: int
     message: Optional[str] = None
-    status: str = Field(default="PENDING")  # PENDING, ACCEPTED, REJECTED, EXPIRED
+    status: str = Field(default="PENDING")  # PENDING, ACCEPTED, REJECTED, EXPIRED, UNAVAILABLE, REQUOTE_REQUESTED, CLOSED_BY_CUSTOMER
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 

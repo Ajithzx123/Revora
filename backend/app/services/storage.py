@@ -1,4 +1,5 @@
-"""Private file storage for dealer documents (local disk for now).
+"""File storage for dealer documents (private) and vehicle photos (public by unguessable id).
+Local disk for now.
 
 Files are saved under random names; clients never see or choose a path.
 Swap this module for object storage (Supabase Storage) without touching callers.
@@ -23,8 +24,7 @@ def _root() -> Path:
     return settings.UPLOAD_DIR
 
 
-async def save_document(file: UploadFile) -> tuple[str, str, int]:
-    """Validate and store an upload. Returns (storage_key, content_type, size_bytes)."""
+async def _save(file: UploadFile, detect, accepted_message: str) -> tuple[str, str, int]:
     data = await file.read(settings.MAX_UPLOAD_BYTES + 1)
     if not data:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "The file is empty")
@@ -34,16 +34,40 @@ async def save_document(file: UploadFile) -> tuple[str, str, int]:
             f"File is larger than {settings.MAX_UPLOAD_BYTES // (1024 * 1024)} MB",
         )
     # Trust the bytes, not the client-supplied name or content type.
-    for magic, ext, content_type in _SIGNATURES:
-        if data.startswith(magic):
-            break
-    else:
-        raise HTTPException(
-            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Only PDF, JPEG and PNG files are accepted"
-        )
+    found = detect(data)
+    if found is None:
+        raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, accepted_message)
+    ext, content_type = found
     key = f"{uuid.uuid4().hex}{ext}"
     (_root() / key).write_bytes(data)
     return key, content_type, len(data)
+
+
+def _detect_document(data: bytes):
+    for magic, ext, content_type in _SIGNATURES:
+        if data.startswith(magic):
+            return ext, content_type
+    return None
+
+
+def _detect_image(data: bytes):
+    if data.startswith(b"\xff\xd8\xff"):
+        return ".jpg", "image/jpeg"
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png", "image/png"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return ".webp", "image/webp"
+    return None
+
+
+async def save_document(file: UploadFile) -> tuple[str, str, int]:
+    """Validate and store a KYC document. Returns (storage_key, content_type, size_bytes)."""
+    return await _save(file, _detect_document, "Only PDF, JPEG and PNG files are accepted")
+
+
+async def save_image(file: UploadFile) -> tuple[str, str, int]:
+    """Validate and store a vehicle photo."""
+    return await _save(file, _detect_image, "Only JPEG, PNG and WebP photos are accepted")
 
 
 def path_for(storage_key: str) -> Path:

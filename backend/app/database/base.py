@@ -5,7 +5,8 @@ from backend.app.models.audit_model import AuditEvent
 from backend.app.models.marketplace_models import (
     Dealer,
     DealerDocument,
-    CarInventory,
+    Vehicle,
+    VehicleMedia,
     BuyRequirement,
     SellListing,
     DealerQuote,

@@ -26,7 +26,7 @@ from backend.tests.conftest import CAR, LISTING, MISSING, REQUIREMENT
         ("post", "/api/requirements/"),
         ("get", f"/api/requirements/{MISSING}"),
         ("get", f"/api/requirements/{MISSING}/quotes"),
-        ("patch", f"/api/requirements/{MISSING}/close"),
+        ("post", f"/api/requirements/{MISSING}/cancel"),
         ("get", f"/api/sell-listings/{MISSING}"),
         ("get", f"/api/sell-listings/{MISSING}/offers"),
     ],
@@ -148,14 +148,14 @@ def test_unapproved_dealer_blocked_from_leads_quotes_offers(client, actors):
 
 def test_unapproved_dealer_can_still_manage_own_inventory(client, actors):
     h = actors.dealer()
-    assert client.post("/api/inventory", headers=h, json=CAR).status_code == 200
+    assert client.post("/api/inventory", headers=h, json=CAR).status_code == 201
     assert len(client.get("/api/inventory", headers=h).json()) == 1
 
 
 # ---------- ownership + sealed bidding ----------
 def _post_requirement(client, headers):
     r = client.post("/api/requirements/", headers=headers, json=REQUIREMENT)
-    assert r.status_code == 200, r.text
+    assert r.status_code == 201, r.text
     return r.json()
 
 
@@ -172,8 +172,8 @@ def test_other_customer_cannot_see_or_close_requirement(client, actors):
     rid = _post_requirement(client, owner)["id"]
     assert client.get(f"/api/requirements/{rid}", headers=other).status_code == 404
     assert client.get(f"/api/requirements/{rid}/quotes", headers=other).status_code == 404
-    assert client.patch(f"/api/requirements/{rid}/close", headers=other).status_code == 404
-    assert client.patch(f"/api/requirements/{rid}/close", headers=owner).status_code == 200
+    assert client.post(f"/api/requirements/{rid}/cancel", headers=other).status_code == 404
+    assert client.post(f"/api/requirements/{rid}/cancel", headers=owner).status_code == 200
 
 
 def test_other_customer_cannot_see_listing_or_offers(client, actors):
@@ -214,7 +214,7 @@ def test_verified_dealer_quote_rules(client, actors):
     assert client.post("/api/quotes", headers=dealer, json={"requirement_id": MISSING, "quoted_price": 5}).status_code == 404
     assert client.post("/api/quotes", headers=dealer, json={"requirement_id": rid, "quoted_price": 650000}).status_code == 200
     assert client.post("/api/quotes", headers=dealer, json={"requirement_id": rid, "quoted_price": 640000}).status_code == 409
-    client.patch(f"/api/requirements/{rid}/close", headers=customer)
+    client.post(f"/api/requirements/{rid}/cancel", headers=customer)
     assert client.post("/api/quotes", headers=dealer, json={"requirement_id": rid, "quoted_price": 1}).status_code in (404, 409)
 
 
@@ -224,7 +224,7 @@ def test_dealer_cannot_attach_another_dealers_car(client, actors):
     d2 = actors.dealer(approved=True)
     car_id = client.post("/api/inventory", headers=d1, json=CAR).json()["id"]
     rid = _post_requirement(client, customer)["id"]
-    r = client.post("/api/quotes", headers=d2, json={"requirement_id": rid, "quoted_price": 5, "car_inventory_id": car_id})
+    r = client.post("/api/quotes", headers=d2, json={"requirement_id": rid, "quoted_price": 5, "vehicle_id": car_id})
     assert r.status_code == 404
 
 

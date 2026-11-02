@@ -9,6 +9,8 @@ from backend.app.api.sell_listings_api import router as sell_listings_router
 from backend.app.api.dealer_api import router as dealer_router
 from backend.app.api.admin_api import router as admin_router
 from backend.app.api.dealer_onboarding_api import router as dealer_onboarding_router
+from backend.app.api.inventory_api import router as inventory_router
+from backend.app.core.master_data import as_payload as master_data_payload
 
 app = FastAPI(
     title="Revora Marketplace API",
@@ -33,6 +35,7 @@ app.include_router(requirements_router, prefix="/api")
 app.include_router(sell_listings_router, prefix="/api")
 app.include_router(dealer_router, prefix="/api")
 app.include_router(dealer_onboarding_router, prefix="/api")
+app.include_router(inventory_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
 
@@ -41,6 +44,12 @@ def startup():
     # Local convenience only. Staging/production schemas come from `alembic upgrade head`.
     if settings.ENVIRONMENT == "dev" and settings.DATABASE_URL.startswith("sqlite"):
         create_db()
+
+
+@app.get("/api/master-data", tags=["Reference"])
+def master_data():
+    """Makes, models, cities and other pick-lists. Public: the sign-up forms need it."""
+    return master_data_payload()
 
 
 @app.get("/")
