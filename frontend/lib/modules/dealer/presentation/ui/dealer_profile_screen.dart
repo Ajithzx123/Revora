@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/section_header.dart';
+import '../../../../core/master_data/master_data.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../providers/dealer_application_provider.dart';
 
 class DealerProfileScreen extends ConsumerWidget {
   const DealerProfileScreen({super.key});
@@ -136,6 +138,19 @@ class DealerProfileScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       _buildSettingsTile(
+                        icon: Icons.travel_explore_outlined,
+                        title: 'Cars I can source',
+                        subtitle: () {
+                          final makes = ref.watch(dealerApplicationProvider).valueOrNull?.sourcingMakes ?? const [];
+                          return makes.isEmpty
+                              ? 'Get buyer requests for cars not in your stock'
+                              : makes.join(', ');
+                        }(),
+                        trailing: const Icon(Icons.chevron_right, size: 20),
+                        onTap: () => _editSourcing(context, ref),
+                      ),
+                      const Divider(height: 1, color: AppColors.borderLight),
+                      _buildSettingsTile(
                         icon: Icons.location_on_outlined,
                         title: 'Operating Locations',
                         subtitle: 'Mumbai (Andheri, Bandra), Navi Mumbai',
@@ -208,6 +223,65 @@ class DealerProfileScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _editSourcing(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(dealerApplicationProvider).valueOrNull?.sourcingMakes ?? const <String>[];
+    final makes = (ref.read(masterDataProvider).valueOrNull ?? MasterData.bundled).makeNames;
+    final chosen = {...current};
+    final messenger = ScaffoldMessenger.of(context);
+    final save = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Cars I can source', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                const SizedBox(height: AppSpacing.xs),
+                const Text(
+                  'Pick the makes you can find for a buyer even when you have none in stock. '
+                  'You see these requests only if no dealer nearby has the car.',
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final make in makes)
+                          FilterChip(
+                            label: Text(make),
+                            selected: chosen.contains(make),
+                            onSelected: (on) => setState(() => on ? chosen.add(make) : chosen.remove(make)),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (save != true) return;
+    try {
+      await ref.read(dealerApplicationProvider.notifier).setSourcingMakes(chosen.toList()..sort());
+      messenger.showSnackBar(const SnackBar(content: Text('Saved')));
+    } catch (_) {
+      messenger.showSnackBar(const SnackBar(content: Text('Could not save. Try again.')));
+    }
   }
 
   Widget _buildSettingsTile({

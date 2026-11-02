@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from sqlmodel import func
 
 from backend.app.database.session import get_session
 from backend.app.core.dependencies import get_dealer_profile, require_verified_dealer
+from pydantic import BaseModel, Field
 from backend.app.models.marketplace_models import (
+    MatchRecord,
     Vehicle,
     VehicleStatus,
     Dealer,
@@ -19,6 +22,7 @@ from backend.app.models.marketplace_models import (
 )
 from backend.app.models.user_model import User
 from backend.app.schemas.requirement_schema import BuyLeadResponse
+from backend.app.services import matching_service
 from backend.app.schemas.marketplace_schema import (
     SellListingResponse,
     DealerQuoteCreate,
@@ -31,36 +35,77 @@ router = APIRouter(tags=["Dealer"])
 
 
 # --- Dealer Leads Feed ---
+def _lead(session: Session, req: BuyRequirement, match: MatchRecord) -> BuyLeadResponse:
+    buyer = session.get(User, req.customer_id)
+    quote_count = session.exec(
+        select(func.count()).select_from(DealerQuote).where(DealerQuote.requirement_id == req.id)
+    ).one()
+    car = session.get(Vehicle, match.vehicle_id) if match.vehicle_id else None
+    return BuyLeadResponse(
+        buyer_first_name=(buyer.name.strip().split(" ")[0] if buyer and buyer.name.strip() else "Buyer"),
+        must_have=[m for m in req.must_have_csv.split(",") if m],
+        quote_count=quote_count,
+        match_score=match.score,
+        match_tier=match.tier,
+        match_reasons=match.reasons,
+        matched_vehicle_id=car.id if car else None,
+        matched_vehicle_title=(f"{car.year} {car.make} {car.model}" + (f" {car.variant}" if car.variant else "")) if car else None,
+        matched_vehicle_price=car.price if car else None,
+        response_deadline=matching_service.response_deadline(req, match.created_at),
+        **req.model_dump(exclude={"customer_id", "must_have_csv", "status", "updated_at"}),
+    )
+
+
+def _my_match(session: Session, dealer: Dealer, requirement_id) -> Optional[MatchRecord]:
+    return session.exec(
+        select(MatchRecord).where(
+            MatchRecord.dealer_id == dealer.id,
+            MatchRecord.requirement_id == requirement_id,
+            MatchRecord.dismissed_at.is_(None),
+        )
+    ).first()
+
+
 @router.get("/leads/buy", response_model=List[BuyLeadResponse])
 def get_buyer_leads(
-    _dealer: Dealer = Depends(require_verified_dealer),
+    dealer: Dealer = Depends(require_verified_dealer),
     session: Session = Depends(get_session),
 ):
-    """Open buyer requests. Matching to the right dealers arrives in S3; for now every
-    approved dealer sees every open, unexpired request, but never who the buyer is."""
-    requirements = session.exec(
-        select(BuyRequirement)
+    """Open buyer requests this dealer was matched to, best match first. Never reveals who the buyer is."""
+    now = datetime.utcnow()
+    rows = session.exec(
+        select(MatchRecord, BuyRequirement)
+        .join(BuyRequirement, BuyRequirement.id == MatchRecord.requirement_id)
         .where(
+            MatchRecord.dealer_id == dealer.id,
+            MatchRecord.dismissed_at.is_(None),
             BuyRequirement.status == RequirementStatus.OPEN,
-            BuyRequirement.expires_at > datetime.utcnow(),
+            BuyRequirement.expires_at > now,
         )
-        .order_by(BuyRequirement.created_at.desc())
     ).all()
-    leads = []
-    for r in requirements:
-        buyer = session.get(User, r.customer_id)
-        quote_count = session.exec(
-            select(func.count()).select_from(DealerQuote).where(DealerQuote.requirement_id == r.id)
-        ).one()
-        leads.append(
-            BuyLeadResponse(
-                buyer_first_name=(buyer.name.strip().split(" ")[0] if buyer and buyer.name.strip() else "Buyer"),
-                must_have=[m for m in r.must_have_csv.split(",") if m],
-                quote_count=quote_count,
-                **r.model_dump(exclude={"customer_id", "must_have_csv", "status", "updated_at"}),
-            )
-        )
-    return leads
+    leads = [_lead(session, req, match) for match, req in rows]
+    return sorted(leads, key=lambda l: (l.match_tier, -l.match_score, l.response_deadline))
+
+
+class DismissLead(BaseModel):
+    reason: str = Field(default="NOT_INTERESTED", max_length=60)
+
+
+@router.post("/leads/buy/{requirement_id}/dismiss", status_code=204)
+def dismiss_lead(
+    requirement_id: uuid.UUID,
+    body: DismissLead,
+    dealer: Dealer = Depends(require_verified_dealer),
+    session: Session = Depends(get_session),
+):
+    """'Not for me': hides the request from this dealer. It is never shown to them again."""
+    match = _my_match(session, dealer, requirement_id)
+    if match is None:
+        raise HTTPException(status_code=404, detail="Request not found")
+    match.dismissed_at = datetime.utcnow()
+    match.dismissed_reason = body.reason
+    session.add(match)
+    session.commit()
 
 
 @router.get("/leads/sell", response_model=List[SellListingResponse])
@@ -107,6 +152,9 @@ def send_quote(
         or requirement.expires_at <= datetime.utcnow()
     ):
         raise HTTPException(status_code=404, detail="Requirement not found or closed")
+    if _my_match(session, dealer, quote_data.requirement_id) is None:
+        # Dealers quote only the requests they were shown, so matching cannot be bypassed.
+        raise HTTPException(status_code=403, detail="This request was not matched to you")
     if quote_data.vehicle_id is not None:
         car = session.get(Vehicle, quote_data.vehicle_id)
         if car is None or car.dealer_id != dealer.id:

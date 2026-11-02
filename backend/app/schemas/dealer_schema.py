@@ -40,6 +40,7 @@ class DealerResponse(BaseModel):
     missing_documents: List[str]
     can_submit: bool
     editable: bool
+    sourcing_makes: List[str] = []
 
 
 class DealerSummary(BaseModel):
@@ -58,3 +59,9 @@ class ReasonBody(BaseModel):
 class DocumentReview(BaseModel):
     status: DocumentStatus
     note: Optional[str] = Field(default=None, max_length=1000)
+
+
+class SourcingUpdate(BaseModel):
+    """Makes a dealer will source on request even with no matching car in stock."""
+
+    makes: List[str] = Field(default_factory=list, max_length=20)

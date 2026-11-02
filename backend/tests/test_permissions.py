@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 
 from backend.app.database.connection import engine
 from backend.app.models.audit_model import AuditEvent
-from backend.tests.conftest import CAR, LISTING, MISSING, REQUIREMENT
+from backend.tests.conftest import CAR, LISTING, MISSING, REQUIREMENT, source
 
 
 # ---------- authentication required ----------
@@ -187,7 +187,7 @@ def test_other_customer_cannot_see_listing_or_offers(client, actors):
 
 def test_sealed_bidding_dealer_cannot_read_quotes(client, actors):
     customer = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = source(client, actors.dealer(approved=True))
     rid = _post_requirement(client, customer)["id"]
     q = client.post("/api/quotes", headers=dealer, json={"requirement_id": rid, "quoted_price": 650000})
     assert q.status_code == 200, q.text
@@ -207,7 +207,7 @@ def test_unapproved_dealer_cannot_read_requirement(client, actors):
 # ---------- quote / offer validation ----------
 def test_verified_dealer_quote_rules(client, actors):
     customer = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = source(client, actors.dealer(approved=True))
     rid = _post_requirement(client, customer)["id"]
 
     assert client.post("/api/quotes", headers=dealer, json={"requirement_id": rid, "quoted_price": 0}).status_code == 422
@@ -220,9 +220,9 @@ def test_verified_dealer_quote_rules(client, actors):
 
 def test_dealer_cannot_attach_another_dealers_car(client, actors):
     customer = actors.customer()
-    d1 = actors.dealer(approved=True)
-    d2 = actors.dealer(approved=True)
-    car_id = client.post("/api/inventory", headers=d1, json=CAR).json()["id"]
+    d1 = source(client, actors.dealer(approved=True))
+    d2 = source(client, actors.dealer(approved=True))
+    car_id = client.post("/api/inventory", headers=d1, json={**CAR, "make": "Kia", "model": "Seltos"}).json()["id"]
     rid = _post_requirement(client, customer)["id"]
     r = client.post("/api/quotes", headers=d2, json={"requirement_id": rid, "quoted_price": 5, "vehicle_id": car_id})
     assert r.status_code == 404

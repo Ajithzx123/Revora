@@ -1,3 +1,7 @@
+import asyncio
+import logging
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
@@ -44,6 +48,29 @@ def startup():
     # Local convenience only. Staging/production schemas come from `alembic upgrade head`.
     if settings.ENVIRONMENT == "dev" and settings.DATABASE_URL.startswith("sqlite"):
         create_db()
+    interval = int(os.getenv("MATCHING_INTERVAL_SECONDS", "600"))
+    if interval > 0 and "PYTEST_CURRENT_TEST" not in os.environ:
+        asyncio.create_task(_matching_loop(interval))
+
+
+async def _matching_loop(interval: int) -> None:
+    """Releases sourcing-tier matches once a request has waited long enough, and picks up
+    anything a trigger missed. Single instance only; move to a scheduler when scaled out."""
+    from sqlmodel import Session
+
+    from backend.app.database.session import engine
+    from backend.app.services import matching_service
+
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            with Session(engine) as session:
+                created = matching_service.rematch_open_requests(session)
+                session.commit()
+            if created:
+                logging.getLogger("revora.matching").info("periodic matching created %s matches", created)
+        except Exception:  # never let the loop die
+            logging.getLogger("revora.matching").exception("periodic matching failed")
 
 
 @app.get("/api/master-data", tags=["Reference"])

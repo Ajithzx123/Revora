@@ -39,6 +39,8 @@ class DealerApplicationNotifier extends AsyncNotifier<DealerApplication> {
   Future<void> remove(String documentId) => _apply(() => _repo.deleteDocument(documentId));
 
   Future<void> submit() => _apply(_repo.submit);
+
+  Future<void> setSourcingMakes(List<String> makes) => _apply(() => _repo.setSourcingMakes(makes));
 }
 
 final dealerApplicationProvider =

@@ -23,6 +23,12 @@ class BuyLead {
   final String? notes;
   final int radiusKm;
 
+  /// 1 exact car in stock, 2 similar car in stock, 3 you can source it (0 = not from matching).
+  final int matchTier;
+  final List<String> matchReasons;
+  final String? matchedVehicleTitle;
+  final DateTime? respondBy;
+
   const BuyLead({
     required this.id,
     required this.customerName,
@@ -46,6 +52,10 @@ class BuyLead {
     this.bodyType,
     this.notes,
     this.radiusKm = 50,
+    this.matchTier = 0,
+    this.matchReasons = const [],
+    this.matchedVehicleTitle,
+    this.respondBy,
   });
 
   String get urgencyLabel {
@@ -74,7 +84,7 @@ class BuyLead {
       maxBudget: (j['budget_max'] as num).toDouble(),
       fuelType: (j['fuel'] as String?) ?? 'Any',
       transmission: (j['transmission'] as String?) ?? 'Any',
-      matchPercentage: 0, // matching arrives in S3; 0 hides the badge
+      matchPercentage: (j['match_score'] as int?) ?? 0,
       quotesCount: (j['quote_count'] as int?) ?? 0,
       createdAt: DateTime.parse(j['created_at'] as String),
       urgency: (j['urgency'] as String?) ?? 'WITHIN_2_WEEKS',
@@ -84,7 +94,42 @@ class BuyLead {
       bodyType: j['body_type'] as String?,
       notes: j['notes'] as String?,
       radiusKm: (j['radius_km'] as int?) ?? 50,
+      matchTier: (j['match_tier'] as int?) ?? 0,
+      matchReasons: [for (final r in (j['match_reasons'] as List? ?? const [])) r as String],
+      matchedVehicleTitle: j['matched_vehicle_title'] as String?,
+      respondBy: _utc(j['response_deadline'] as String?),
     );
+  }
+
+  /// The API sends UTC without a zone suffix.
+  static DateTime? _utc(String? raw) {
+    if (raw == null) return null;
+    final hasZone = raw.endsWith('Z') || RegExp(r'[+-]\d\d:\d\d$').hasMatch(raw);
+    return DateTime.parse(hasZone ? raw : '${raw}Z').toLocal();
+  }
+
+  String? get tierLabel {
+    switch (matchTier) {
+      case 1:
+        return 'Exact car in your stock';
+      case 2:
+        return 'Similar car in your stock';
+      case 3:
+        return 'You can source this';
+      default:
+        return null;
+    }
+  }
+
+  /// "Reply within 5h" style hint; null when there is no deadline or it has passed.
+  String? get deadlineLabel {
+    final by = respondBy;
+    if (by == null) return null;
+    final left = by.difference(DateTime.now());
+    if (left.isNegative) return null;
+    if (left.inHours >= 24) return 'Reply within ${left.inDays}d';
+    if (left.inHours >= 1) return 'Reply within ${left.inHours}h';
+    return 'Reply within ${left.inMinutes.clamp(1, 59)}m';
   }
 
   String get title {

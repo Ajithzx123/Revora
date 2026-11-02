@@ -14,6 +14,7 @@ from backend.app.models.audit_model import AuditEvent
 from backend.app.models.marketplace_models import (
     Dealer,
     DealerQuote,
+    DealerStatus,
     Vehicle,
     VehicleMedia,
     VehicleStatus,
@@ -25,7 +26,7 @@ from backend.app.schemas.vehicle_schema import (
     VehicleResponse,
     VehicleUpdate,
 )
-from backend.app.services import storage
+from backend.app.services import matching_service, storage
 
 router = APIRouter(tags=["Inventory"])
 
@@ -92,6 +93,8 @@ def add_vehicle(
             entity_id=str(vehicle.id),
         )
     )
+    if dealer.status == DealerStatus.APPROVED:
+        matching_service.rematch_open_requests(session, vehicle.make)  # new stock may suit waiting buyers
     session.commit()
     session.refresh(vehicle)
     return to_response(session, vehicle)
@@ -163,6 +166,8 @@ def update_vehicle(
                 entity_id=str(vehicle.id),
             )
         )
+    if dealer.status == DealerStatus.APPROVED and vehicle.status == VehicleStatus.AVAILABLE:
+        matching_service.rematch_open_requests(session, vehicle.make)
     session.commit()
     session.refresh(vehicle)
     return to_response(session, vehicle)

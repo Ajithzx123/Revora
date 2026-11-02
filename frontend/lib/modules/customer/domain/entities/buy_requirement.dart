@@ -19,6 +19,7 @@ class BuyRequirement {
   /// completed. (Demo data also uses "active", which means open.)
   final String status;
   final int quotesReceived;
+  final int dealersNotified;
   final DateTime createdAt;
 
   final String? variant;
@@ -48,6 +49,7 @@ class BuyRequirement {
     required this.preferredCity,
     this.status = 'open',
     this.quotesReceived = 0,
+    this.dealersNotified = 0,
     required this.createdAt,
     this.variant,
     this.bodyType,
@@ -135,6 +137,7 @@ class BuyRequirement {
       notes: j['notes'] as String?,
       status: ((j['status'] as String?) ?? 'OPEN').toLowerCase(),
       quotesReceived: (j['quote_count'] as int?) ?? 0,
+      dealersNotified: (j['dealers_notified'] as int?) ?? 0,
       createdAt: DateTime.parse(j['created_at'] as String),
       expiresAt: j['expires_at'] == null ? null : DateTime.parse(j['expires_at'] as String),
     );

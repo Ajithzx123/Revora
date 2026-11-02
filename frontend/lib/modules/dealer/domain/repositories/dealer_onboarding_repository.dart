@@ -25,6 +25,9 @@ abstract class DealerOnboardingRepository {
   Future<DealerApplication> deleteDocument(String documentId);
 
   Future<DealerApplication> submit();
+
+  /// Makes this dealer will source on request without having the car in stock.
+  Future<DealerApplication> setSourcingMakes(List<String> makes);
 }
 
 final dealerOnboardingRepositoryProvider = Provider<DealerOnboardingRepository>((ref) {
@@ -85,4 +88,8 @@ class ApiDealerOnboardingRepository implements DealerOnboardingRepository {
 
   @override
   Future<DealerApplication> submit() async => _parse(await _dio.post('/dealers/me/submit'));
+
+  @override
+  Future<DealerApplication> setSourcingMakes(List<String> makes) async =>
+      _parse(await _dio.put('/dealers/me/sourcing', data: {'makes': makes}));
 }

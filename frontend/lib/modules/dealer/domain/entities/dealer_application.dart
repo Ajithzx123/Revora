@@ -102,6 +102,7 @@ class DealerApplication {
   final List<String> missingDocuments;
   final bool canSubmit;
   final bool editable;
+  final List<String> sourcingMakes;
 
   const DealerApplication({
     required this.id,
@@ -115,6 +116,7 @@ class DealerApplication {
     this.missingDocuments = const [],
     this.canSubmit = false,
     this.editable = true,
+    this.sourcingMakes = const [],
   });
 
   DealerDocument? documentOf(DocumentType type) {
@@ -141,5 +143,6 @@ class DealerApplication {
         ],
         canSubmit: json['can_submit'] as bool? ?? false,
         editable: json['editable'] as bool? ?? false,
+        sourcingMakes: [for (final m in (json['sourcing_makes'] as List? ?? const [])) m as String],
       );
 }

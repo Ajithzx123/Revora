@@ -14,7 +14,8 @@ from backend.app.models.marketplace_models import (
     DocumentStatus,
     DocumentType,
 )
-from backend.app.schemas.dealer_schema import DealerResponse, DealerUpdate, DocumentResponse
+from backend.app.core import master_data as md
+from backend.app.schemas.dealer_schema import DealerResponse, DealerUpdate, DocumentResponse, SourcingUpdate
 from backend.app.services import storage
 from backend.app.services.dealer_workflow import (
     DEALER_EDITABLE,
@@ -60,6 +61,7 @@ def dealer_response(session: Session, dealer: Dealer) -> DealerResponse:
         missing_documents=missing,
         can_submit=editable and not missing and complete,
         editable=editable,
+        sourcing_makes=dealer.sourcing_makes,
     )
 
 
@@ -148,6 +150,28 @@ def submit_application(
     session: Session = Depends(get_session),
 ):
     transition(session, dealer, DealerStatus.PENDING, current_user_id(user_data))
+    session.commit()
+    session.refresh(dealer)
+    return dealer_response(session, dealer)
+
+
+@router.put("/me/sourcing", response_model=DealerResponse)
+def set_sourcing_makes(
+    body: SourcingUpdate,
+    dealer: Dealer = Depends(get_dealer_profile),
+    session: Session = Depends(get_session),
+):
+    """Makes this dealer will source on request without having the car in stock.
+    Allowed in any status; it takes effect once the dealer is approved."""
+    unknown = sorted({m for m in body.makes if m not in md.MAKES_AND_MODELS})
+    if unknown:
+        raise HTTPException(status_code=422, detail=f"Unknown make: {', '.join(unknown)}")
+    dealer.sourcing_makes_csv = ",".join(sorted(set(body.makes)))
+    session.add(dealer)
+    if dealer.status == DealerStatus.APPROVED:
+        from backend.app.services import matching_service
+
+        matching_service.rematch_open_requests(session)
     session.commit()
     session.refresh(dealer)
     return dealer_response(session, dealer)

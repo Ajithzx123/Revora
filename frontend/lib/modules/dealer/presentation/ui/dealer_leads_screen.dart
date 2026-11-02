@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/car_card.dart';
 import '../../../../shared/widgets/responsive_card_grid.dart';
 import '../../../../shared/widgets/section_header.dart';
+import '../../domain/repositories/buy_leads_repository.dart';
 import '../providers/dealer_providers.dart';
 import '../widgets/buy_lead_card.dart';
 
@@ -32,6 +33,17 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _dismiss(String id) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(buyLeadsRepositoryProvider).dismiss(id);
+      ref.invalidate(buyLeadsProvider);
+      messenger.showSnackBar(const SnackBar(content: Text('Removed from your list')));
+    } catch (_) {
+      messenger.showSnackBar(const SnackBar(content: Text('Could not remove it. Try again.')));
+    }
   }
 
   Widget _tab(String label, int count) => Tab(
@@ -73,15 +85,18 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                     title: 'Buyers want these cars',
                     subtitle: 'Quote a match from your inventory to win the deal',
                   ),
-                  child: ResponsiveCardGrid(
-                    children: [
-                      for (final lead in buyLeads)
-                        BuyLeadCard(
-                          lead: lead,
-                          onSendQuote: () => context.push('/dealer/send-quote/${lead.id}'),
+                  child: buyLeads.isEmpty
+                      ? const _EmptyLeads()
+                      : ResponsiveCardGrid(
+                          children: [
+                            for (final lead in buyLeads)
+                              BuyLeadCard(
+                                lead: lead,
+                                onSendQuote: () => context.push('/dealer/send-quote/${lead.id}'),
+                                onDismiss: () => _dismiss(lead.id),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
                 ),
                 _page(
                   header: const SectionHeader(
@@ -134,6 +149,33 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [header, child],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyLeads extends StatelessWidget {
+  const _EmptyLeads();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+      child: Center(
+        child: Column(
+          children: [
+            const Icon(Icons.inbox_outlined, size: 44, color: AppColors.textSecondary),
+            const SizedBox(height: AppSpacing.md),
+            const Text('No buyer requests for you yet', textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Add cars to your inventory, or list the makes you can source on your profile. '
+              'Matching buyers will show up here.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ),
       ),
     );

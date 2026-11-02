@@ -7,7 +7,7 @@ from sqlmodel import Session
 from backend.app.database.connection import engine
 from backend.app.models.audit_model import AuditEvent
 from backend.app.models.marketplace_models import BuyRequirement
-from backend.tests.conftest import REQUIREMENT
+from backend.tests.conftest import REQUIREMENT, source
 
 FULL = {
     **REQUIREMENT,
@@ -128,7 +128,7 @@ def test_pause_resume_cancel(client, actors):
 
 def test_paused_request_is_hidden_from_dealers(client, actors):
     h = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = source(client, actors.dealer(approved=True))
     rid = post(client, h).json()["id"]
     assert len(client.get("/api/leads/buy", headers=dealer).json()) == 1
     client.post(f"/api/requirements/{rid}/pause", headers=h)
@@ -139,7 +139,7 @@ def test_paused_request_is_hidden_from_dealers(client, actors):
 
 def test_cancelling_closes_open_quotes(client, actors):
     h = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = source(client, actors.dealer(approved=True))
     rid = post(client, h).json()["id"]
     client.post("/api/quotes", headers=dealer, json={"requirement_id": rid, "quoted_price": 650000})
     client.post(f"/api/requirements/{rid}/cancel", headers=h)
@@ -149,7 +149,7 @@ def test_cancelling_closes_open_quotes(client, actors):
 
 def test_expired_request_is_closed_lazily(client, actors):
     h = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = source(client, actors.dealer(approved=True))
     rid = post(client, h).json()["id"]
     with Session(engine) as s:
         import uuid
@@ -191,7 +191,7 @@ def test_edit_cannot_create_an_impossible_request(client, actors):
 
 def test_material_edit_asks_dealers_to_requote_but_minor_edit_does_not(client, actors):
     h = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = source(client, actors.dealer(approved=True))
     rid = post(client, h).json()["id"]
     client.post("/api/quotes", headers=dealer, json={"requirement_id": rid, "quoted_price": 650000})
 
@@ -235,7 +235,7 @@ def test_lifecycle_is_audited(client, actors):
 # ---------- dealer view ----------
 def test_dealer_leads_hide_the_buyer(client, actors):
     customer = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = source(client, actors.dealer(approved=True))
     post(client, customer, FULL)
     leads = client.get("/api/leads/buy", headers=dealer).json()
     assert len(leads) == 1

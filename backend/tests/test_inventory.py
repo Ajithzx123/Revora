@@ -1,7 +1,7 @@
 """Dealer inventory: vehicles, duplicates, photos, and what happens when a car is sold."""
 import pytest
 
-from backend.tests.conftest import JPEG, PDF, PNG, REQUIREMENT, WEBP, car
+from backend.tests.conftest import JPEG, PDF, PNG, REQUIREMENT, WEBP, car, source
 
 
 def add(client, h, n=1, **overrides):
@@ -127,7 +127,7 @@ def test_cannot_delete_a_vehicle_with_quotes_but_can_mark_it_sold(client, actors
 
 def test_cannot_quote_a_vehicle_that_is_not_available(client, actors):
     customer = actors.customer()
-    h = actors.dealer(approved=True)
+    h = source(client, actors.dealer(approved=True))
     vid = add(client, h).json()["id"]
     client.patch(f"/api/inventory/{vid}", headers=h, json={"status": "RESERVED"})
     rid = client.post("/api/requirements/", headers=customer, json=REQUIREMENT).json()["id"]

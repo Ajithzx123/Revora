@@ -8,6 +8,7 @@ from backend.app.models.marketplace_models import (
     Vehicle,
     VehicleMedia,
     BuyRequirement,
+    MatchRecord,
     SellListing,
     DealerQuote,
     DealerOffer,

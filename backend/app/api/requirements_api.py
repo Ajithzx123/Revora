@@ -15,6 +15,7 @@ from backend.app.core.dependencies import (
 from backend.app.database.session import get_session
 from backend.app.models.audit_model import AuditEvent
 from backend.app.models.marketplace_models import (
+    MatchRecord,
     BuyRequirement,
     Dealer,
     DealerQuote,
@@ -27,6 +28,7 @@ from backend.app.schemas.requirement_schema import (
     RequirementResponse,
     RequirementUpdate,
 )
+from backend.app.services import matching_service
 from backend.app.services import requirement_workflow as workflow
 
 router = APIRouter(prefix="/requirements", tags=["Requirements"])
@@ -50,6 +52,7 @@ def to_response(session: Session, req: BuyRequirement) -> RequirementResponse:
         **{k: getattr(req, k) for k in _RESPONSE_FIELDS},
         must_have=[m for m in req.must_have_csv.split(",") if m],
         quote_count=quote_count,
+        dealers_notified=matching_service.dealers_notified(session, req.id),
     )
 
 
@@ -113,6 +116,7 @@ def create_requirement(
             entity_id=str(requirement.id),
         )
     )
+    matching_service.run_matching(session, requirement)
     session.commit()
     session.refresh(requirement)
     return to_response(session, requirement)
@@ -148,16 +152,22 @@ def get_requirement_detail(
         raise HTTPException(status_code=404, detail="Requirement not found")
     is_owner = req.customer_id == current_user_id(user_data)
     is_admin = user_data.get("role") in ADMIN_ROLES
-    is_dealer = (
-        user_data.get("role") == "DEALER"
-        and session.exec(
+    is_dealer = False
+    if user_data.get("role") == "DEALER":
+        dealer = session.exec(
             select(Dealer).where(
                 Dealer.user_id == current_user_id(user_data),
                 Dealer.status == DealerStatus.APPROVED,
             )
         ).first()
-        is not None
-    )
+        # A dealer sees only requests they were matched to.
+        is_dealer = dealer is not None and session.exec(
+            select(MatchRecord).where(
+                MatchRecord.dealer_id == dealer.id,
+                MatchRecord.requirement_id == req.id,
+                MatchRecord.dismissed_at.is_(None),
+            )
+        ).first() is not None
     if not (is_owner or is_admin or is_dealer):
         # 404, not 403: do not reveal that the id exists
         raise HTTPException(status_code=404, detail="Requirement not found")
@@ -230,6 +240,7 @@ def edit_requirement(
             detail=("material change; " if material else "") + f"changed: {', '.join(sorted(before)) or 'nothing'}",
         )
     )
+    matching_service.run_matching(session, req)  # a changed request may now suit more dealers
     session.commit()
     session.refresh(req)
     return to_response(session, req)
@@ -258,7 +269,11 @@ def resume_requirement(
     user_data: dict = Depends(require_customer),
     session: Session = Depends(get_session),
 ):
-    return _move(requirement_id, R.OPEN, user_data, session)
+    response = _move(requirement_id, R.OPEN, user_data, session)
+    req = session.get(BuyRequirement, requirement_id)
+    matching_service.run_matching(session, req)  # stock may have changed while it was paused
+    session.commit()
+    return to_response(session, req)
 
 
 @router.post("/{requirement_id}/cancel", response_model=RequirementResponse)

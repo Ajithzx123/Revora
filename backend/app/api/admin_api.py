@@ -27,7 +27,7 @@ from backend.app.schemas.dealer_schema import (
     DocumentResponse,
     ReasonBody,
 )
-from backend.app.services import storage
+from backend.app.services import matching_service, storage
 from backend.app.services.dealer_workflow import transition
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -107,6 +107,9 @@ def _decide(
 ) -> DealerResponse:
     dealer = _get_dealer(session, dealer_id)
     transition(session, dealer, new_status, current_user_id(admin), reason)
+    session.flush()
+    if new_status == DealerStatus.APPROVED:
+        matching_service.rematch_open_requests(session)  # a newly approved dealer may suit waiting buyers
     session.commit()
     session.refresh(dealer)
     return dealer_response(session, dealer)
@@ -232,3 +235,52 @@ def download_document(
         filename=document.original_name,
         headers={"Cache-Control": "no-store"},
     )
+
+
+@router.get("/requirements/{requirement_id}/matches")
+def requirement_matches(
+    requirement_id: uuid.UUID,
+    _admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    """Which dealers were shown a request, and why. For support and fairness checks."""
+    from backend.app.models.marketplace_models import MatchRecord
+
+    rows = session.exec(
+        select(MatchRecord).where(MatchRecord.requirement_id == requirement_id).order_by(MatchRecord.tier, MatchRecord.score.desc())
+    ).all()
+    out = []
+    for m in rows:
+        dealer = session.get(Dealer, m.dealer_id)
+        out.append(
+            {
+                "dealer_id": m.dealer_id,
+                "dealer": dealer.business_name if dealer else None,
+                "tier": m.tier,
+                "score": m.score,
+                "reasons": m.reasons,
+                "dismissed": m.dismissed_at is not None,
+                "matched_at": m.created_at,
+            }
+        )
+    return out
+
+
+@router.get("/liquidity")
+def marketplace_liquidity(
+    _admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    """Open and unmatched requests against approved dealers, per city: where to recruit next."""
+    return matching_service.liquidity(session)
+
+
+@router.post("/matching/run")
+def run_matching_now(
+    admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    """Re-run matching for every open request (also done on a schedule)."""
+    created = matching_service.rematch_open_requests(session)
+    session.commit()
+    return {"matches_created": created}

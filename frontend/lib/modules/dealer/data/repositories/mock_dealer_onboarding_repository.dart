@@ -11,6 +11,7 @@ class MockDealerOnboardingRepository implements DealerOnboardingRepository {
   String _city = 'Bengaluru';
   final Map<DocumentType, DealerDocument> _docs = {};
   int _next = 1;
+  List<String> _sourcing = const [];
 
   DealerApplication _snapshot() {
     final missing = [
@@ -30,6 +31,7 @@ class MockDealerOnboardingRepository implements DealerOnboardingRepository {
       missingDocuments: missing,
       canSubmit: editable && missing.isEmpty && (_address ?? '').isNotEmpty,
       editable: editable,
+      sourcingMakes: _sourcing,
     );
   }
 
@@ -77,6 +79,12 @@ class MockDealerOnboardingRepository implements DealerOnboardingRepository {
   Future<DealerApplication> deleteDocument(String documentId) async {
     _requireEditable();
     _docs.removeWhere((_, d) => d.id == documentId);
+    return _snapshot();
+  }
+
+  @override
+  Future<DealerApplication> setSourcingMakes(List<String> makes) async {
+    _sourcing = [...makes]..sort();
     return _snapshot();
   }
 

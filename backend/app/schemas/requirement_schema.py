@@ -151,6 +151,7 @@ class RequirementResponse(BaseModel):
     expires_at: datetime
     created_at: datetime
     quote_count: int = 0
+    dealers_notified: int = 0
 
 
 class BuyLeadResponse(BaseModel):
@@ -180,3 +181,11 @@ class BuyLeadResponse(BaseModel):
     expires_at: datetime
     created_at: datetime
     quote_count: int = 0
+    # Why this dealer was shown the request
+    match_score: int = 0
+    match_tier: int = 1  # 1 exact in stock, 2 similar in stock, 3 can source
+    match_reasons: List[str] = []
+    matched_vehicle_id: Optional[UUID] = None
+    matched_vehicle_title: Optional[str] = None
+    matched_vehicle_price: Optional[int] = None
+    response_deadline: datetime

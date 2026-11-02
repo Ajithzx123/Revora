@@ -2,6 +2,7 @@ import uuid
 from datetime import date, datetime
 from enum import Enum
 from typing import Optional
+from sqlalchemy import UniqueConstraint
 from sqlmodel import SQLModel, Field
 from backend.app.models.user_model import User, UserRole  # noqa: F401  (registers the table)
 
@@ -55,7 +56,13 @@ class Dealer(SQLModel, table=True):
     reviewed_by: Optional[uuid.UUID] = None
     rating: float = Field(default=5.0)
     total_deals: int = Field(default=0)
+    # Makes this dealer will source on request even without a matching car in stock.
+    sourcing_makes_csv: str = Field(default="")
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @property
+    def sourcing_makes(self) -> list[str]:
+        return [m for m in self.sourcing_makes_csv.split(",") if m]
 
     @property
     def verified(self) -> bool:
@@ -160,6 +167,27 @@ class BuyRequirement(SQLModel, table=True):
     expires_at: datetime
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MatchRecord(SQLModel, table=True):
+    """One dealer being shown one buyer request, and why. Written once per pair."""
+
+    __table_args__ = (UniqueConstraint("requirement_id", "dealer_id", name="uq_match_requirement_dealer"),)
+
+    id: uuid.UUID = Field(default_factory=_id, primary_key=True)
+    requirement_id: uuid.UUID = Field(foreign_key="buyrequirement.id", index=True)
+    dealer_id: uuid.UUID = Field(foreign_key="dealer.id", index=True)
+    vehicle_id: Optional[uuid.UUID] = Field(default=None, foreign_key="vehicle.id")  # best car; None = sourcing
+    tier: int = Field(default=1)          # 1 exact in stock, 2 alternative in stock, 3 can source
+    score: int = Field(default=0)         # 0-100, see matching_service for the breakdown
+    reasons_csv: str = Field(default="")  # human-readable "why", separated by |
+    dismissed_at: Optional[datetime] = None
+    dismissed_reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+    @property
+    def reasons(self) -> list[str]:
+        return [r for r in self.reasons_csv.split("|") if r]
 
 
 class SellListing(SQLModel, table=True):

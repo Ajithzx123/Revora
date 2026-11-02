@@ -112,6 +112,14 @@ def force_status(dealer_id, status):
         s.commit()
 
 
+def source(client, dealer, *makes):
+    """Make a dealer eligible for requests of these makes by having them offer to source them.
+    Call before the buyer posts (matching runs at post time)."""
+    r = client.put("/api/dealers/me/sourcing", headers=dealer, json={"makes": list(makes or ["Hyundai"])})
+    assert r.status_code == 200, r.text
+    return dealer
+
+
 @pytest.fixture
 def actors(client):
     return Actors(client)

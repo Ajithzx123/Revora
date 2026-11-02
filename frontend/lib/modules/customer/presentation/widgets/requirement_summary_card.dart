@@ -58,6 +58,15 @@ class RequirementSummaryCard extends StatelessWidget {
           CarSpecItem(icon: Icons.tune, label: requirement.transmission),
         if (requirement.bodyType != null)
           CarSpecItem(icon: Icons.directions_car_outlined, label: requirement.bodyType!),
+        if (requirement.status == 'open')
+          CarSpecItem(
+            icon: Icons.storefront_outlined,
+            label: requirement.dealersNotified == 0
+                ? 'Finding dealers'
+                : requirement.dealersNotified == 1
+                    ? '1 dealer notified'
+                    : '${requirement.dealersNotified} dealers notified',
+          ),
         CarSpecItem(
           icon: Icons.local_offer_outlined,
           label: requirement.quotesReceived == 1 ? '1 quote' : '${requirement.quotesReceived} quotes',
