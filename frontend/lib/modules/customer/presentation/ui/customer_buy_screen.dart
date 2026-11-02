@@ -90,6 +90,7 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null, // several tabs each have a "+" button; a shared tag breaks navigation
         onPressed: () => context.push('/customer/post-buy'),
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.onAccent,

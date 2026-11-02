@@ -104,4 +104,39 @@ void main() {
       });
     }
   }
+
+  // Leaving a screen runs Flutter's Hero transition, which fails if two floating
+  // buttons in one screen share a tag (the shells keep every tab alive at once).
+  for (final shell in {
+    'customer shell': () => const CustomerShell(),
+    'dealer shell': () => const DealerShell(),
+  }.entries) {
+    testWidgets('${shell.key} can navigate to another screen', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(0.55)),
+            child: child!,
+          ),
+          home: shell.value(),
+        ),
+      ));
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+
+      tester.state<NavigatorState>(find.byType(Navigator)).push(
+            MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('next screen'))),
+          );
+      await tester.pumpAndSettle();
+
+      expect(find.text('next screen'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

@@ -93,6 +93,7 @@ class DealerInventoryTab extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () {
           context.push('/dealer/add-car');
         },

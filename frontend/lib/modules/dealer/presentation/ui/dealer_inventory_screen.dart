@@ -19,6 +19,7 @@ class DealerInventoryScreen extends ConsumerWidget {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null, // several tabs each have a "+" button; a shared tag breaks navigation
         onPressed: () => context.push('/dealer/add-car'),
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.onAccent,

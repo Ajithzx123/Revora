@@ -18,6 +18,7 @@ class CustomerSellScreen extends ConsumerWidget {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null, // several tabs each have a "+" button; a shared tag breaks navigation
         onPressed: () => context.push('/customer/post-sell'),
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.onAccent,
