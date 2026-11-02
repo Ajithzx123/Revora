@@ -26,6 +26,8 @@ After changing a model, write a migration (`alembic -c backend/alembic.ini revis
 | `DATABASE_URL` | `sqlite:///revora.db` | yes (Postgres) |
 | `UPLOAD_DIR` | `backend/uploads` | yes (persistent, private disk) |
 
+**Buy requests and inventory (S2).** Buyers post requests (`/api/requirements`) with the full set of preferences, then edit, pause, resume or close them; a request lives 14 days and a buyer may hold five open at once. Dealers manage stock at `/api/inventory`: each car has a unique registration number, up to 8 photos (JPEG/PNG/WebP, 5 MB) served publicly at `/api/media/<id>`, and a private minimum price that buyers never see. Pick-lists (makes, models, cities) come from `GET /api/master-data`. If you ran S1, run `alembic upgrade head` again: migration 0002 rebuilds the request, quote and inventory tables.
+
 **Dealers** register with `account_type=DEALER` and start in `DRAFT`. They fill in details and upload three required documents (owner ID, business proof, address proof; PDF/JPEG/PNG up to 5 MB), then submit. An admin reviews each document and approves, requests changes, rejects, or later suspends. Only `APPROVED` dealers see leads, quote or make offers. Admin users are created directly in the database; they cannot be created from the API.
 
 ## Frontend (Flutter)

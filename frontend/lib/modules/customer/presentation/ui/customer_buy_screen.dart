@@ -5,7 +5,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/responsive_card_grid.dart';
 import '../../../../shared/widgets/section_header.dart';
+import '../../../../core/network/api_error.dart';
 import '../providers/customer_providers.dart';
+import '../providers/requirements_provider.dart';
 import '../widgets/customer_quote_card.dart';
 import '../widgets/requirement_summary_card.dart';
 
@@ -82,7 +84,8 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
 
   @override
   Widget build(BuildContext context) {
-    final requirements = ref.watch(customerRequirementsProvider);
+    final requirementsAsync = ref.watch(requirementsProvider);
+    final requirements = requirementsAsync.valueOrNull ?? const [];
     final allQuotes = ref.watch(allCustomerQuotesProvider);
 
     return Scaffold(
@@ -112,17 +115,25 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                     title: 'Cars you want',
                     subtitle: 'Verified dealers can see these and send quotes',
                   ),
-                  child: requirements.isEmpty
-                      ? _empty('No requests yet', 'Tap "New request" and tell us what you are looking for.')
-                      : ResponsiveCardGrid(
-                          children: [
-                            for (final r in requirements)
-                              RequirementSummaryCard(
-                                requirement: r,
-                                onViewQuotes: () => _tabController.animateTo(1),
-                              ),
-                          ],
-                        ),
+                  child: requirementsAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(AppSpacing.xxxl),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (e, _) => _empty('Could not load your requests', apiErrorMessage(e)),
+                    data: (items) => items.isEmpty
+                        ? _empty('No requests yet', 'Tap "New request" and tell us what you are looking for.')
+                        : ResponsiveCardGrid(
+                            children: [
+                              for (final r in items)
+                                RequirementSummaryCard(
+                                  requirement: r,
+                                  onTap: () => context.push('/customer/requirement/${r.id}'),
+                                  onViewQuotes: () => context.push('/customer/requirement/${r.id}'),
+                                ),
+                            ],
+                          ),
+                  ),
                 ),
                 _page(
                   header: const SectionHeader(

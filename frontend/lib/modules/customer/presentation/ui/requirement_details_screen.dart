@@ -1,179 +1,287 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/utils/price_formatter.dart';
-import '../widgets/customer_quote_card.dart';
+import '../../../../core/network/api_error.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/price_formatter.dart';
+import '../../../../shared/widgets/responsive_card_grid.dart';
+import '../../domain/entities/buy_requirement.dart';
 import '../providers/customer_providers.dart';
+import '../providers/requirements_provider.dart';
+import '../widgets/customer_quote_card.dart';
 
-class RequirementDetailsScreen extends ConsumerWidget {
+/// One request: what was asked for, its status, the actions the buyer can take
+/// (edit, pause, close), and the quotes that came back.
+class RequirementDetailsScreen extends ConsumerStatefulWidget {
   final String requirementId;
 
-  const RequirementDetailsScreen({
-    super.key,
-    required this.requirementId,
-  });
+  const RequirementDetailsScreen({super.key, required this.requirementId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final allRequirements = ref.watch(customerRequirementsProvider);
-    final req = allRequirements.firstWhere(
-      (r) => r.id == requirementId,
-      orElse: () => allRequirements.first,
-    );
+  ConsumerState<RequirementDetailsScreen> createState() => _RequirementDetailsScreenState();
+}
 
-    final quotes = ref.watch(customerQuotesProvider(requirementId));
-    final displayQuotes = quotes.isNotEmpty
-        ? quotes
-        : ref.watch(allCustomerQuotesProvider);
+class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScreen> {
+  bool _busy = false;
+
+  Future<void> _run(Future<void> Function() action, String done) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await action();
+      if (mounted) _toast(done);
+    } catch (e) {
+      if (mounted) _toast(apiErrorMessage(e), error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _toast(String message, {bool error = false}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message), backgroundColor: error ? AppColors.error : null));
+  }
+
+  Future<void> _confirmClose(BuyRequirement req) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Close this request?'),
+        content: const Text('Dealers will stop seeing it and any open quotes will be closed. You cannot reopen it, but you can post a new one.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep it')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Close request'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await _run(() async => ref.read(requirementsProvider.notifier).cancel(req.id), 'Request closed.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final requirements = ref.watch(requirementsProvider);
+    final notifier = ref.read(requirementsProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quotes Received'),
+      appBar: AppBar(title: const Text('Your request')),
+      body: requirements.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(apiErrorMessage(e)),
+              const SizedBox(height: AppSpacing.md),
+              OutlinedButton(onPressed: notifier.refresh, child: const Text('Try again')),
+            ],
+          ),
+        ),
+        data: (items) {
+          final match = items.where((r) => r.id == widget.requirementId);
+          if (match.isEmpty) {
+            return const Center(child: Text('This request no longer exists.'));
+          }
+          return _body(match.first, notifier);
+        },
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                border: Border.all(color: AppColors.border),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Requirement: ${req.minYear}+ ${req.make} ${req.model}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.accentLight,
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusSm),
-                        ),
-                        child: Text(
-                          req.status.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.accent,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Budget: ${PriceFormatter.formatRange(req.minBudget, req.maxBudget)}  •  ${req.preferredCity}  •  ${req.fuelType}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Dealer Quotes (${displayQuotes.length})',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                if (displayQuotes.length > 1)
-                  TextButton.icon(
-                    onPressed: () {
-                      context.push('/customer/compare/$requirementId');
-                    },
-                    icon: const Icon(Icons.compare_arrows,
-                        color: AppColors.accent),
-                    label: const Text(
-                      'Compare All',
-                      style: TextStyle(
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (displayQuotes.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: const Column(
+    );
+  }
+
+  Widget _body(BuyRequirement req, RequirementsNotifier notifier) {
+    final t = Theme.of(context).textTheme;
+    final quotes = ref.watch(customerQuotesProvider(req.id));
+    final canManage = req.isEditable && !_busy;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxxl),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SummaryCard(req: req),
+              const SizedBox(height: AppSpacing.lg),
+              if (req.isEditable)
+                Wrap(
+                  spacing: AppSpacing.md,
+                  runSpacing: AppSpacing.md,
                   children: [
-                    Icon(Icons.inbox_outlined,
-                        size: 40, color: AppColors.textMuted),
-                    SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'No quotes received yet. Verified dealers in your area have been notified.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary),
+                    OutlinedButton.icon(
+                      onPressed: canManage ? () => context.push('/customer/edit-requirement/${req.id}') : null,
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('Edit'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: canManage
+                          ? () => _run(
+                                () async => req.isPaused ? notifier.resume(req.id) : notifier.pause(req.id),
+                                req.isPaused ? 'Request is open again.' : 'Request paused. Dealers will not see it.',
+                              )
+                          : null,
+                      icon: Icon(req.isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded, size: 20),
+                      label: Text(req.isPaused ? 'Resume' : 'Pause'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: canManage ? () => _confirmClose(req) : null,
+                      style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      label: const Text('Close'),
                     ),
                   ],
                 ),
-              )
-            else
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final crossAxisCount = constraints.maxWidth > 700 ? 2 : 1;
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: AppSpacing.md,
-                      mainAxisSpacing: AppSpacing.md,
-                      childAspectRatio: 0.76,
+              const SizedBox(height: AppSpacing.xxl),
+              Row(
+                children: [
+                  Expanded(child: Text('Dealer quotes (${quotes.length})', style: t.titleLarge)),
+                  if (quotes.length > 1)
+                    TextButton.icon(
+                      onPressed: () => context.push('/customer/compare/${req.id}'),
+                      icon: const Icon(Icons.compare_arrows_rounded),
+                      label: const Text('Compare'),
                     ),
-                    itemCount: displayQuotes.length,
-                    itemBuilder: (context, index) {
-                      final quote = displayQuotes[index];
-                      return CustomerQuoteCard(
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              if (quotes.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.xxl),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.inbox_outlined, size: 40, color: AppColors.textMuted),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        req.isOpen
+                            ? 'No quotes yet. Dealers usually reply within a few hours.'
+                            : req.isPaused
+                                ? 'This request is paused. Resume it to receive quotes.'
+                                : 'This request is closed.',
+                        textAlign: TextAlign.center,
+                        style: t.bodyMedium,
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ResponsiveCardGrid(
+                  children: [
+                    for (final quote in quotes)
+                      CustomerQuoteCard(
                         quote: quote,
                         onContact: () => context.push('/chat/${quote.dealerId}'),
-                        onAccept: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Accepted quote from ${quote.dealerName}!'),
-                              backgroundColor: AppColors.success,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-          ],
+                        onAccept: () => ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Accepted the quote from ${quote.dealerName}.')),
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final BuyRequirement req;
+  const _SummaryCard({required this.req});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final statusColor = req.isOpen
+        ? AppColors.success
+        : req.isPaused
+            ? AppColors.warning
+            : AppColors.textSecondary;
+    final facts = <String>[
+      if (req.fuelType != 'Any') req.fuelType,
+      if (req.transmission != 'Any') req.transmission,
+      if (req.bodyType != null) req.bodyType!,
+      if (req.maxKm != null) 'Under ${PriceFormatter.formatKm(req.maxKm!)}',
+      if (req.maxOwners != null) req.maxOwners == 1 ? 'First owner' : 'Up to ${req.maxOwners} owners',
+      req.urgencyLabel,
+      if (req.needsFinance) 'Needs a loan',
+      if (req.hasExchange) 'Exchange',
+    ];
+    final expires = req.expiresAt;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Text(
+                  req.statusLabel.toUpperCase(),
+                  style: t.labelSmall?.copyWith(color: statusColor, fontWeight: FontWeight.w800, letterSpacing: 0.6),
+                ),
+              ),
+              const Spacer(),
+              if (expires != null && req.isEditable)
+                Text('Open until ${expires.day}/${expires.month}/${expires.year}', style: t.bodySmall),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(req.title, style: t.headlineMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '${PriceFormatter.formatRange(req.minBudget, req.maxBudget)}  ·  ${req.preferredCity}, within ${req.radiusKm} km',
+            style: t.bodyMedium,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final f in facts)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySubtle,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  ),
+                  child: Text(f, style: t.labelMedium),
+                ),
+            ],
+          ),
+          if (req.mustHave.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text('Must-haves: ${req.mustHave.map((m) => m.replaceAll('_', ' ')).join(', ')}', style: t.bodySmall),
+          ],
+          if ((req.notes ?? '').isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text('"${req.notes}"', style: t.bodyMedium?.copyWith(fontStyle: FontStyle.italic)),
+          ],
+        ],
       ),
     );
   }

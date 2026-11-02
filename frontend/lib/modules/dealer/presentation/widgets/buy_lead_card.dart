@@ -35,7 +35,7 @@ class BuyLeadCard extends StatelessWidget {
                 child: Text(lead.title, style: AppTextStyles.titleLarge.copyWith(fontSize: 17)),
               ),
               const SizedBox(width: AppSpacing.sm),
-              MatchBadge(percentage: lead.matchPercentage),
+              if (lead.matchPercentage > 0) MatchBadge(percentage: lead.matchPercentage),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -60,11 +60,26 @@ class BuyLeadCard extends StatelessWidget {
             spacing: 6,
             runSpacing: 6,
             children: [
-              _Pill(icon: Icons.local_gas_station_outlined, label: lead.fuelType),
-              _Pill(icon: Icons.tune, label: lead.transmission),
+              if (lead.fuelType != 'Any') _Pill(icon: Icons.local_gas_station_outlined, label: lead.fuelType),
+              if (lead.transmission != 'Any') _Pill(icon: Icons.tune, label: lead.transmission),
+              if (lead.bodyType != null) _Pill(icon: Icons.directions_car_outlined, label: lead.bodyType!),
+              _Pill(icon: Icons.schedule_rounded, label: lead.urgencyLabel),
+              if (lead.needsFinance) const _Pill(icon: Icons.account_balance_outlined, label: 'Needs a loan'),
+              if (lead.hasExchange) const _Pill(icon: Icons.swap_horiz_rounded, label: 'Exchange'),
               _Pill(icon: Icons.forum_outlined, label: lead.quotesCount == 1 ? '1 quote so far' : '${lead.quotesCount} quotes so far'),
             ],
           ),
+          if (lead.mustHave.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Must have: ${lead.mustHave.map((m) => m.replaceAll('_', ' ')).join(', ')}',
+              style: AppTextStyles.bodySmall,
+            ),
+          ],
+          if ((lead.notes ?? '').isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text('"${lead.notes}"', style: AppTextStyles.bodySmall.copyWith(fontStyle: FontStyle.italic)),
+          ],
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
             width: double.infinity,

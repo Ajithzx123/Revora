@@ -33,46 +33,34 @@ class RequirementSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color badgeColor;
-    Color badgeTextColor = Colors.white;
-    switch (requirement.status.toLowerCase()) {
-      case 'active':
-        badgeColor = AppColors.success;
-        break;
-      case 'completed':
-        badgeColor = AppColors.primary;
-        break;
-      default:
-        badgeColor = AppColors.textSecondary;
-    }
+    final Color badgeColor = requirement.isOpen
+        ? AppColors.success
+        : requirement.isPaused
+            ? AppColors.warning
+            : AppColors.textSecondary;
+    const badgeTextColor = Colors.white;
 
     return CarCard(
       onTap: onTap,
       imageHeight: imageHeight,
       imageUrl: _resolveCarImage(requirement.make, requirement.model),
       title: requirement.title,
-      location: '${requirement.preferredCity} • Looking for ${requirement.minYear}+',
-      priceLabel: 'Budget Range',
+      location: '${requirement.preferredCity} · ${requirement.urgencyLabel}',
+      priceLabel: 'Budget',
       priceText: requirement.budgetRange,
-      badgeText: requirement.status.toUpperCase(),
+      badgeText: requirement.statusLabel.toUpperCase(),
       badgeBgColor: badgeColor,
       badgeTextColor: badgeTextColor,
       specs: [
-        CarSpecItem(
-          icon: Icons.local_gas_station_outlined,
-          label: requirement.fuelType,
-        ),
-        CarSpecItem(
-          icon: Icons.tune,
-          label: requirement.transmission,
-        ),
-        CarSpecItem(
-          icon: Icons.location_on_outlined,
-          label: requirement.preferredCity,
-        ),
+        if (requirement.fuelType != 'Any')
+          CarSpecItem(icon: Icons.local_gas_station_outlined, label: requirement.fuelType),
+        if (requirement.transmission != 'Any')
+          CarSpecItem(icon: Icons.tune, label: requirement.transmission),
+        if (requirement.bodyType != null)
+          CarSpecItem(icon: Icons.directions_car_outlined, label: requirement.bodyType!),
         CarSpecItem(
           icon: Icons.local_offer_outlined,
-          label: '${requirement.quotesReceived} Quotes',
+          label: requirement.quotesReceived == 1 ? '1 quote' : '${requirement.quotesReceived} quotes',
           color: AppColors.success,
         ),
       ],

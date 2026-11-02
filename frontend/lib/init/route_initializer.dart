@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../modules/splash/presentation/ui/splash_screen.dart';
 import '../modules/customer/presentation/ui/customer_shell.dart';
+import '../core/network/api_error.dart';
+import '../modules/customer/presentation/providers/requirements_provider.dart';
+import '../modules/dealer/presentation/providers/inventory_provider.dart';
 import '../modules/customer/presentation/ui/post_buy_requirement_screen.dart';
 import '../modules/customer/presentation/ui/post_sell_listing_screen.dart';
 import '../modules/customer/presentation/ui/my_requirements_screen.dart';
@@ -100,6 +103,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PostBuyRequirementScreen(),
       ),
       GoRoute(
+        path: '/customer/edit-requirement/:id',
+        builder: (context, state) => _EditRequirementRoute(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: '/customer/post-sell',
         builder: (context, state) => const PostSellListingScreen(),
       ),
@@ -149,6 +156,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/dealer/edit-car/:id',
+        builder: (context, state) => _EditVehicleRoute(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: '/dealer/add-car',
         builder: (context, state) => const AddCarToInventoryScreen(),
       ),
@@ -185,5 +196,49 @@ class _DealerGate extends ConsumerWidget {
     final status = ref.watch(authControllerProvider.select((s) => s.user?.dealerStatus));
     if (status == null || status == 'APPROVED') return const DealerShell();
     return const DealerApplicationScreen();
+  }
+}
+
+/// Loads the request being edited from the buyer's own list.
+class _EditRequirementRoute extends ConsumerWidget {
+  final String id;
+  const _EditRequirementRoute({required this.id});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final requirements = ref.watch(requirementsProvider);
+    return requirements.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(appBar: AppBar(), body: Center(child: Text(apiErrorMessage(e)))),
+      data: (items) {
+        final match = items.where((r) => r.id == id);
+        if (match.isEmpty) {
+          return Scaffold(appBar: AppBar(), body: const Center(child: Text('This request no longer exists.')));
+        }
+        return PostBuyRequirementScreen(existing: match.first);
+      },
+    );
+  }
+}
+
+/// Loads the car being edited from the dealer's own stock.
+class _EditVehicleRoute extends ConsumerWidget {
+  final String id;
+  const _EditVehicleRoute({required this.id});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inventory = ref.watch(inventoryProvider);
+    return inventory.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(appBar: AppBar(), body: Center(child: Text(apiErrorMessage(e)))),
+      data: (items) {
+        final match = items.where((v) => v.id == id);
+        if (match.isEmpty) {
+          return Scaffold(appBar: AppBar(), body: const Center(child: Text('This car no longer exists.')));
+        }
+        return AddCarToInventoryScreen(existing: match.first);
+      },
+    );
   }
 }
