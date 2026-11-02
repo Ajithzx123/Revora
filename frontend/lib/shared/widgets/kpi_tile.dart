@@ -62,43 +62,53 @@ class KpiTile extends StatelessWidget {
                   child: Icon(icon, color: effectiveIconColor, size: 20),
                 ),
                 if (trend != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xs + 2,
-                      vertical: AppSpacing.xxs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: (isPositiveTrend ?? true)
-                          ? AppColors.successBg
-                          : AppColors.errorBg,
-                      borderRadius: BorderRadius.circular(
-                        AppSpacing.radiusPill,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          (isPositiveTrend ?? true)
-                              ? Icons.trending_up
-                              : Icons.trending_down,
-                          size: 12,
-                          color: (isPositiveTrend ?? true)
-                              ? AppColors.success
-                              : AppColors.error,
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: AppSpacing.sm),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs + 2,
+                          vertical: AppSpacing.xxs,
                         ),
-                        const SizedBox(width: 2),
-                        Text(
-                          trend!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: (isPositiveTrend ?? true)
-                                ? AppColors.success
-                                : AppColors.error,
+                        decoration: BoxDecoration(
+                          color: (isPositiveTrend ?? true)
+                              ? AppColors.successBg
+                              : AppColors.errorBg,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusPill,
                           ),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              (isPositiveTrend ?? true)
+                                  ? Icons.trending_up
+                                  : Icons.trending_down,
+                              size: 12,
+                              color: (isPositiveTrend ?? true)
+                                  ? AppColors.success
+                                  : AppColors.error,
+                            ),
+                            const SizedBox(width: 2),
+                            Flexible(
+                              child: Text(
+                                trend!,
+                                maxLines: 1,
+                                softWrap: false,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: (isPositiveTrend ?? true)
+                                      ? AppColors.success
+                                      : AppColors.error,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
               ],

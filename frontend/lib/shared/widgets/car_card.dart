@@ -107,7 +107,7 @@ class _CarCardState extends State<CarCard> {
             clipBehavior: Clip.antiAlias,
             child: LayoutBuilder(builder: (context, constraints) {
               final bounded = constraints.hasBoundedHeight;
-              final body = _body(context);
+              final body = _body(context, bounded);
               return Column(
                 mainAxisSize: bounded ? MainAxisSize.max : MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -203,7 +203,7 @@ class _CarCardState extends State<CarCard> {
     );
   }
 
-  Widget _body(BuildContext context) {
+  Widget _body(BuildContext context, bool bounded) {
     final hasActions = widget.primaryAction != null || widget.secondaryAction != null;
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -249,7 +249,9 @@ class _CarCardState extends State<CarCard> {
             ),
           ],
           if (hasActions) ...[
-            const Spacer(),
+            // Pin the buttons to the bottom when the card has a fixed height (carousels);
+            // in a list the card sizes to its content, where a Spacer would be an error.
+            if (bounded) const Spacer() else const SizedBox(height: AppSpacing.sm),
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
