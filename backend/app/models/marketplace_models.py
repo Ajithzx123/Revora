@@ -216,9 +216,10 @@ class DealerQuote(SQLModel, table=True):
     quoted_price: int  # the all-in total the buyer pays, Rs
     message: Optional[str] = None
     # PENDING (live), ACCEPTED, REJECTED, NOT_SELECTED, WITHDRAWN, EXPIRED, UNAVAILABLE,
-    # REQUOTE_REQUESTED, CLOSED_BY_CUSTOMER
+    # REQUOTE_REQUESTED, CLOSED_BY_CUSTOMER, VOID_ADMIN
     status: str = Field(default="PENDING")
     status_reason: Optional[str] = None
+    void_cause: Optional[str] = None  # set with status VOID_ADMIN: ADMIN or DEALER_SUSPENDED
     kind: str = Field(default="IN_STOCK")  # IN_STOCK, ALTERNATIVE (other model), SOURCED (not in stock)
     revision: int = Field(default=1)
     valid_until: Optional[datetime] = None

@@ -39,6 +39,7 @@ EVENT_TYPES: dict[str, tuple[str, bool, bool]] = {
     "QUOTE_RECEIVED": ("QUOTES", False, True),
     "QUOTE_REVISED": ("QUOTES", False, True),
     "QUOTE_WITHDRAWN": ("QUOTES", False, True),
+    "QUOTE_VOIDED": ("QUOTES", False, True),
     "COUNTER_RECEIVED": ("QUOTES", False, True),
     "COUNTER_ACCEPTED": ("QUOTES", False, True),
     "COUNTER_DECLINED": ("QUOTES", False, False),

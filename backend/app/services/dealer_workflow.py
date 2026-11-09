@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from backend.app.models.audit_model import AuditEvent
+from backend.app.services import audit_service
 from backend.app.services import notification_service as notifications
 from backend.app.models.marketplace_models import (
     REQUIRED_DOCUMENTS,
@@ -107,14 +107,10 @@ def transition(
         dealer.reviewed_by = actor_id
         dealer.status_reason = reason if new_status in REASON_REQUIRED else None
     session.add(dealer)
-    session.add(
-        AuditEvent(
-            actor_user_id=actor_id,
-            action=f"DEALER_{new_status.value}",
-            entity_type="dealer",
-            entity_id=str(dealer.id),
-            detail=f"{old.value} -> {new_status.value}" + (f": {reason}" if reason else ""),
-        )
+    audit_service.record(
+        session, actor_id, f"DEALER_{new_status.value}", "dealer", dealer.id,
+        detail=f"{old.value} -> {new_status.value}" + (f": {reason}" if reason else ""),
+        reason=reason, before={"status": old.value}, after={"status": new_status.value},
     )
     _notify_dealer_decision(session, dealer, old, new_status, reason)
 

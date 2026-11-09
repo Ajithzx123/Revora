@@ -13,7 +13,6 @@ from fastapi import HTTPException
 from sqlalchemy import update
 from sqlmodel import Session, select
 
-from backend.app.models.audit_model import AuditEvent
 from backend.app.models.marketplace_models import (
     BuyRequirement,
     Dealer,
@@ -27,6 +26,7 @@ from backend.app.models.marketplace_models import (
     VehicleStatus,
 )
 from backend.app.schemas.marketplace_schema import DealerQuoteResponse, QuoteRoundResponse
+from backend.app.services import audit_service
 from backend.app.services import notification_service as notifications
 
 LIVE = {"PENDING", "REQUOTE_REQUESTED"}
@@ -40,7 +40,7 @@ def _now() -> datetime:
 
 
 def audit(session: Session, actor: Optional[uuid.UUID], action: str, quote: DealerQuote, detail: str = "") -> None:
-    session.add(AuditEvent(actor_user_id=actor, action=action, entity_type="dealer_quote", entity_id=str(quote.id), detail=detail or None))
+    audit_service.record(session, actor, action, "dealer_quote", quote.id, detail=detail or None)
 
 
 # ------------------------------------------------------------ views
@@ -275,14 +275,10 @@ def accept(session: Session, quote: DealerQuote, requirement: BuyRequirement, cu
     if car is not None:
         car.status = VehicleStatus.RESERVED
         session.add(car)
-    session.add(
-        AuditEvent(
-            actor_user_id=customer_id,
-            action="QUOTE_ACCEPTED",
-            entity_type="dealer_quote",
-            entity_id=str(quote.id),
-            detail=f"price {expected_price}; request {requirement.id}; {len(others)} other quotes closed",
-        )
+    audit_service.record(
+        session, customer_id, "QUOTE_ACCEPTED", "dealer_quote", quote.id,
+        detail=f"price {expected_price}; request {requirement.id}; {len(others)} other quotes closed",
+        before={"status": "PENDING"}, after={"status": "ACCEPTED", "quoted_price": expected_price},
     )
     notify_dealer(session, quote, "QUOTE_ACCEPTED", "Your quote was accepted",
                   f"The buyer accepted {_lakh(expected_price)} for the {_car_name(requirement)}. Their contact details are now available.")
@@ -376,3 +372,73 @@ def reply(session: Session, quote: DealerQuote, actor_id: uuid.UUID, side: str, 
     session.commit()
     session.refresh(rnd)
     return rnd
+
+
+# ------------------------------------------------------------ admin interventions
+# Admins can void a live quote with a reason. They can never change its price or message, and
+# an accepted deal is not voidable here: it continues under admin watch.
+SUSPENSION_REASON = "The dealer's account was suspended"
+
+
+def void_by_admin(session: Session, quote: DealerQuote, admin_id: uuid.UUID, reason: str, cause: str = "ADMIN") -> None:
+    """Void one live quote. Does not commit."""
+    if quote.status not in LIVE:
+        raise HTTPException(409, f"A {quote.status.lower().replace('_', ' ')} quote cannot be voided")
+    before = {"status": quote.status, "quoted_price": quote.quoted_price}
+    quote.status = "VOID_ADMIN"
+    quote.status_reason = reason
+    quote.void_cause = cause
+    quote.updated_at = _now()
+    session.add(quote)
+    for r in rounds_of(session, quote.id):
+        if r.status == "OPEN":
+            r.status = "SUPERSEDED"
+            session.add(r)
+    audit_service.record(
+        session, admin_id, "QUOTE_VOIDED_BY_ADMIN", "dealer_quote", quote.id,
+        reason=reason, before=before, after={"status": quote.status, "quoted_price": quote.quoted_price},
+        detail=cause,
+    )
+    notify_buyer(session, quote, "QUOTE_VOIDED", "A quote is no longer available", "An administrator closed one of your quotes.")
+    if cause == "ADMIN":
+        notify_dealer(session, quote, "QUOTE_VOIDED", "Your quote was voided", f"An administrator voided your quote. Reason: {reason}")
+
+
+def void_live_quotes_of_dealer(session: Session, dealer: Dealer, admin_id: uuid.UUID) -> int:
+    quotes = session.exec(select(DealerQuote).where(DealerQuote.dealer_id == dealer.id)).all()
+    live = [q for q in quotes if q.status in LIVE]
+    for q in live:
+        void_by_admin(session, q, admin_id, SUSPENSION_REASON, cause="DEALER_SUSPENDED")
+    return len(live)
+
+
+def restore_after_reactivation(session: Session, dealer: Dealer, admin_id: uuid.UUID) -> int:
+    """Bring back quotes voided by the suspension, but only those still valid on a still-open request."""
+    quotes = session.exec(
+        select(DealerQuote).where(
+            DealerQuote.dealer_id == dealer.id,
+            DealerQuote.status == "VOID_ADMIN",
+            DealerQuote.void_cause == "DEALER_SUSPENDED",
+        )
+    ).all()
+    restored = 0
+    now = _now()
+    for q in quotes:
+        req = session.get(BuyRequirement, q.requirement_id)
+        still_open = req is not None and req.status == RequirementStatus.OPEN and req.expires_at > now
+        in_date = q.valid_until is None or q.valid_until > now
+        before = {"status": q.status}
+        if still_open and in_date:
+            q.status, q.status_reason = "PENDING", None
+            restored += 1
+        elif req is not None and req.status == RequirementStatus.QUOTE_ACCEPTED:
+            q.status, q.status_reason = "NOT_SELECTED", "The buyer chose another dealer"
+        else:
+            q.status, q.status_reason = "EXPIRED", "Not restored after reactivation: no longer valid"
+        q.void_cause, q.updated_at = None, now
+        session.add(q)
+        audit_service.record(
+            session, admin_id, "QUOTE_RESTORED_AFTER_REACTIVATION" if q.status == "PENDING" else "QUOTE_NOT_RESTORED",
+            "dealer_quote", q.id, before=before, after={"status": q.status},
+        )
+    return restored
