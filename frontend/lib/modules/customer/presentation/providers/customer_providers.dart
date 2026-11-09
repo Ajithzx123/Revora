@@ -7,6 +7,7 @@ import 'package:revora/modules/customer/data/repositories/mock_customer_reposito
 import 'package:revora/modules/customer/domain/entities/buy_requirement.dart';
 import 'package:revora/modules/customer/domain/entities/quote.dart';
 import 'package:revora/modules/customer/domain/entities/sell_post.dart';
+import 'package:revora/modules/customer/domain/repositories/sell_repository.dart';
 import 'package:revora/modules/customer/domain/entities/customer_activity.dart';
 import 'package:revora/shared/domain/entities/dealer_info.dart';
 
@@ -36,9 +37,10 @@ final allCustomerQuotesProvider = Provider<List<Quote>>((ref) {
   return repo.getAllQuotes();
 });
 
+/// The seller's listings (real data in live mode). Empty while loading; screens that
+/// need loading and error states watch `sellListingsProvider` directly.
 final customerSellPostsProvider = Provider<List<SellPost>>((ref) {
-  final repo = ref.watch(customerRepositoryProvider);
-  return repo.getSellPosts();
+  return ref.watch(sellListingsProvider).valueOrNull ?? const [];
 });
 
 final topDealersProvider = Provider<List<DealerInfo>>((ref) {

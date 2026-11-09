@@ -12,6 +12,7 @@ class MockDealerOnboardingRepository implements DealerOnboardingRepository {
   final Map<DocumentType, DealerDocument> _docs = {};
   int _next = 1;
   List<String> _sourcing = const [];
+  List<String> _buying = const [];
 
   DealerApplication _snapshot() {
     final missing = [
@@ -32,6 +33,7 @@ class MockDealerOnboardingRepository implements DealerOnboardingRepository {
       canSubmit: editable && missing.isEmpty && (_address ?? '').isNotEmpty,
       editable: editable,
       sourcingMakes: _sourcing,
+      buyMakes: _buying,
     );
   }
 
@@ -85,6 +87,12 @@ class MockDealerOnboardingRepository implements DealerOnboardingRepository {
   @override
   Future<DealerApplication> setSourcingMakes(List<String> makes) async {
     _sourcing = [...makes]..sort();
+    return _snapshot();
+  }
+
+  @override
+  Future<DealerApplication> setBuyMakes(List<String> makes) async {
+    _buying = [...makes]..sort();
     return _snapshot();
   }
 

@@ -28,6 +28,7 @@ abstract class DealerOnboardingRepository {
 
   /// Makes this dealer will source on request without having the car in stock.
   Future<DealerApplication> setSourcingMakes(List<String> makes);
+  Future<DealerApplication> setBuyMakes(List<String> makes);
 }
 
 final dealerOnboardingRepositoryProvider = Provider<DealerOnboardingRepository>(
@@ -101,4 +102,8 @@ class ApiDealerOnboardingRepository implements DealerOnboardingRepository {
   @override
   Future<DealerApplication> setSourcingMakes(List<String> makes) async =>
       _parse(await _dio.put('/dealers/me/sourcing', data: {'makes': makes}));
+
+  @override
+  Future<DealerApplication> setBuyMakes(List<String> makes) async =>
+      _parse(await _dio.put('/dealers/me/buying', data: {'makes': makes}));
 }

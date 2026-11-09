@@ -120,6 +120,14 @@ def source(client, dealer, *makes):
     return dealer
 
 
+def buys(client, dealer, *makes):
+    """Make a dealer eligible for sell listings of these makes. Call before the seller lists
+    (matching runs at listing time)."""
+    r = client.put("/api/dealers/me/buying", headers=dealer, json={"makes": list(makes or ["Maruti Suzuki"])})
+    assert r.status_code == 200, r.text
+    return dealer
+
+
 @pytest.fixture
 def actors(client):
     return Actors(client)

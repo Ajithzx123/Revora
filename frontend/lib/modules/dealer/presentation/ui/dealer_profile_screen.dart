@@ -156,6 +156,24 @@ class DealerProfileScreen extends ConsumerWidget {
                       ),
                       const Divider(height: 1, color: AppColors.borderLight),
                       _buildSettingsTile(
+                        icon: Icons.shopping_bag_outlined,
+                        title: 'Cars I buy from owners',
+                        subtitle: () {
+                          final makes =
+                              ref
+                                  .watch(dealerApplicationProvider)
+                                  .valueOrNull
+                                  ?.buyMakes ??
+                              const [];
+                          return makes.isEmpty
+                              ? 'Choose makes to see owners selling nearby'
+                              : makes.join(', ');
+                        }(),
+                        trailing: const Icon(Icons.chevron_right, size: 20),
+                        onTap: () => _editBuying(context, ref),
+                      ),
+                      const Divider(height: 1, color: AppColors.borderLight),
+                      _buildSettingsTile(
                         icon: Icons.location_on_outlined,
                         title: 'Operating Locations',
                         subtitle: 'Mumbai (Andheri, Bandra), Navi Mumbai',
@@ -227,16 +245,48 @@ class DealerProfileScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _editSourcing(BuildContext context, WidgetRef ref) async {
-    final current =
+  Future<void> _editSourcing(BuildContext context, WidgetRef ref) => _editMakes(
+    context,
+    ref,
+    title: 'Cars I can source',
+    help:
+        'Pick the makes you can find for a buyer even when you have none in stock. '
+        'You see these requests only if no dealer nearby has the car.',
+    current:
         ref.read(dealerApplicationProvider).valueOrNull?.sourcingMakes ??
-        const <String>[];
+        const <String>[],
+    save: (makes) =>
+        ref.read(dealerApplicationProvider.notifier).setSourcingMakes(makes),
+  );
+
+  Future<void> _editBuying(BuildContext context, WidgetRef ref) => _editMakes(
+    context,
+    ref,
+    title: 'Cars I buy from owners',
+    help:
+        'Pick the makes you buy. Owners nearby who list one of them show up under '
+        '"Cars to buy" so you can make an offer.',
+    current:
+        ref.read(dealerApplicationProvider).valueOrNull?.buyMakes ??
+        const <String>[],
+    save: (makes) =>
+        ref.read(dealerApplicationProvider.notifier).setBuyMakes(makes),
+  );
+
+  Future<void> _editMakes(
+    BuildContext context,
+    WidgetRef ref, {
+    required String title,
+    required String help,
+    required List<String> current,
+    required Future<void> Function(List<String> makes) save,
+  }) async {
     final makes =
         (ref.read(masterDataProvider).valueOrNull ?? MasterData.bundled)
             .makeNames;
     final chosen = {...current};
     final messenger = ScaffoldMessenger.of(context);
-    final save = await showModalBottomSheet<bool>(
+    final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
@@ -247,15 +297,15 @@ class DealerProfileScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Cars I can source',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                const Text(
-                  'Pick the makes you can find for a buyer even when you have none in stock. '
-                  'You see these requests only if no dealer nearby has the car.',
-                ),
+                Text(help),
                 const SizedBox(height: AppSpacing.md),
                 Flexible(
                   child: SingleChildScrollView(
@@ -289,11 +339,9 @@ class DealerProfileScreen extends ConsumerWidget {
         ),
       ),
     );
-    if (save != true) return;
+    if (confirmed != true) return;
     try {
-      await ref
-          .read(dealerApplicationProvider.notifier)
-          .setSourcingMakes(chosen.toList()..sort());
+      await save(chosen.toList()..sort());
       messenger.showSnackBar(const SnackBar(content: Text('Saved')));
     } catch (_) {
       messenger.showSnackBar(

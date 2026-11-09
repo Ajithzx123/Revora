@@ -2,7 +2,6 @@ import '../../../../shared/domain/entities/vehicle.dart';
 import '../../domain/entities/buy_lead.dart';
 import '../../domain/entities/dealer_activity.dart';
 import '../../domain/entities/dealer_kpi.dart';
-import '../../domain/entities/sell_lead.dart';
 import '../../domain/repositories/dealer_repository.dart';
 
 /// Used against the real backend for the parts that are not connected yet
@@ -21,8 +20,6 @@ class LiveDealerRepository implements DealerRepository {
   );
   @override
   List<BuyLead> getBuyLeads() => const [];
-  @override
-  List<SellLead> getSellLeads() => const [];
   @override
   List<Vehicle> getInventory() => const [];
   @override

@@ -23,6 +23,8 @@ from backend.app.models.marketplace_models import (
     DealerOffer,
 )
 from backend.app.schemas.admin_schema import (
+    AdminOfferPage,
+    AdminOfferRow,
     AdminQuotePage,
     AdminQuoteRow,
     AuditEventResponse,
@@ -37,7 +39,7 @@ from backend.app.schemas.dealer_schema import (
     DocumentResponse,
     ReasonBody,
 )
-from backend.app.services import audit_service, matching_service, quote_service, storage
+from backend.app.services import audit_service, matching_service, offer_service, quote_service, sell_service, storage
 from backend.app.services.dealer_workflow import transition
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -121,8 +123,10 @@ def _decide(
     session.flush()
     if new_status == DealerStatus.SUSPENDED:
         quote_service.void_live_quotes_of_dealer(session, dealer, current_user_id(admin))
+        offer_service.void_live_offers_of_dealer(session, dealer, current_user_id(admin))
     elif new_status == DealerStatus.APPROVED and was == DealerStatus.SUSPENDED:
         quote_service.restore_after_reactivation(session, dealer, current_user_id(admin))
+        offer_service.restore_after_reactivation(session, dealer, current_user_id(admin))
     if new_status == DealerStatus.APPROVED:
         matching_service.rematch_open_requests(session)  # a newly approved dealer may suit waiting buyers
     session.commit()
@@ -416,3 +420,84 @@ def suspend_user(user_id: uuid.UUID, body: VoidBody, admin: dict = Depends(requi
 @router.post("/users/{user_id}/reactivate", response_model=UserStatusResponse)
 def reactivate_user(user_id: uuid.UUID, admin: dict = Depends(require_admin), session: Session = Depends(get_session)):
     return _set_user_active(user_id, True, None, admin, session)
+
+
+# ---------------------------------------------------------------- offer monitoring
+def _offer_row(session: Session, o: DealerOffer) -> AdminOfferRow:
+    listing = session.get(SellListing, o.sell_listing_id)
+    dealer = session.get(Dealer, o.dealer_id)
+    return AdminOfferRow(
+        id=o.id, listing_id=o.sell_listing_id,
+        listing_title=f"{listing.year} {listing.make} {listing.model}" if listing else "",
+        dealer_id=o.dealer_id, dealer_name=dealer.business_name if dealer else "Dealer",
+        offered_price=o.offered_price, status=o.status, status_reason=o.status_reason,
+        revision=o.revision, valid_until=o.valid_until, created_at=o.created_at,
+    )
+
+
+@router.get("/offers", response_model=AdminOfferPage)
+def monitor_offers(
+    status: Optional[str] = Query(None, max_length=30),
+    listing_id: Optional[uuid.UUID] = None,
+    dealer_id: Optional[uuid.UUID] = None,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    _admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    query = select(DealerOffer)
+    if status:
+        query = query.where(DealerOffer.status == status)
+    if listing_id:
+        query = query.where(DealerOffer.sell_listing_id == listing_id)
+    if dealer_id:
+        query = query.where(DealerOffer.dealer_id == dealer_id)
+    total = session.exec(select(func.count()).select_from(query.subquery())).one()
+    offers = session.exec(query.order_by(col(DealerOffer.created_at).desc()).offset(offset).limit(limit)).all()
+    return AdminOfferPage(items=[_offer_row(session, o) for o in offers], total=total, limit=limit, offset=offset)
+
+
+@router.post("/offers/{offer_id}/void", response_model=AdminOfferRow)
+def void_offer(
+    offer_id: uuid.UUID,
+    body: VoidBody,
+    admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    """Close a live offer with a reason. The price and message are never touched."""
+    offer = session.get(DealerOffer, offer_id)
+    if offer is None:
+        raise HTTPException(404, "Offer not found")
+    offer_service.void_by_admin(session, offer, current_user_id(admin), body.reason.strip())
+    session.commit()
+    return _offer_row(session, offer)
+
+
+@router.post("/sell-listings/{listing_id}/freeze")
+def freeze_listing(
+    listing_id: uuid.UUID,
+    body: VoidBody,
+    admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    """Freeze an open listing (e.g. a stolen-vehicle report). No new offers or acceptance until unfrozen."""
+    listing = session.get(SellListing, listing_id)
+    if listing is None:
+        raise HTTPException(404, "Listing not found")
+    sell_service.freeze(session, listing, current_user_id(admin), body.reason.strip())
+    session.commit()
+    return {"id": listing.id, "status": listing.status}
+
+
+@router.post("/sell-listings/{listing_id}/unfreeze")
+def unfreeze_listing(
+    listing_id: uuid.UUID,
+    admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    listing = session.get(SellListing, listing_id)
+    if listing is None:
+        raise HTTPException(404, "Listing not found")
+    sell_service.unfreeze(session, listing, current_user_id(admin))
+    session.commit()
+    return {"id": listing.id, "status": listing.status}

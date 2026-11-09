@@ -124,6 +124,9 @@ class DealerApplication {
   final bool editable;
   final List<String> sourcingMakes;
 
+  /// Makes this dealer buys from owners; sell listings are matched on these.
+  final List<String> buyMakes;
+
   const DealerApplication({
     required this.id,
     required this.businessName,
@@ -137,6 +140,7 @@ class DealerApplication {
     this.canSubmit = false,
     this.editable = true,
     this.sourcingMakes = const [],
+    this.buyMakes = const [],
   });
 
   DealerDocument? documentOf(DocumentType type) {
@@ -168,6 +172,9 @@ class DealerApplication {
         sourcingMakes: [
           for (final m in (json['sourcing_makes'] as List? ?? const []))
             m as String,
+        ],
+        buyMakes: [
+          for (final m in (json['buy_makes'] as List? ?? const [])) m as String,
         ],
       );
 }

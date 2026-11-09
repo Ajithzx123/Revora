@@ -1,5 +1,4 @@
 import '../../domain/entities/buy_lead.dart';
-import '../../domain/entities/sell_lead.dart';
 import '../../domain/entities/dealer_kpi.dart';
 import '../../domain/entities/dealer_activity.dart';
 import '../../domain/repositories/dealer_repository.dart';
@@ -12,9 +11,6 @@ class MockDealerRepository implements DealerRepository {
 
   @override
   List<BuyLead> getBuyLeads() => DealerMockData.buyLeads;
-
-  @override
-  List<SellLead> getSellLeads() => DealerMockData.sellLeads;
 
   @override
   List<Vehicle> getInventory() => DealerMockData.inventory;

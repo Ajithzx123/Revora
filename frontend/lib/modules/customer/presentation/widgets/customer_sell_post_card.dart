@@ -23,9 +23,11 @@ class CustomerSellPostCard extends StatelessWidget {
         badgeColor = AppColors.success;
         break;
       case 'pending':
+      case 'frozen':
         badgeColor = AppColors.warning;
         break;
       case 'sold':
+      case 'offer_accepted':
         badgeColor = AppColors.primary;
         break;
       default:
@@ -35,10 +37,10 @@ class CustomerSellPostCard extends StatelessWidget {
     return CarCard(
       imageUrl: post.imageUrls.isNotEmpty ? post.imageUrls.first : '',
       title: post.title,
-      location: 'Posted recently',
+      location: post.city,
       priceText: post.formattedPrice,
       priceLabel: 'Asking',
-      badgeText: post.status.toUpperCase(),
+      badgeText: post.status.replaceAll('_', ' ').toUpperCase(),
       badgeBgColor: badgeColor,
       badgeTextColor: badgeTextColor,
       specs: [

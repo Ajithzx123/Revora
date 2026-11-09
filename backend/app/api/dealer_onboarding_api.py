@@ -62,6 +62,7 @@ def dealer_response(session: Session, dealer: Dealer) -> DealerResponse:
         can_submit=editable and not missing and complete,
         editable=editable,
         sourcing_makes=dealer.sourcing_makes,
+        buy_makes=dealer.buy_makes,
     )
 
 
@@ -150,6 +151,29 @@ def submit_application(
     session: Session = Depends(get_session),
 ):
     transition(session, dealer, DealerStatus.PENDING, current_user_id(user_data))
+    session.commit()
+    session.refresh(dealer)
+    return dealer_response(session, dealer)
+
+
+@router.put("/me/buying", response_model=DealerResponse)
+def set_buying_makes(
+    body: SourcingUpdate,
+    dealer: Dealer = Depends(get_dealer_profile),
+    session: Session = Depends(get_session),
+):
+    """Makes this dealer buys from sellers. Sell listings are matched on this list.
+    Allowed in any status; it takes effect once the dealer is approved."""
+    unknown = sorted({m for m in body.makes if m not in md.MAKES_AND_MODELS})
+    if unknown:
+        raise HTTPException(status_code=422, detail=f"Unknown make: {', '.join(unknown)}")
+    dealer.buy_makes_csv = ",".join(sorted(set(body.makes)))
+    session.add(dealer)
+    session.flush()
+    if dealer.status == DealerStatus.APPROVED:
+        from backend.app.services import sell_service
+
+        sell_service.rematch_open_listings(session)
     session.commit()
     session.refresh(dealer)
     return dealer_response(session, dealer)

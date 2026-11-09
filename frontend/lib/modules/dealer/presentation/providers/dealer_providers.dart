@@ -3,6 +3,7 @@ import 'package:revora/core/config/app_config.dart';
 import 'package:revora/modules/dealer/data/repositories/live_dealer_repository.dart';
 import 'package:revora/modules/dealer/domain/repositories/buy_leads_repository.dart';
 import 'package:revora/modules/dealer/presentation/providers/inventory_provider.dart';
+import 'package:revora/modules/dealer/domain/repositories/dealer_offers_repository.dart';
 import 'package:revora/modules/dealer/domain/repositories/dealer_repository.dart';
 import 'package:revora/modules/dealer/data/repositories/mock_dealer_repository.dart';
 import 'package:revora/modules/dealer/domain/entities/buy_lead.dart';
@@ -42,9 +43,10 @@ final dealerBuyLeadsProvider = Provider<List<BuyLead>>((ref) {
   return ref.watch(buyLeadsProvider).valueOrNull ?? const [];
 });
 
+/// Cars matched to this dealer (real data in live mode). Empty while loading; screens that
+/// need loading and error states watch `sellLeadsProvider` directly.
 final dealerSellLeadsProvider = Provider<List<SellLead>>((ref) {
-  final repo = ref.watch(dealerRepositoryProvider);
-  return repo.getSellLeads();
+  return ref.watch(sellLeadsProvider).valueOrNull ?? const [];
 });
 
 /// The dealer's stock (real data in live mode). Empty while loading; screens that

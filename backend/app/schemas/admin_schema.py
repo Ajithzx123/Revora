@@ -57,3 +57,24 @@ class UserStatusResponse(BaseModel):
     id: uuid.UUID
     role: str
     is_active: bool
+
+
+class AdminOfferRow(BaseModel):
+    id: uuid.UUID
+    listing_id: uuid.UUID
+    listing_title: str
+    dealer_id: uuid.UUID
+    dealer_name: str
+    offered_price: int
+    status: str
+    status_reason: Optional[str] = None
+    revision: int
+    valid_until: Optional[datetime] = None
+    created_at: datetime
+
+
+class AdminOfferPage(BaseModel):
+    items: List[AdminOfferRow]
+    total: int
+    limit: int
+    offset: int

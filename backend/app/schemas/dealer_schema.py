@@ -41,6 +41,7 @@ class DealerResponse(BaseModel):
     can_submit: bool
     editable: bool
     sourcing_makes: List[str] = []
+    buy_makes: List[str] = []
 
 
 class DealerSummary(BaseModel):
