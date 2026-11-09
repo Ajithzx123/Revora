@@ -32,5 +32,6 @@ class SellPost {
   });
 
   String get title => '$year $make $model $variant';
-  String get formattedPrice => '₹${(expectedPrice / 100000).toStringAsFixed(2)} Lakh';
+  String get formattedPrice =>
+      '₹${(expectedPrice / 100000).toStringAsFixed(2)} Lakh';
 }

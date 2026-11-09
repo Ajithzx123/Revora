@@ -1,21 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from typing import List
+import uuid
+from datetime import datetime, timedelta
+from typing import List, Optional
+
+from sqlmodel import func
 
 from backend.app.database.session import get_session
-from backend.app.core.dependencies import require_auth
+from backend.app.core.dependencies import get_dealer_profile, require_verified_dealer
+from pydantic import BaseModel, Field
 from backend.app.models.marketplace_models import (
-    CarInventory,
+    MatchRecord,
+    Vehicle,
+    VehicleStatus,
     Dealer,
     BuyRequirement,
+    RequirementStatus,
     SellListing,
     DealerQuote,
     DealerOffer,
 )
+from backend.app.models.user_model import User
+from backend.app.schemas.requirement_schema import BuyLeadResponse
+from backend.app.services import matching_service, quote_service
 from backend.app.schemas.marketplace_schema import (
-    CarInventoryCreate,
-    CarInventoryResponse,
-    BuyRequirementResponse,
     SellListingResponse,
     DealerQuoteCreate,
     DealerQuoteResponse,
@@ -26,120 +34,85 @@ from backend.app.schemas.marketplace_schema import (
 router = APIRouter(tags=["Dealer"])
 
 
-# --- Dealer Inventory ---
-@router.post("/inventory", response_model=CarInventoryResponse)
-def add_inventory_car(
-    car_data: CarInventoryCreate,
-    user_data: dict = Depends(require_auth),
-    session: Session = Depends(get_session),
-):
-    user_id = user_data.get("sub") or user_data.get("id")
-    dealer = session.exec(select(Dealer).where(Dealer.user_id == user_id)).first()
-    if not dealer:
-        # Auto-create dealer record if first time
-        dealer = Dealer(
-            user_id=user_id,
-            business_name="Revora Partner Dealership",
-            city="Mumbai",
-            verified=True,
-        )
-        session.add(dealer)
-        session.commit()
-        session.refresh(dealer)
-
-    images_str = ",".join(car_data.images) if car_data.images else ""
-    car = CarInventory(
-        dealer_id=dealer.id,
-        make=car_data.make,
-        model=car_data.model,
-        year=car_data.year,
-        fuel=car_data.fuel,
-        transmission=car_data.transmission,
-        km=car_data.km,
-        price=car_data.price,
-        images_csv=images_str,
-        status="AVAILABLE",
-    )
-    session.add(car)
-    session.commit()
-    session.refresh(car)
-
-    return CarInventoryResponse(
-        id=car.id,
-        dealer_id=car.dealer_id,
-        make=car.make,
-        model=car.model,
-        year=car.year,
-        fuel=car.fuel,
-        transmission=car.transmission,
-        km=car.km,
-        price=car.price,
-        images=[img for img in car.images_csv.split(",") if img],
-        status=car.status,
-        created_at=car.created_at,
-    )
-
-
-@router.get("/inventory", response_model=List[CarInventoryResponse])
-def get_inventory(
-    user_data: dict = Depends(require_auth),
-    session: Session = Depends(get_session),
-):
-    user_id = user_data.get("sub") or user_data.get("id")
-    dealer = session.exec(select(Dealer).where(Dealer.user_id == user_id)).first()
-    if not dealer:
-        return []
-
-    cars = session.exec(
-        select(CarInventory).where(CarInventory.dealer_id == dealer.id)
-    ).all()
-
-    return [
-        CarInventoryResponse(
-            id=c.id,
-            dealer_id=c.dealer_id,
-            make=c.make,
-            model=c.model,
-            year=c.year,
-            fuel=c.fuel,
-            transmission=c.transmission,
-            km=c.km,
-            price=c.price,
-            images=[img for img in c.images_csv.split(",") if img],
-            status=c.status,
-            created_at=c.created_at,
-        )
-        for c in cars
-    ]
-
-
 # --- Dealer Leads Feed ---
-@router.get("/leads/buy", response_model=List[BuyRequirementResponse])
-def get_buyer_leads(session: Session = Depends(get_session)):
-    reqs = session.exec(
-        select(BuyRequirement).where(BuyRequirement.status == "ACTIVE")
-    ).all()
-    return [
-        BuyRequirementResponse(
-            id=r.id,
-            customer_id=r.customer_id,
-            make=r.make,
-            model=r.model,
-            year_min=r.year_min,
-            budget=r.budget,
-            fuel=r.fuel,
-            transmission=r.transmission,
-            city=r.city,
-            notes=r.notes,
-            status=r.status,
-            created_at=r.created_at,
+def _lead(session: Session, req: BuyRequirement, match: MatchRecord) -> BuyLeadResponse:
+    buyer = session.get(User, req.customer_id)
+    quote_count = session.exec(
+        select(func.count()).select_from(DealerQuote).where(DealerQuote.requirement_id == req.id)
+    ).one()
+    car = session.get(Vehicle, match.vehicle_id) if match.vehicle_id else None
+    return BuyLeadResponse(
+        buyer_first_name=(buyer.name.strip().split(" ")[0] if buyer and buyer.name.strip() else "Buyer"),
+        must_have=[m for m in req.must_have_csv.split(",") if m],
+        quote_count=quote_count,
+        match_score=match.score,
+        match_tier=match.tier,
+        match_reasons=match.reasons,
+        matched_vehicle_id=car.id if car else None,
+        matched_vehicle_title=(f"{car.year} {car.make} {car.model}" + (f" {car.variant}" if car.variant else "")) if car else None,
+        matched_vehicle_price=car.price if car else None,
+        response_deadline=matching_service.response_deadline(req, match.created_at),
+        **req.model_dump(exclude={"customer_id", "must_have_csv", "status", "updated_at"}),
+    )
+
+
+def _my_match(session: Session, dealer: Dealer, requirement_id) -> Optional[MatchRecord]:
+    return session.exec(
+        select(MatchRecord).where(
+            MatchRecord.dealer_id == dealer.id,
+            MatchRecord.requirement_id == requirement_id,
+            MatchRecord.dismissed_at.is_(None),
         )
-        for r in reqs
-    ]
+    ).first()
+
+
+@router.get("/leads/buy", response_model=List[BuyLeadResponse])
+def get_buyer_leads(
+    dealer: Dealer = Depends(require_verified_dealer),
+    session: Session = Depends(get_session),
+):
+    """Open buyer requests this dealer was matched to, best match first. Never reveals who the buyer is."""
+    now = datetime.utcnow()
+    rows = session.exec(
+        select(MatchRecord, BuyRequirement)
+        .join(BuyRequirement, BuyRequirement.id == MatchRecord.requirement_id)
+        .where(
+            MatchRecord.dealer_id == dealer.id,
+            MatchRecord.dismissed_at.is_(None),
+            BuyRequirement.status == RequirementStatus.OPEN,
+            BuyRequirement.expires_at > now,
+        )
+    ).all()
+    leads = [_lead(session, req, match) for match, req in rows]
+    return sorted(leads, key=lambda l: (l.match_tier, -l.match_score, l.response_deadline))
+
+
+class DismissLead(BaseModel):
+    reason: str = Field(default="NOT_INTERESTED", max_length=60)
+
+
+@router.post("/leads/buy/{requirement_id}/dismiss", status_code=204)
+def dismiss_lead(
+    requirement_id: uuid.UUID,
+    body: DismissLead,
+    dealer: Dealer = Depends(require_verified_dealer),
+    session: Session = Depends(get_session),
+):
+    """'Not for me': hides the request from this dealer. It is never shown to them again."""
+    match = _my_match(session, dealer, requirement_id)
+    if match is None:
+        raise HTTPException(status_code=404, detail="Request not found")
+    match.dismissed_at = datetime.utcnow()
+    match.dismissed_reason = body.reason
+    session.add(match)
+    session.commit()
 
 
 @router.get("/leads/sell", response_model=List[SellListingResponse])
-def get_seller_leads(session: Session = Depends(get_session)):
+def get_seller_leads(
+    _dealer: Dealer = Depends(require_verified_dealer),
+    session: Session = Depends(get_session),
+):
     listings = session.exec(
         select(SellListing).where(SellListing.status == "ACTIVE")
     ).all()
@@ -167,67 +140,77 @@ def get_seller_leads(session: Session = Depends(get_session)):
 @router.post("/quotes", response_model=DealerQuoteResponse)
 def send_quote(
     quote_data: DealerQuoteCreate,
-    user_data: dict = Depends(require_auth),
+    dealer: Dealer = Depends(require_verified_dealer),
     session: Session = Depends(get_session),
 ):
-    user_id = user_data.get("sub") or user_data.get("id")
-    dealer = session.exec(select(Dealer).where(Dealer.user_id == user_id)).first()
-    if not dealer:
-        dealer = Dealer(
-            user_id=user_id,
-            business_name="Authorized Partner",
-            city="Mumbai",
-            verified=True,
+    requirement = session.get(BuyRequirement, quote_data.requirement_id)
+    if (
+        requirement is None
+        or requirement.status != RequirementStatus.OPEN
+        or requirement.expires_at <= datetime.utcnow()
+    ):
+        raise HTTPException(status_code=404, detail="Requirement not found or closed")
+    if _my_match(session, dealer, quote_data.requirement_id) is None:
+        # Dealers quote only the requests they were shown, so matching cannot be bypassed.
+        raise HTTPException(status_code=403, detail="This request was not matched to you")
+    if quote_data.vehicle_id is not None:
+        car = session.get(Vehicle, quote_data.vehicle_id)
+        if car is None or car.dealer_id != dealer.id:
+            raise HTTPException(status_code=404, detail="Vehicle not found")
+        if car.status != VehicleStatus.AVAILABLE:
+            raise HTTPException(status_code=409, detail="This vehicle is no longer available")
+    already = session.exec(
+        select(DealerQuote).where(
+            DealerQuote.dealer_id == dealer.id,
+            DealerQuote.requirement_id == quote_data.requirement_id,
         )
-        session.add(dealer)
-        session.commit()
-        session.refresh(dealer)
+    ).first()
+    if already is not None:
+        raise HTTPException(status_code=409, detail="You have already quoted this requirement")
 
     quote = DealerQuote(
         dealer_id=dealer.id,
         requirement_id=quote_data.requirement_id,
-        car_inventory_id=quote_data.car_inventory_id,
+        vehicle_id=quote_data.vehicle_id,
         quoted_price=quote_data.quoted_price,
         message=quote_data.message,
         status="PENDING",
+        kind=quote_service.kind_for(session, dealer, quote_data.requirement_id),
+        valid_until=datetime.utcnow() + timedelta(hours=quote_data.valid_hours),
+        delivery_days=quote_data.delivery_days,
+        warranty_months=quote_data.warranty_months,
     )
     session.add(quote)
+    quote_service.audit(session, dealer.user_id, "QUOTE_SUBMITTED", quote, f"price {quote.quoted_price}")
+    quote_service.notify_buyer(
+        session, quote, "QUOTE_RECEIVED", "New quote received",
+        f"A dealer quoted {quote_service._lakh(quote.quoted_price)} for your {quote_service._car_name(requirement)}.",
+    )
     session.commit()
     session.refresh(quote)
-
-    return DealerQuoteResponse(
-        id=quote.id,
-        dealer_id=quote.dealer_id,
-        dealer_name=dealer.business_name,
-        dealer_rating=dealer.rating,
-        requirement_id=quote.requirement_id,
-        car_inventory_id=quote.car_inventory_id,
-        quoted_price=quote.quoted_price,
-        message=quote.message,
-        status=quote.status,
-        created_at=quote.created_at,
-    )
+    return quote_service.quote_response(session, quote)
 
 
 # --- Dealer Sends Purchase Offer on Sell Listing ---
 @router.post("/offers", response_model=DealerOfferResponse)
 def make_offer(
     offer_data: DealerOfferCreate,
-    user_data: dict = Depends(require_auth),
+    dealer: Dealer = Depends(require_verified_dealer),
     session: Session = Depends(get_session),
 ):
-    user_id = user_data.get("sub") or user_data.get("id")
-    dealer = session.exec(select(Dealer).where(Dealer.user_id == user_id)).first()
-    if not dealer:
-        dealer = Dealer(
-            user_id=user_id,
-            business_name="Authorized Partner",
-            city="Mumbai",
-            verified=True,
+    if offer_data.offered_price <= 0:
+        raise HTTPException(status_code=422, detail="Offered price must be positive")
+    listing = session.get(SellListing, offer_data.sell_listing_id)
+    if listing is None or listing.status != "ACTIVE":
+        raise HTTPException(status_code=404, detail="Listing not found or closed")
+    already = session.exec(
+        select(DealerOffer).where(
+            DealerOffer.dealer_id == dealer.id,
+            DealerOffer.sell_listing_id == offer_data.sell_listing_id,
         )
-        session.add(dealer)
-        session.commit()
-        session.refresh(dealer)
+    ).first()
+    if already is not None:
+        raise HTTPException(status_code=409, detail="You have already made an offer on this listing")
 
     offer = DealerOffer(
         dealer_id=dealer.id,

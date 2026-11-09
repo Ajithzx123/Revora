@@ -1,4 +1,4 @@
-import '../../domain/entities/user.dart';
+import '../../domain/models/user_model.dart';
 
 class MockAccount {
   final UserModel user;
@@ -22,10 +22,12 @@ class AuthMockData {
       fullName: 'Rahul Verma',
       role: UserRole.customer,
       phone: '+91 98201 12345',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300',
     ),
     password: defaultPassword,
-    description: 'Verified Buyer with 3 active car requirements & 5 received quotes',
+    description:
+        'Verified Buyer with 3 active car requirements & 5 received quotes',
   );
 
   static final MockAccount dealerAccount = MockAccount(
@@ -35,7 +37,8 @@ class AuthMockData {
       fullName: 'Vikram Malhotra (Apex Motor Corp)',
       role: UserRole.dealer,
       phone: '+91 98205 99881',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
     ),
     password: defaultPassword,
     description: 'Premium Verified Dealer managing 28 cars in inventory',
@@ -48,7 +51,8 @@ class AuthMockData {
       fullName: 'Revora Platform Admin',
       role: UserRole.admin,
       phone: '+91 98111 00000',
-      avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300',
     ),
     password: defaultPassword,
     description: 'Marketplace Operations & Dealer Compliance Administrator',
@@ -156,7 +160,8 @@ class AuthMockData {
       email: normalized,
       fullName: name,
       role: detectedRole,
-      phone: '+91 98000 ${DateTime.now().millisecondsSinceEpoch % 90000 + 10000}',
+      phone:
+          '+91 98000 ${DateTime.now().millisecondsSinceEpoch % 90000 + 10000}',
     );
 
     registerAccount(newUser, password);
@@ -164,7 +169,11 @@ class AuthMockData {
   }
 
   static String _formatNameFromEmail(String email) {
-    final prefix = email.split('@').first.replaceAll(RegExp(r'[._\d]'), ' ').trim();
+    final prefix = email
+        .split('@')
+        .first
+        .replaceAll(RegExp(r'[._\d]'), ' ')
+        .trim();
     if (prefix.isEmpty) return 'Revora User';
     return prefix
         .split(' ')

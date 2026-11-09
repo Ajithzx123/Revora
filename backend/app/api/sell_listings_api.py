@@ -1,10 +1,18 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from typing import List
 
 from backend.app.database.session import get_session
-from backend.app.core.dependencies import require_auth
+from backend.app.core.dependencies import (
+    ADMIN_ROLES,
+    current_user_id,
+    require_auth,
+    require_customer,
+)
 from backend.app.models.marketplace_models import (
+    DealerStatus,
     SellListing,
     DealerOffer,
     Dealer,
@@ -21,10 +29,10 @@ router = APIRouter(prefix="/sell-listings", tags=["Sell Listings"])
 @router.post("/", response_model=SellListingResponse)
 def create_sell_listing(
     listing_data: SellListingCreate,
-    user_data: dict = Depends(require_auth),
+    user_data: dict = Depends(require_customer),
     session: Session = Depends(get_session),
 ):
-    customer_id = user_data.get("sub") or user_data.get("id")
+    customer_id = current_user_id(user_data)
     images_str = ",".join(listing_data.images) if listing_data.images else ""
     
     listing = SellListing(
@@ -64,10 +72,10 @@ def create_sell_listing(
 
 @router.get("/", response_model=List[SellListingResponse])
 def get_user_listings(
-    user_data: dict = Depends(require_auth),
+    user_data: dict = Depends(require_customer),
     session: Session = Depends(get_session),
 ):
-    customer_id = user_data.get("sub") or user_data.get("id")
+    customer_id = current_user_id(user_data)
     statement = select(SellListing).where(SellListing.customer_id == customer_id)
     listings = session.exec(statement).all()
 
@@ -101,13 +109,27 @@ def get_user_listings(
 
 @router.get("/{listing_id}", response_model=SellListingResponse)
 def get_listing_detail(
-    listing_id: int,
+    listing_id: uuid.UUID,
+    user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):
     item = session.get(SellListing, listing_id)
     if not item:
         raise HTTPException(status_code=404, detail="Listing not found")
-        
+    is_owner = item.customer_id == current_user_id(user_data)
+    is_admin = user_data.get("role") in ADMIN_ROLES
+    is_dealer = (
+        user_data.get("role") == "DEALER"
+        and session.exec(
+            select(Dealer).where(
+                Dealer.user_id == current_user_id(user_data), Dealer.status == DealerStatus.APPROVED
+            )
+        ).first()
+        is not None
+    )
+    if not (is_owner or is_admin or is_dealer):
+        raise HTTPException(status_code=404, detail="Listing not found")
+
     offers_count = len(
         session.exec(
             select(DealerOffer).where(DealerOffer.sell_listing_id == item.id)
@@ -133,9 +155,16 @@ def get_listing_detail(
 
 @router.get("/{listing_id}/offers", response_model=List[DealerOfferResponse])
 def get_offers_for_listing(
-    listing_id: int,
+    listing_id: uuid.UUID,
+    user_data: dict = Depends(require_auth),
     session: Session = Depends(get_session),
 ):
+    # Sealed bidding: only the listing's owner (or an admin) sees offers.
+    item = session.get(SellListing, listing_id)
+    if not item or not (
+        item.customer_id == current_user_id(user_data) or user_data.get("role") in ADMIN_ROLES
+    ):
+        raise HTTPException(status_code=404, detail="Listing not found")
     offers = session.exec(
         select(DealerOffer).where(DealerOffer.sell_listing_id == listing_id)
     ).all()

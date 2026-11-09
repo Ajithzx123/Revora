@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/theme/accent_provider.dart';
+import 'core/notifications/push_registration.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/theme_provider.dart';
-import 'core/router/app_router.dart';
+import 'init/route_initializer.dart';
 
 class RevoraApp extends ConsumerWidget {
   const RevoraApp({super.key});
@@ -11,14 +10,16 @@ class RevoraApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    final themeMode = ref.watch(themeModeProvider);
-    final accent = ref.watch(accentProvider);
+    ref.watch(
+      pushRegistrationProvider,
+    ); // keeps this device's push token in step with sign-in
 
     return MaterialApp.router(
       title: 'Revora',
-      theme: AppTheme.buildLight(accent.color, accent.subtle),
-      darkTheme: AppTheme.buildDark(accent.color, accent.subtleDark),
-      themeMode: themeMode,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode
+          .light, // light-first; dark follows once screens stop hard-coding colours
       routerConfig: router,
     );
   }

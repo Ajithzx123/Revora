@@ -9,7 +9,7 @@ class AppInitializer {
 
   static Future<void> initialize() async {
     WidgetsFlutterBinding.ensureInitialized();
-    
+
     // Initialize secure/normal local storage
     await StorageHelper.init();
 

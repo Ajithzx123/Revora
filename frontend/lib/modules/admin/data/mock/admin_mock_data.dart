@@ -1,5 +1,4 @@
 import 'package:revora/modules/admin/domain/entities/admin_kpi.dart';
-import 'package:revora/modules/admin/domain/entities/dealer_verification.dart';
 import 'package:revora/modules/admin/domain/entities/admin_activity.dart';
 import 'package:revora/shared/domain/entities/vehicle.dart';
 import 'package:revora/modules/customer/domain/entities/buy_requirement.dart';
@@ -13,45 +12,6 @@ class AdminMockData {
     monthlyDealsCompleted: 86,
     grossMarketplaceValue: 128400000,
   );
-
-  static final List<DealerVerification> pendingVerifications = [
-    DealerVerification(
-      id: 'VER-01',
-      dealerId: 'DLR-91',
-      businessName: 'Galaxy Motor Hub',
-      ownerName: 'Sunil Khanna',
-      city: 'Navi Mumbai',
-      phone: '+91 98205 99881',
-      gstin: '27AABCG9821F1ZX',
-      tradeLicenseNumber: 'NMMC/TL/2024/4912',
-      status: 'pending',
-      appliedAt: DateTime.now().subtract(const Duration(hours: 4)),
-    ),
-    DealerVerification(
-      id: 'VER-02',
-      dealerId: 'DLR-92',
-      businessName: 'Speedway Pre-Owned',
-      ownerName: 'Imran Qureshi',
-      city: 'Pune',
-      phone: '+91 98112 33445',
-      gstin: '27BBCDE3321A1ZZ',
-      tradeLicenseNumber: 'PMC/TL/2024/1102',
-      status: 'pending',
-      appliedAt: DateTime.now().subtract(const Duration(hours: 11)),
-    ),
-    DealerVerification(
-      id: 'VER-03',
-      dealerId: 'DLR-93',
-      businessName: 'Vanguard Wheels',
-      ownerName: 'Ramesh Patel',
-      city: 'Thane',
-      phone: '+91 98331 44556',
-      gstin: '27CCCDA4411C1ZY',
-      tradeLicenseNumber: 'TMC/TL/2023/8891',
-      status: 'pending',
-      appliedAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-  ];
 
   static final List<BuyRequirement> platformRequirements = [
     BuyRequirement(
@@ -113,7 +73,8 @@ class AdminMockData {
       transmission: 'Automatic',
       mileage: 28400,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
       dealerName: 'Apex Motor Corp',
       isVerified: true,
       status: 'active',
@@ -129,7 +90,8 @@ class AdminMockData {
       transmission: 'Automatic',
       mileage: 21000,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
       dealerName: 'Royal City Motors',
       isVerified: true,
       status: 'active',
@@ -145,7 +107,8 @@ class AdminMockData {
       transmission: 'Automatic',
       mileage: 36000,
       city: 'Thane',
-      imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
       dealerName: 'Autoverse Prime',
       isVerified: true,
       status: 'active',
@@ -172,7 +135,8 @@ class AdminMockData {
     AdminActivity(
       id: 'AA-3',
       title: 'Dealer flagged for policy review',
-      subtitle: 'Metro Motors received 2 customer disputes regarding vehicle history',
+      subtitle:
+          'Metro Motors received 2 customer disputes regarding vehicle history',
       time: '1d ago',
       type: 'flagged',
       timestamp: DateTime.now().subtract(const Duration(days: 1)),

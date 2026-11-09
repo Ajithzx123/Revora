@@ -34,3 +34,6 @@ frontend/android/.gradle/
 *.ipr
 .DS_Store
 Thumbs.db
+
+# Local dealer-document uploads
+backend/uploads/

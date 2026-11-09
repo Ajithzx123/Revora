@@ -15,5 +15,6 @@ class AdminKPI {
     required this.grossMarketplaceValue,
   });
 
-  String get formattedGmv => '₹${(grossMarketplaceValue / 10000000).toStringAsFixed(2)} Cr';
+  String get formattedGmv =>
+      '₹${(grossMarketplaceValue / 10000000).toStringAsFixed(2)} Cr';
 }

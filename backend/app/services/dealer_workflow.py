@@ -1,0 +1,138 @@
+"""Dealer verification state machine. The only place dealer.status may change."""
+import uuid
+from datetime import datetime
+from typing import Optional
+
+from fastapi import HTTPException, status
+from sqlmodel import Session, select
+
+from backend.app.services import audit_service
+from backend.app.services import notification_service as notifications
+from backend.app.models.marketplace_models import (
+    REQUIRED_DOCUMENTS,
+    Dealer,
+    DealerDocument,
+    DealerStatus,
+    DocumentStatus,
+)
+
+S = DealerStatus
+
+ALLOWED_TRANSITIONS = {
+    S.DRAFT: {S.PENDING},
+    S.NEEDS_CHANGES: {S.PENDING},
+    S.PENDING: {S.APPROVED, S.NEEDS_CHANGES, S.REJECTED},
+    S.APPROVED: {S.SUSPENDED},
+    S.SUSPENDED: {S.APPROVED},  # reactivation
+    S.REJECTED: set(),          # terminal; a new application needs admin help
+}
+
+REASON_REQUIRED = {S.NEEDS_CHANGES, S.REJECTED, S.SUSPENDED}
+
+# Statuses in which the dealer may edit details and documents.
+DEALER_EDITABLE = {S.DRAFT, S.NEEDS_CHANGES}
+
+
+def current_documents(session: Session, dealer_id: uuid.UUID) -> list[DealerDocument]:
+    return list(
+        session.exec(
+            select(DealerDocument).where(
+                DealerDocument.dealer_id == dealer_id, DealerDocument.is_current == True  # noqa: E712
+            )
+        ).all()
+    )
+
+
+def missing_documents(documents: list[DealerDocument]) -> list[str]:
+    present = {d.doc_type for d in documents}
+    return [t.value for t in REQUIRED_DOCUMENTS if t not in present]
+
+
+def transition(
+    session: Session,
+    dealer: Dealer,
+    new_status: DealerStatus,
+    actor_id: uuid.UUID,
+    reason: Optional[str] = None,
+) -> None:
+    """Move a dealer to `new_status`, enforcing the rules, and record an audit event.
+
+    Does not commit; the caller commits so the change and its audit row land together.
+    """
+    old = dealer.status
+    if new_status not in ALLOWED_TRANSITIONS[old]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A dealer in {old.value} cannot move to {new_status.value}",
+        )
+    reason = (reason or "").strip() or None
+    if new_status in REASON_REQUIRED and not reason:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"A reason is required for {new_status.value}",
+        )
+
+    docs = current_documents(session, dealer.id)
+    if new_status == S.PENDING:
+        missing = missing_documents(docs)
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Missing required documents: {', '.join(missing)}",
+            )
+        if not (dealer.business_name and dealer.city and dealer.address):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Business name, city and address are required",
+            )
+    if new_status == S.APPROVED and old == S.PENDING:
+        unaccepted = [
+            d.doc_type.value
+            for d in docs
+            if d.doc_type in REQUIRED_DOCUMENTS and d.status != DocumentStatus.ACCEPTED
+        ]
+        if unaccepted:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Accept these documents first: {', '.join(unaccepted)}",
+            )
+
+    now = datetime.utcnow()
+    dealer.status = new_status
+    if new_status == S.PENDING:
+        dealer.submitted_at = now
+        dealer.status_reason = None
+    else:
+        dealer.reviewed_at = now
+        dealer.reviewed_by = actor_id
+        dealer.status_reason = reason if new_status in REASON_REQUIRED else None
+    session.add(dealer)
+    audit_service.record(
+        session, actor_id, f"DEALER_{new_status.value}", "dealer", dealer.id,
+        detail=f"{old.value} -> {new_status.value}" + (f": {reason}" if reason else ""),
+        reason=reason, before={"status": old.value}, after={"status": new_status.value},
+    )
+    _notify_dealer_decision(session, dealer, old, new_status, reason)
+
+
+_DECISION_COPY = {
+    S.APPROVED: ("DEALER_APPROVED", "You are verified", "Your dealer account is approved. You can now receive leads and send quotes."),
+    S.NEEDS_CHANGES: ("DEALER_NEEDS_CHANGES", "Changes needed on your application", "An admin asked for changes to your dealer application."),
+    S.REJECTED: ("DEALER_REJECTED", "Application not approved", "Your dealer application was not approved."),
+    S.SUSPENDED: ("DEALER_SUSPENDED", "Your account is suspended", "Your dealer account was suspended."),
+}
+
+
+def _notify_dealer_decision(session, dealer, old, new_status, reason) -> None:
+    """Tell the dealer about an admin decision (their own submission needs no notice)."""
+    if new_status not in _DECISION_COPY:
+        return
+    type_, title, body = _DECISION_COPY[new_status]
+    if new_status == S.APPROVED and old == S.SUSPENDED:
+        type_, title, body = "DEALER_REACTIVATED", "Your account is active again", "Your dealer account was reactivated."
+    if reason:
+        body = f"{body} Reason: {reason}"
+    notifications.notify(
+        session, dealer.user_id, type_, title, body,
+        entity_type="dealer", entity_id=dealer.id, window=(dealer.reviewed_at or datetime.utcnow()).isoformat(),
+    )

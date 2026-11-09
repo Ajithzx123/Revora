@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import '../../../../core/storage/storage_keys.dart';
+import '../../../../core/config/constants.dart';
 import '../../../../core/utils/storage_helper.dart';
-import '../../domain/entities/user.dart';
+import '../../domain/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../mock/auth_mock_data.dart';
 
@@ -49,6 +49,8 @@ class MockAuthRepository implements AuthRepository {
     required String password,
     required String fullName,
     required UserRole role,
+    String? businessName,
+    String? city,
   }) async {
     await Future.delayed(const Duration(milliseconds: 400));
 

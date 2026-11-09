@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:revora/core/utils/storage_helper.dart';
 import 'package:revora/modules/auth/data/repositories/mock_auth_repository.dart';
-import 'package:revora/modules/auth/domain/entities/user.dart';
+import 'package:revora/modules/auth/domain/models/user_model.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -75,22 +75,25 @@ void main() {
       expect(customerUser.role, UserRole.customer);
     });
 
-    test('Sign up registers new user and retrieves from getCurrentUser', () async {
-      final newUser = await authRepo.signUpWithEmailPassword(
-        email: 'newuser@revora.com',
-        password: 'mypassword',
-        fullName: 'Aarav Patel',
-        role: UserRole.dealer,
-      );
+    test(
+      'Sign up registers new user and retrieves from getCurrentUser',
+      () async {
+        final newUser = await authRepo.signUpWithEmailPassword(
+          email: 'newuser@revora.com',
+          password: 'mypassword',
+          fullName: 'Aarav Patel',
+          role: UserRole.dealer,
+        );
 
-      expect(newUser.email, 'newuser@revora.com');
-      expect(newUser.fullName, 'Aarav Patel');
-      expect(newUser.role, UserRole.dealer);
+        expect(newUser.email, 'newuser@revora.com');
+        expect(newUser.fullName, 'Aarav Patel');
+        expect(newUser.role, UserRole.dealer);
 
-      final cachedUser = await authRepo.getCurrentUser();
-      expect(cachedUser, isNotNull);
-      expect(cachedUser!.email, 'newuser@revora.com');
-    });
+        final cachedUser = await authRepo.getCurrentUser();
+        expect(cachedUser, isNotNull);
+        expect(cachedUser!.email, 'newuser@revora.com');
+      },
+    );
 
     test('Sign out clears the stored session', () async {
       await authRepo.signInWithEmailPassword(
