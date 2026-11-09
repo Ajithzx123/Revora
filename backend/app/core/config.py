@@ -30,6 +30,10 @@ class Settings:
         else None
     )
 
+    # Push delivery. Path to a Firebase service-account file kept OUTSIDE the repo. Unset in
+    # dev/tests: pushes are then only logged.
+    FCM_CREDENTIALS_FILE: Optional[str] = os.getenv("FCM_CREDENTIALS_FILE") or None
+
     # Private uploads (dealer KYC documents). Replace with object storage later.
     UPLOAD_DIR: Path = Path(os.getenv("UPLOAD_DIR", str(_BACKEND_DIR / "uploads")))
     MAX_UPLOAD_BYTES: int = 5 * 1024 * 1024

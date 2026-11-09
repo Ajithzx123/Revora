@@ -27,6 +27,7 @@ from backend.app.models.marketplace_models import (
     VehicleStatus,
 )
 from backend.app.schemas.marketplace_schema import DealerQuoteResponse, QuoteRoundResponse
+from backend.app.services import notification_service as notifications
 
 LIVE = {"PENDING", "REQUOTE_REQUESTED"}
 MAX_REVISIONS = 3          # a quote may be revised three times (four prices in all)
@@ -43,6 +44,26 @@ def audit(session: Session, actor: Optional[uuid.UUID], action: str, quote: Deal
 
 
 # ------------------------------------------------------------ views
+def _car_name(req: BuyRequirement) -> str:
+    return f"{req.make} {req.model}" if req.model else req.make
+
+
+def _lakh(amount: int) -> str:
+    return f"Rs {amount / 100000:.2f} lakh"
+
+
+def notify_buyer(session: Session, quote: DealerQuote, type: str, title: str, body: str, window: str = "") -> None:
+    req = session.get(BuyRequirement, quote.requirement_id)
+    if req is not None:
+        notifications.notify(session, req.customer_id, type, title, body, entity_type="dealer_quote", entity_id=quote.id, window=window)
+
+
+def notify_dealer(session: Session, quote: DealerQuote, type: str, title: str, body: str, window: str = "") -> None:
+    dealer = session.get(Dealer, quote.dealer_id)
+    if dealer is not None:
+        notifications.notify(session, dealer.user_id, type, title, body, entity_type="dealer_quote", entity_id=quote.id, window=window)
+
+
 def kind_for(session: Session, dealer: Dealer, requirement_id: uuid.UUID) -> str:
     match = session.exec(
         select(MatchRecord).where(MatchRecord.dealer_id == dealer.id, MatchRecord.requirement_id == requirement_id)
@@ -156,6 +177,8 @@ def revise(session: Session, quote: DealerQuote, dealer: Dealer, body) -> Dealer
             r.status = "SUPERSEDED"
             session.add(r)
     audit(session, dealer.user_id, "QUOTE_REVISED", quote, f"revision {quote.revision}")
+    notify_buyer(session, quote, "QUOTE_REVISED", "A dealer updated their quote",
+                 f"New total {_lakh(quote.quoted_price)} for your {_car_name(requirement)}.", window=str(quote.revision))
     session.commit()
     session.refresh(quote)
     return quote
@@ -175,6 +198,7 @@ def withdraw(session: Session, quote: DealerQuote, dealer: Dealer, reason: Optio
             r.status = "SUPERSEDED"
             session.add(r)
     audit(session, dealer.user_id, "QUOTE_WITHDRAWN", quote, quote.status_reason or "")
+    notify_buyer(session, quote, "QUOTE_WITHDRAWN", "A dealer withdrew their quote", "One of your quotes is no longer available.")
     session.commit()
     session.refresh(quote)
     return quote
@@ -260,6 +284,12 @@ def accept(session: Session, quote: DealerQuote, requirement: BuyRequirement, cu
             detail=f"price {expected_price}; request {requirement.id}; {len(others)} other quotes closed",
         )
     )
+    notify_dealer(session, quote, "QUOTE_ACCEPTED", "Your quote was accepted",
+                  f"The buyer accepted {_lakh(expected_price)} for the {_car_name(requirement)}. Their contact details are now available.")
+    for other in others:
+        if other.status == "NOT_SELECTED":  # no winner or price is revealed to competitors
+            notify_dealer(session, other, "QUOTE_NOT_SELECTED", "Quote not selected",
+                          f"The buyer chose another dealer for the {_car_name(requirement)}.")
     session.commit()
     session.refresh(quote)
     return quote
@@ -288,6 +318,8 @@ def counter_by_customer(session: Session, quote: DealerQuote, customer_id: uuid.
     r = QuoteRound(quote_id=quote.id, round_no=count + 1, by="CUSTOMER", price=price, note=note, valid_until=_now() + ROUND_VALID)
     session.add(r)
     audit(session, customer_id, "QUOTE_COUNTER_BY_CUSTOMER", quote, f"{price}")
+    notify_dealer(session, quote, "COUNTER_RECEIVED", "Counter-offer from a buyer",
+                  f"A buyer offered {_lakh(price)} against your {_lakh(quote.quoted_price)} quote.", window=str(r.id))
     session.commit()
     session.refresh(r)
     return r
@@ -314,12 +346,17 @@ def reply(session: Session, quote: DealerQuote, actor_id: uuid.UUID, side: str, 
     rnd = _open_round(session, quote.id)
     if rnd is None or rnd.by == side:
         raise HTTPException(409, "There is no counter-offer waiting for your reply")
+    other_side_notify = notify_buyer if side == "DEALER" else notify_dealer
     if action == "ACCEPT":
         _agree(session, quote, rnd, actor_id)
+        other_side_notify(session, quote, "COUNTER_ACCEPTED", "Counter-offer accepted",
+                          f"The price is now {_lakh(quote.quoted_price)}.", window=str(rnd.id))
     elif action == "DECLINE":
         rnd.status = "DECLINED"
         session.add(rnd)
         audit(session, actor_id, f"QUOTE_COUNTER_DECLINED_BY_{side}", quote)
+        other_side_notify(session, quote, "COUNTER_DECLINED", "Counter-offer declined",
+                          "Your counter-offer was declined. The quoted price stands.", window=str(rnd.id))
     else:  # COUNTER
         if side == "CUSTOMER":
             raise HTTPException(422, "Decline or accept, or send a new counter-offer")
@@ -333,6 +370,8 @@ def reply(session: Session, quote: DealerQuote, actor_id: uuid.UUID, side: str, 
         new = QuoteRound(quote_id=quote.id, round_no=count + 1, by=side, price=price, note=note, valid_until=_now() + ROUND_VALID)
         session.add(new)
         audit(session, actor_id, "QUOTE_COUNTER_BY_DEALER", quote, f"{price}")
+        notify_buyer(session, quote, "COUNTER_RECEIVED", "A dealer countered your offer",
+                     f"The dealer's counter is {_lakh(price)}.", window=str(new.id))
         rnd = new
     session.commit()
     session.refresh(rnd)

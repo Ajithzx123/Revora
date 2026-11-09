@@ -182,6 +182,10 @@ def send_quote(
     )
     session.add(quote)
     quote_service.audit(session, dealer.user_id, "QUOTE_SUBMITTED", quote, f"price {quote.quoted_price}")
+    quote_service.notify_buyer(
+        session, quote, "QUOTE_RECEIVED", "New quote received",
+        f"A dealer quoted {quote_service._lakh(quote.quoted_price)} for your {quote_service._car_name(requirement)}.",
+    )
     session.commit()
     session.refresh(quote)
     return quote_service.quote_response(session, quote)

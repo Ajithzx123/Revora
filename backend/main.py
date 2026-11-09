@@ -15,6 +15,7 @@ from backend.app.api.admin_api import router as admin_router
 from backend.app.api.dealer_onboarding_api import router as dealer_onboarding_router
 from backend.app.api.inventory_api import router as inventory_router
 from backend.app.api.quotes_api import router as quotes_router
+from backend.app.api.notifications_api import router as notifications_router
 from backend.app.core.master_data import as_payload as master_data_payload
 
 app = FastAPI(
@@ -42,6 +43,7 @@ app.include_router(dealer_router, prefix="/api")
 app.include_router(dealer_onboarding_router, prefix="/api")
 app.include_router(inventory_router, prefix="/api")
 app.include_router(quotes_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
 
@@ -53,6 +55,8 @@ def startup():
     interval = int(os.getenv("MATCHING_INTERVAL_SECONDS", "600"))
     if interval > 0 and "PYTEST_CURRENT_TEST" not in os.environ:
         asyncio.create_task(_matching_loop(interval))
+    if "PYTEST_CURRENT_TEST" not in os.environ:
+        asyncio.create_task(_push_loop(int(os.getenv("PUSH_INTERVAL_SECONDS", "30"))))
 
 
 async def _matching_loop(interval: int) -> None:
@@ -74,6 +78,22 @@ async def _matching_loop(interval: int) -> None:
                 logging.getLogger("revora.matching").info("periodic matching created %s matches", created)
         except Exception:  # never let the loop die
             logging.getLogger("revora.matching").exception("periodic matching failed")
+
+
+async def _push_loop(interval: int) -> None:
+    """Sends due push notifications (and retries failed ones). Single instance only."""
+    from sqlmodel import Session
+
+    from backend.app.database.session import engine
+    from backend.app.services import notification_service
+
+    while interval > 0:
+        await asyncio.sleep(interval)
+        try:
+            with Session(engine) as session:
+                notification_service.dispatch_pending(session)
+        except Exception:
+            logging.getLogger("revora.push").exception("push dispatch failed")
 
 
 @app.get("/api/master-data", tags=["Reference"])

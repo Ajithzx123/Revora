@@ -27,6 +27,7 @@ from sqlmodel import Session, func, select
 
 from backend.app.core import master_data as md
 from backend.app.models.audit_model import AuditEvent
+from backend.app.services import notification_service as notifications
 from backend.app.models.marketplace_models import (
     BuyRequirement,
     Dealer,
@@ -303,6 +304,21 @@ def run_matching(session: Session, req: BuyRequirement, now: Optional[datetime] 
                 + ")",
             )
         )
+        total = len(existing) + len(created)
+        notifications.notify(
+            session, req.customer_id, "MATCHES_FOUND", "Dealers have been notified",
+            f"{total} verified dealer{'s' if total != 1 else ''} can see your request.",
+            entity_type="buy_requirement", entity_id=req.id, window=str(total), now=now,
+        )
+        title = f"{req.make} {req.model}" if req.model else req.make
+        for record in created:
+            dealer = session.get(Dealer, record.dealer_id)
+            if dealer is not None:
+                notifications.notify(
+                    session, dealer.user_id, "NEW_LEAD", "New buyer request",
+                    f"A buyer in {req.city} wants a {title}.",
+                    entity_type="buy_requirement", entity_id=req.id, now=now,
+                )
     return created
 
 

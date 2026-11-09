@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
 from backend.app.models.audit_model import AuditEvent
+from backend.app.services import notification_service as notifications
 from backend.app.models.marketplace_models import (
     REQUIRED_DOCUMENTS,
     Dealer,
@@ -114,4 +115,28 @@ def transition(
             entity_id=str(dealer.id),
             detail=f"{old.value} -> {new_status.value}" + (f": {reason}" if reason else ""),
         )
+    )
+    _notify_dealer_decision(session, dealer, old, new_status, reason)
+
+
+_DECISION_COPY = {
+    S.APPROVED: ("DEALER_APPROVED", "You are verified", "Your dealer account is approved. You can now receive leads and send quotes."),
+    S.NEEDS_CHANGES: ("DEALER_NEEDS_CHANGES", "Changes needed on your application", "An admin asked for changes to your dealer application."),
+    S.REJECTED: ("DEALER_REJECTED", "Application not approved", "Your dealer application was not approved."),
+    S.SUSPENDED: ("DEALER_SUSPENDED", "Your account is suspended", "Your dealer account was suspended."),
+}
+
+
+def _notify_dealer_decision(session, dealer, old, new_status, reason) -> None:
+    """Tell the dealer about an admin decision (their own submission needs no notice)."""
+    if new_status not in _DECISION_COPY:
+        return
+    type_, title, body = _DECISION_COPY[new_status]
+    if new_status == S.APPROVED and old == S.SUSPENDED:
+        type_, title, body = "DEALER_REACTIVATED", "Your account is active again", "Your dealer account was reactivated."
+    if reason:
+        body = f"{body} Reason: {reason}"
+    notifications.notify(
+        session, dealer.user_id, type_, title, body,
+        entity_type="dealer", entity_id=dealer.id, window=(dealer.reviewed_at or datetime.utcnow()).isoformat(),
     )

@@ -2,6 +2,12 @@ from sqlmodel import SQLModel
 from backend.app.database.connection import engine
 from backend.app.models.user_model import User
 from backend.app.models.audit_model import AuditEvent
+from backend.app.models.notification_models import (
+    DeviceToken,
+    NotificationDelivery,
+    NotificationEvent,
+    NotificationPreference,
+)
 from backend.app.models.marketplace_models import (
     Dealer,
     DealerDocument,
