@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/notifications/push_registration.dart';
 import '../../domain/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -46,7 +47,12 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _repository;
 
-  AuthController(this._repository) : super(const AuthState()) {
+  /// Runs before the session ends (e.g. to unregister this device from push).
+  final Future<void> Function()? _beforeSignOut;
+
+  AuthController(this._repository, {Future<void> Function()? beforeSignOut})
+    : _beforeSignOut = beforeSignOut,
+      super(const AuthState()) {
     checkCurrentSession();
   }
 
@@ -124,6 +130,11 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true);
     try {
+      try {
+        await _beforeSignOut?.call();
+      } catch (_) {
+        // never block signing out
+      }
       await _repository.signOut();
       state = const AuthState(isInitialized: true);
     } catch (e) {
@@ -139,6 +150,9 @@ class AuthController extends StateNotifier<AuthState> {
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
   (ref) {
     final repo = ref.watch(authRepositoryProvider);
-    return AuthController(repo);
+    return AuthController(
+      repo,
+      beforeSignOut: () => ref.read(pushRegistrationProvider).removeCurrent(),
+    );
   },
 );

@@ -7,8 +7,10 @@ import '../../../../shared/widgets/app_sidebar.dart';
 import '../../../../shared/widgets/responsive_layout.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../providers/admin_providers.dart';
+import 'admin_audit_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_dealer_verification_screen.dart';
+import 'admin_quotes_screen.dart';
 import 'admin_requirements_screen.dart';
 import 'admin_vehicles_screen.dart';
 
@@ -37,6 +39,16 @@ class AdminShell extends ConsumerWidget {
       selectedIcon: Icons.directions_car,
       label: 'Vehicle Inventory',
     ),
+    AppSidebarItem(
+      icon: Icons.local_offer_outlined,
+      selectedIcon: Icons.local_offer,
+      label: 'Quote Monitor',
+    ),
+    AppSidebarItem(
+      icon: Icons.history_outlined,
+      selectedIcon: Icons.history,
+      label: 'Audit Log',
+    ),
   ];
 
   @override
@@ -48,6 +60,8 @@ class AdminShell extends ConsumerWidget {
       AdminDealerVerificationScreen(),
       AdminRequirementsScreen(),
       AdminVehiclesScreen(),
+      AdminQuotesScreen(),
+      AdminAuditScreen(),
     ];
 
     return ResponsiveLayout(

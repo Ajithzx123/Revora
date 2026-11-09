@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/adaptive_shell.dart';
 import '../../../../shared/widgets/app_sidebar.dart';
+import '../../../notifications/presentation/providers/notifications_providers.dart';
 import '../providers/customer_providers.dart';
 import 'customer_home_screen.dart';
 import 'customer_buy_screen.dart';
@@ -12,7 +13,7 @@ import 'customer_profile_screen.dart';
 class CustomerShell extends ConsumerWidget {
   const CustomerShell({super.key});
 
-  static const List<AppSidebarItem> _navItems = [
+  static List<AppSidebarItem> _navItems(int unread) => [
     AppSidebarItem(
       icon: Icons.home_outlined,
       selectedIcon: Icons.home,
@@ -33,7 +34,7 @@ class CustomerShell extends ConsumerWidget {
       icon: Icons.notifications_none_outlined,
       selectedIcon: Icons.notifications,
       label: 'Activity',
-      badgeCount: 2,
+      badgeCount: unread,
     ),
     AppSidebarItem(
       icon: Icons.person_outline,
@@ -45,6 +46,7 @@ class CustomerShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeIndex = ref.watch(customerActiveTabProvider);
+    final unread = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
 
     final screens = const [
       CustomerHomeScreen(),
@@ -57,7 +59,7 @@ class CustomerShell extends ConsumerWidget {
     return AdaptiveShell(
       title: 'Revora',
       roleBadge: 'Customer',
-      items: _navItems,
+      items: _navItems(unread),
       selectedIndex: activeIndex,
       onItemSelected: (index) {
         ref.read(customerActiveTabProvider.notifier).state = index;

@@ -18,6 +18,7 @@ import '../modules/dealer/presentation/ui/send_quote_screen.dart';
 import '../modules/dealer/presentation/ui/make_offer_screen.dart';
 import '../modules/dealer/presentation/ui/add_car_to_inventory_screen.dart';
 import '../modules/admin/presentation/ui/admin_shell.dart';
+import '../modules/notifications/presentation/ui/notification_preferences_screen.dart';
 import '../shared/presentation/ui/chat_screen.dart';
 
 import '../modules/auth/presentation/ui/login_screen.dart';
@@ -170,6 +171,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Shared
+      GoRoute(
+        path: '/notifications/preferences',
+        builder: (context, state) => const NotificationPreferencesScreen(),
+      ),
       GoRoute(
         path: '/chat',
         builder: (context, state) => const ChatScreen(chatId: 'default'),

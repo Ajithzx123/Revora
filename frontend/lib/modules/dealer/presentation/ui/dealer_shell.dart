@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/adaptive_shell.dart';
 import '../../../../shared/widgets/app_sidebar.dart';
+import '../../../notifications/presentation/providers/notifications_providers.dart';
 import '../providers/dealer_providers.dart';
 import 'dealer_home_screen.dart';
 import 'dealer_leads_screen.dart';
@@ -12,7 +13,7 @@ import 'dealer_profile_screen.dart';
 class DealerShell extends ConsumerWidget {
   const DealerShell({super.key});
 
-  static const List<AppSidebarItem> _navItems = [
+  static List<AppSidebarItem> _navItems(int unread) => [
     AppSidebarItem(
       icon: Icons.dashboard_outlined,
       selectedIcon: Icons.dashboard,
@@ -33,7 +34,7 @@ class DealerShell extends ConsumerWidget {
       icon: Icons.notifications_none_outlined,
       selectedIcon: Icons.notifications,
       label: 'Activity',
-      badgeCount: 1,
+      badgeCount: unread,
     ),
     AppSidebarItem(
       icon: Icons.business_outlined,
@@ -45,6 +46,7 @@ class DealerShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeIndex = ref.watch(dealerActiveTabProvider);
+    final unread = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
 
     final screens = const [
       DealerHomeScreen(),
@@ -57,7 +59,7 @@ class DealerShell extends ConsumerWidget {
     return AdaptiveShell(
       title: 'Revora Pro',
       roleBadge: 'Dealer Portal',
-      items: _navItems,
+      items: _navItems(unread),
       selectedIndex: activeIndex,
       onItemSelected: (index) {
         ref.read(dealerActiveTabProvider.notifier).state = index;

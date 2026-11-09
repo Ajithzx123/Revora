@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:revora/core/theme/app_theme.dart';
 import 'package:revora/core/utils/storage_helper.dart';
+import 'package:revora/modules/admin/presentation/ui/admin_audit_screen.dart';
 import 'package:revora/modules/admin/presentation/ui/admin_dashboard_screen.dart';
 import 'package:revora/modules/admin/presentation/ui/admin_dealer_detail_screen.dart';
 import 'package:revora/modules/admin/presentation/ui/admin_dealer_verification_screen.dart';
+import 'package:revora/modules/admin/presentation/ui/admin_quotes_screen.dart';
 import 'package:revora/modules/admin/presentation/ui/admin_requirements_screen.dart';
 import 'package:revora/modules/admin/presentation/ui/admin_shell.dart';
 import 'package:revora/modules/admin/presentation/ui/admin_vehicles_screen.dart';
@@ -21,6 +23,7 @@ import 'package:revora/modules/customer/presentation/ui/customer_shell.dart';
 import 'package:revora/modules/customer/presentation/ui/post_buy_requirement_screen.dart';
 import 'package:revora/modules/customer/presentation/ui/requirement_details_screen.dart';
 import 'package:revora/modules/dealer/presentation/ui/add_car_to_inventory_screen.dart';
+import 'package:revora/modules/notifications/presentation/ui/notification_preferences_screen.dart';
 import 'package:revora/modules/dealer/presentation/ui/dealer_activity_screen.dart';
 import 'package:revora/modules/dealer/presentation/ui/dealer_application_screen.dart';
 import 'package:revora/modules/dealer/presentation/ui/dealer_home_screen.dart';
@@ -74,6 +77,9 @@ void main() {
     'admin dealer detail': () => const AdminDealerDetailScreen(dealerId: 'd1'),
     'admin requirements': () => const AdminRequirementsScreen(),
     'admin vehicles': () => const AdminVehiclesScreen(),
+    'admin quote monitor': () => const AdminQuotesScreen(),
+    'admin audit log': () => const AdminAuditScreen(),
+    'notification settings': () => const NotificationPreferencesScreen(),
   };
 
   for (final screen in screens.entries) {
