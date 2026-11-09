@@ -4,14 +4,9 @@ import 'package:revora/modules/auth/domain/models/user_model.dart';
 import 'package:revora/modules/auth/presentation/controllers/auth_controller.dart';
 
 AuthState _signedIn(UserRole role) => AuthState(
-      isInitialized: true,
-      user: UserModel(
-        id: '1',
-        email: 'a@b.com',
-        fullName: 'Test',
-        role: role,
-      ),
-    );
+  isInitialized: true,
+  user: UserModel(id: '1', email: 'a@b.com', fullName: 'Test', role: role),
+);
 
 void main() {
   const signedOut = AuthState(isInitialized: true);
@@ -35,22 +30,52 @@ void main() {
     });
 
     test('signed-in users skip login and land on their own home', () {
-      expect(guardRoute(_signedIn(UserRole.customer), '/login'), '/customer/home');
-      expect(guardRoute(_signedIn(UserRole.dealer), '/register'), '/dealer/home');
-      expect(guardRoute(_signedIn(UserRole.admin), '/login'), '/admin/dashboard');
+      expect(
+        guardRoute(_signedIn(UserRole.customer), '/login'),
+        '/customer/home',
+      );
+      expect(
+        guardRoute(_signedIn(UserRole.dealer), '/register'),
+        '/dealer/home',
+      );
+      expect(
+        guardRoute(_signedIn(UserRole.admin), '/login'),
+        '/admin/dashboard',
+      );
     });
 
     test('each role is kept out of the other roles\' areas', () {
-      expect(guardRoute(_signedIn(UserRole.customer), '/dealer/home'), '/customer/home');
-      expect(guardRoute(_signedIn(UserRole.customer), '/admin/dashboard'), '/customer/home');
-      expect(guardRoute(_signedIn(UserRole.dealer), '/customer/post-buy'), '/dealer/home');
-      expect(guardRoute(_signedIn(UserRole.dealer), '/admin/dashboard'), '/dealer/home');
-      expect(guardRoute(_signedIn(UserRole.admin), '/dealer/add-car'), '/admin/dashboard');
+      expect(
+        guardRoute(_signedIn(UserRole.customer), '/dealer/home'),
+        '/customer/home',
+      );
+      expect(
+        guardRoute(_signedIn(UserRole.customer), '/admin/dashboard'),
+        '/customer/home',
+      );
+      expect(
+        guardRoute(_signedIn(UserRole.dealer), '/customer/post-buy'),
+        '/dealer/home',
+      );
+      expect(
+        guardRoute(_signedIn(UserRole.dealer), '/admin/dashboard'),
+        '/dealer/home',
+      );
+      expect(
+        guardRoute(_signedIn(UserRole.admin), '/dealer/add-car'),
+        '/admin/dashboard',
+      );
     });
 
     test('allowed pages are not redirected', () {
-      expect(guardRoute(_signedIn(UserRole.customer), '/customer/post-buy'), isNull);
-      expect(guardRoute(_signedIn(UserRole.dealer), '/dealer/send-quote/5'), isNull);
+      expect(
+        guardRoute(_signedIn(UserRole.customer), '/customer/post-buy'),
+        isNull,
+      );
+      expect(
+        guardRoute(_signedIn(UserRole.dealer), '/dealer/send-quote/5'),
+        isNull,
+      );
       expect(guardRoute(_signedIn(UserRole.customer), '/chat/abc'), isNull);
     });
   });

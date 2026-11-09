@@ -52,9 +52,16 @@ class SectionHeader extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(actionLabel!, style: const TextStyle(color: AppColors.accentDeep)),
+                  Text(
+                    actionLabel!,
+                    style: const TextStyle(color: AppColors.accentDeep),
+                  ),
                   const SizedBox(width: AppSpacing.xs),
-                  const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.accentDeep),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16,
+                    color: AppColors.accentDeep,
+                  ),
                 ],
               ),
             ),

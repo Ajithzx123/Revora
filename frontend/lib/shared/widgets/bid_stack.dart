@@ -13,7 +13,8 @@ class BidStack extends StatefulWidget {
   State<BidStack> createState() => _BidStackState();
 }
 
-class _BidStackState extends State<BidStack> with SingleTickerProviderStateMixin {
+class _BidStackState extends State<BidStack>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   static const _bids = [
@@ -25,8 +26,10 @@ class _BidStackState extends State<BidStack> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))
-      ..forward();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..forward();
   }
 
   @override
@@ -50,12 +53,15 @@ class _BidStackState extends State<BidStack> with SingleTickerProviderStateMixin
             mainAxisSize: MainAxisSize.min,
             children: [
               for (var i = 0; i < _bids.length; i++) ...[
-                _slide(i, _BidCard(
-                  initial: _bids[i].$1,
-                  dealer: _bids[i].$2,
-                  price: _bids[i].$3,
-                  best: _bids[i].$4,
-                )),
+                _slide(
+                  i,
+                  _BidCard(
+                    initial: _bids[i].$1,
+                    dealer: _bids[i].$2,
+                    price: _bids[i].$3,
+                    best: _bids[i].$4,
+                  ),
+                ),
                 if (i < _bids.length - 1) const SizedBox(height: 10),
               ],
             ],
@@ -69,7 +75,11 @@ class _BidStackState extends State<BidStack> with SingleTickerProviderStateMixin
     final start = index * 0.22;
     final animation = CurvedAnimation(
       parent: _controller,
-      curve: Interval(start, (start + 0.5).clamp(0, 1), curve: Curves.easeOutCubic),
+      curve: Interval(
+        start,
+        (start + 0.5).clamp(0, 1),
+        curve: Curves.easeOutCubic,
+      ),
     );
     // Cards alternate their indent so the stack feels alive, not like a table.
     final indent = index.isEven ? 0.0 : 18.0;
@@ -111,8 +121,16 @@ class _BidCard extends StatelessWidget {
           width: 1.6,
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 2, offset: const Offset(0, 1)),
-          BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 18, offset: const Offset(0, 8)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
         ],
       ),
       child: Row(
@@ -122,7 +140,10 @@ class _BidCard extends StatelessWidget {
             backgroundColor: best ? AppColors.success : AppColors.primary,
             child: Text(
               initial,
-              style: AppTextStyles.labelMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+              style: AppTextStyles.labelMedium.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -131,11 +152,19 @@ class _BidCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(dealer, style: AppTextStyles.labelMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  dealer,
+                  style: AppTextStyles.labelMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 if (best)
                   Text(
                     'Best price',
-                    style: AppTextStyles.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w700),
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
               ],
             ),

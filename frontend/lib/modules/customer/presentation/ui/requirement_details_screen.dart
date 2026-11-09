@@ -21,10 +21,12 @@ class RequirementDetailsScreen extends ConsumerStatefulWidget {
   const RequirementDetailsScreen({super.key, required this.requirementId});
 
   @override
-  ConsumerState<RequirementDetailsScreen> createState() => _RequirementDetailsScreenState();
+  ConsumerState<RequirementDetailsScreen> createState() =>
+      _RequirementDetailsScreenState();
 }
 
-class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScreen> {
+class _RequirementDetailsScreenState
+    extends ConsumerState<RequirementDetailsScreen> {
   bool _busy = false;
 
   Future<void> _run(Future<void> Function() action, String done) async {
@@ -43,7 +45,12 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
   void _toast(String message, {bool error = false}) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message), backgroundColor: error ? AppColors.error : null));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: error ? AppColors.error : null,
+        ),
+      );
   }
 
   Future<void> _confirmClose(BuyRequirement req) async {
@@ -51,9 +58,14 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Close this request?'),
-        content: const Text('Dealers will stop seeing it and any open quotes will be closed. You cannot reopen it, but you can post a new one.'),
+        content: const Text(
+          'Dealers will stop seeing it and any open quotes will be closed. You cannot reopen it, but you can post a new one.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep it')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep it'),
+          ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(context, true),
@@ -63,7 +75,10 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
       ),
     );
     if (ok == true) {
-      await _run(() async => ref.read(requirementsProvider.notifier).cancel(req.id), 'Request closed.');
+      await _run(
+        () async => ref.read(requirementsProvider.notifier).cancel(req.id),
+        'Request closed.',
+      );
     }
   }
 
@@ -82,7 +97,10 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
             children: [
               Text(apiErrorMessage(e)),
               const SizedBox(height: AppSpacing.md),
-              OutlinedButton(onPressed: notifier.refresh, child: const Text('Try again')),
+              OutlinedButton(
+                onPressed: notifier.refresh,
+                child: const Text('Try again'),
+              ),
             ],
           ),
         ),
@@ -105,7 +123,12 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
     final canManage = req.isEditable && !_busy;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.xxxl,
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
@@ -120,23 +143,38 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
                   runSpacing: AppSpacing.md,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: canManage ? () => context.push('/customer/edit-requirement/${req.id}') : null,
+                      onPressed: canManage
+                          ? () => context.push(
+                              '/customer/edit-requirement/${req.id}',
+                            )
+                          : null,
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('Edit'),
                     ),
                     OutlinedButton.icon(
                       onPressed: canManage
                           ? () => _run(
-                                () async => req.isPaused ? notifier.resume(req.id) : notifier.pause(req.id),
-                                req.isPaused ? 'Request is open again.' : 'Request paused. Dealers will not see it.',
-                              )
+                              () async => req.isPaused
+                                  ? notifier.resume(req.id)
+                                  : notifier.pause(req.id),
+                              req.isPaused
+                                  ? 'Request is open again.'
+                                  : 'Request paused. Dealers will not see it.',
+                            )
                           : null,
-                      icon: Icon(req.isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded, size: 20),
+                      icon: Icon(
+                        req.isPaused
+                            ? Icons.play_arrow_rounded
+                            : Icons.pause_rounded,
+                        size: 20,
+                      ),
                       label: Text(req.isPaused ? 'Resume' : 'Pause'),
                     ),
                     OutlinedButton.icon(
                       onPressed: canManage ? () => _confirmClose(req) : null,
-                      style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                      ),
                       icon: const Icon(Icons.close_rounded, size: 20),
                       label: const Text('Close'),
                     ),
@@ -145,10 +183,16 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
               const SizedBox(height: AppSpacing.xxl),
               Row(
                 children: [
-                  Expanded(child: Text('Dealer quotes (${quotes.length})', style: t.titleLarge)),
+                  Expanded(
+                    child: Text(
+                      'Dealer quotes (${quotes.length})',
+                      style: t.titleLarge,
+                    ),
+                  ),
                   if (quotes.length > 1)
                     TextButton.icon(
-                      onPressed: () => context.push('/customer/compare/${req.id}'),
+                      onPressed: () =>
+                          context.push('/customer/compare/${req.id}'),
                       icon: const Icon(Icons.compare_arrows_rounded),
                       label: const Text('Compare'),
                     ),
@@ -173,7 +217,8 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
                     children: [
                       const Text('Could not load the quotes.'),
                       TextButton(
-                        onPressed: () => ref.invalidate(requirementQuotesProvider(req.id)),
+                        onPressed: () =>
+                            ref.invalidate(requirementQuotesProvider(req.id)),
                         child: const Text('Try again'),
                       ),
                     ],
@@ -190,17 +235,21 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
                   ),
                   child: Column(
                     children: [
-                      const Icon(Icons.inbox_outlined, size: 40, color: AppColors.textMuted),
+                      const Icon(
+                        Icons.inbox_outlined,
+                        size: 40,
+                        color: AppColors.textMuted,
+                      ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         req.isOpen
                             ? (req.dealersNotified == 0
-                                ? 'We are finding dealers for this request. Quotes will appear here.'
-                                : '${req.dealersNotified} dealer${req.dealersNotified == 1 ? '' : 's'} notified. '
-                                    'Quotes usually arrive within a few hours.')
+                                  ? 'We are finding dealers for this request. Quotes will appear here.'
+                                  : '${req.dealersNotified} dealer${req.dealersNotified == 1 ? '' : 's'} notified. '
+                                        'Quotes usually arrive within a few hours.')
                             : req.isPaused
-                                ? 'This request is paused. Resume it to receive quotes.'
-                                : 'This request is closed.',
+                            ? 'This request is paused. Resume it to receive quotes.'
+                            : 'This request is closed.',
                         textAlign: TextAlign.center,
                         style: t.bodyMedium,
                       ),
@@ -217,7 +266,8 @@ class _RequirementDetailsScreenState extends ConsumerState<RequirementDetailsScr
                         onCounter: () => actions.counter(quote),
                         onReject: () => actions.reject(quote),
                         onTakeCounter: () => actions.respond(quote, 'ACCEPT'),
-                        onDeclineCounter: () => actions.respond(quote, 'DECLINE'),
+                        onDeclineCounter: () =>
+                            actions.respond(quote, 'DECLINE'),
                       ),
                   ],
                 ),
@@ -239,14 +289,15 @@ class _SummaryCard extends StatelessWidget {
     final statusColor = req.isOpen
         ? AppColors.success
         : req.isPaused
-            ? AppColors.warning
-            : AppColors.textSecondary;
+        ? AppColors.warning
+        : AppColors.textSecondary;
     final facts = <String>[
       if (req.fuelType != 'Any') req.fuelType,
       if (req.transmission != 'Any') req.transmission,
       if (req.bodyType != null) req.bodyType!,
       if (req.maxKm != null) 'Under ${PriceFormatter.formatKm(req.maxKm!)}',
-      if (req.maxOwners != null) req.maxOwners == 1 ? 'First owner' : 'Up to ${req.maxOwners} owners',
+      if (req.maxOwners != null)
+        req.maxOwners == 1 ? 'First owner' : 'Up to ${req.maxOwners} owners',
       req.urgencyLabel,
       if (req.needsFinance) 'Needs a loan',
       if (req.hasExchange) 'Exchange',
@@ -267,19 +318,29 @@ class _SummaryCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                 ),
                 child: Text(
                   req.statusLabel.toUpperCase(),
-                  style: t.labelSmall?.copyWith(color: statusColor, fontWeight: FontWeight.w800, letterSpacing: 0.6),
+                  style: t.labelSmall?.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                  ),
                 ),
               ),
               const Spacer(),
               if (expires != null && req.isEditable)
-                Text('Open until ${expires.day}/${expires.month}/${expires.year}', style: t.bodySmall),
+                Text(
+                  'Open until ${expires.day}/${expires.month}/${expires.year}',
+                  style: t.bodySmall,
+                ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -296,7 +357,10 @@ class _SummaryCard extends StatelessWidget {
             children: [
               for (final f in facts)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primarySubtle,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -307,11 +371,17 @@ class _SummaryCard extends StatelessWidget {
           ),
           if (req.mustHave.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
-            Text('Must-haves: ${req.mustHave.map((m) => m.replaceAll('_', ' ')).join(', ')}', style: t.bodySmall),
+            Text(
+              'Must-haves: ${req.mustHave.map((m) => m.replaceAll('_', ' ')).join(', ')}',
+              style: t.bodySmall,
+            ),
           ],
           if ((req.notes ?? '').isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
-            Text('"${req.notes}"', style: t.bodyMedium?.copyWith(fontStyle: FontStyle.italic)),
+            Text(
+              '"${req.notes}"',
+              style: t.bodyMedium?.copyWith(fontStyle: FontStyle.italic),
+            ),
           ],
         ],
       ),

@@ -28,11 +28,7 @@ class EmptyStateWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 72,
-              color: AppColors.icon,
-            ),
+            Icon(icon, size: 72, color: AppColors.icon),
             const SizedBox(height: 16),
             Text(
               title,

@@ -5,10 +5,7 @@ import '../../../../core/theme/app_spacing.dart';
 class MatchBadge extends StatelessWidget {
   final int percentage;
 
-  const MatchBadge({
-    super.key,
-    required this.percentage,
-  });
+  const MatchBadge({super.key, required this.percentage});
 
   @override
   Widget build(BuildContext context) {

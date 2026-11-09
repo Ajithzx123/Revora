@@ -19,7 +19,8 @@ class DealerInventoryScreen extends ConsumerWidget {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
-        heroTag: null, // several tabs each have a "+" button; a shared tag breaks navigation
+        heroTag:
+            null, // several tabs each have a "+" button; a shared tag breaks navigation
         onPressed: () => context.push('/dealer/add-car'),
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.onAccent,
@@ -28,7 +29,12 @@ class DealerInventoryScreen extends ConsumerWidget {
         label: const Text('Add vehicle'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 96),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          96,
+        ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1100),
@@ -49,7 +55,8 @@ class DealerInventoryScreen extends ConsumerWidget {
                     title: 'Could not load your cars',
                     body: apiErrorMessage(e),
                     action: OutlinedButton(
-                      onPressed: () => ref.read(inventoryProvider.notifier).refresh(),
+                      onPressed: () =>
+                          ref.read(inventoryProvider.notifier).refresh(),
                       child: const Text('Try again'),
                     ),
                   ),
@@ -57,7 +64,8 @@ class DealerInventoryScreen extends ConsumerWidget {
                       ? const _Message(
                           icon: Icons.directions_car_outlined,
                           title: 'No cars yet',
-                          body: 'Add your first car so Revora can match it to buyers.',
+                          body:
+                              'Add your first car so Revora can match it to buyers.',
                         )
                       : ResponsiveCardGrid(
                           children: [
@@ -65,22 +73,40 @@ class DealerInventoryScreen extends ConsumerWidget {
                               CarCard(
                                 imageUrl: car.imageUrl,
                                 title: car.title,
-                                priceText: '₹${(car.price / 100000).toStringAsFixed(2)} Lakh',
+                                priceText:
+                                    '₹${(car.price / 100000).toStringAsFixed(2)} Lakh',
                                 priceLabel: 'Listed',
                                 imageHeight: 140,
                                 showFavorite: false,
-                                onTap: () => context.push('/dealer/edit-car/${car.id}'),
+                                onTap: () =>
+                                    context.push('/dealer/edit-car/${car.id}'),
                                 badgeText: car.statusLabel.toUpperCase(),
-                                badgeBgColor: car.isAvailable ? AppColors.successBg : AppColors.primarySubtle,
-                                badgeTextColor: car.isAvailable ? AppColors.success : AppColors.textSecondary,
+                                badgeBgColor: car.isAvailable
+                                    ? AppColors.successBg
+                                    : AppColors.primarySubtle,
+                                badgeTextColor: car.isAvailable
+                                    ? AppColors.success
+                                    : AppColors.textSecondary,
                                 specs: [
-                                  CarSpecItem(icon: Icons.speed, label: '${(car.mileage / 1000).toStringAsFixed(0)}k km'),
-                                  CarSpecItem(icon: Icons.local_gas_station_outlined, label: car.fuelType),
+                                  CarSpecItem(
+                                    icon: Icons.speed,
+                                    label:
+                                        '${(car.mileage / 1000).toStringAsFixed(0)}k km',
+                                  ),
+                                  CarSpecItem(
+                                    icon: Icons.local_gas_station_outlined,
+                                    label: car.fuelType,
+                                  ),
                                   if (car.images.length > 1)
-                                    CarSpecItem(icon: Icons.photo_library_outlined, label: '${car.images.length} photos'),
+                                    CarSpecItem(
+                                      icon: Icons.photo_library_outlined,
+                                      label: '${car.images.length} photos',
+                                    ),
                                 ],
                                 primaryAction: OutlinedButton(
-                                  onPressed: () => context.push('/dealer/edit-car/${car.id}'),
+                                  onPressed: () => context.push(
+                                    '/dealer/edit-car/${car.id}',
+                                  ),
                                   child: const Text('Edit'),
                                 ),
                               ),
@@ -101,7 +127,12 @@ class _Message extends StatelessWidget {
   final String title;
   final String body;
   final Widget? action;
-  const _Message({required this.icon, required this.title, required this.body, this.action});
+  const _Message({
+    required this.icon,
+    required this.title,
+    required this.body,
+    this.action,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +152,10 @@ class _Message extends StatelessWidget {
           Text(title, style: t.titleMedium),
           const SizedBox(height: AppSpacing.xs),
           Text(body, textAlign: TextAlign.center, style: t.bodySmall),
-          if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
+          if (action != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            action!,
+          ],
         ],
       ),
     );

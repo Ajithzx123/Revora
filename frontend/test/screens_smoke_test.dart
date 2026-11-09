@@ -57,7 +57,8 @@ void main() {
     'customer sell': () => const CustomerSellScreen(),
     'customer activity': () => const CustomerActivityScreen(),
     'customer profile': () => const CustomerProfileScreen(),
-    'request details': () => const RequirementDetailsScreen(requirementId: 'REQ-101'),
+    'request details': () =>
+        const RequirementDetailsScreen(requirementId: 'REQ-101'),
     'post request': () => const PostBuyRequirementScreen(),
     'dealer shell': () => const DealerShell(),
     'dealer home': () => const DealerHomeScreen(),
@@ -77,24 +78,30 @@ void main() {
 
   for (final screen in screens.entries) {
     for (final size in sizes.entries) {
-      testWidgets('${screen.key} renders without layout errors on ${size.key}', (tester) async {
+      testWidgets('${screen.key} renders without layout errors on ${size.key}', (
+        tester,
+      ) async {
         tester.view.physicalSize = size.value;
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.reset);
 
-        await tester.pumpWidget(ProviderScope(
-          child: MaterialApp(
-            theme: AppTheme.light,
-            // Tests draw every letter as a full-width square (the "Ahem" font), so text is
-            // about twice as wide as in the real app. Scale it down to real-font widths so
-            // only genuine layout mistakes fail, not that artefact.
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(0.55)),
-              child: child!,
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              theme: AppTheme.light,
+              // Tests draw every letter as a full-width square (the "Ahem" font), so text is
+              // about twice as wide as in the real app. Scale it down to real-font widths so
+              // only genuine layout mistakes fail, not that artefact.
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: const TextScaler.linear(0.55)),
+                child: child!,
+              ),
+              home: screen.value(),
             ),
-            home: screen.value(),
           ),
-        ));
+        );
         // Let futures resolve and entrance animations play without waiting on
         // endless spinners.
         for (var i = 0; i < 6; i++) {
@@ -116,22 +123,30 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(0.55)),
-            child: child!,
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: AppTheme.light,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(0.55)),
+              child: child!,
+            ),
+            home: shell.value(),
           ),
-          home: shell.value(),
         ),
-      ));
+      );
       for (var i = 0; i < 4; i++) {
         await tester.pump(const Duration(milliseconds: 300));
       }
 
-      tester.state<NavigatorState>(find.byType(Navigator)).push(
-            MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('next screen'))),
+      tester
+          .state<NavigatorState>(find.byType(Navigator))
+          .push(
+            MaterialPageRoute<void>(
+              builder: (_) => const Scaffold(body: Text('next screen')),
+            ),
           );
       await tester.pumpAndSettle();
 

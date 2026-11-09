@@ -76,16 +76,23 @@ class Vehicle {
   }
 
   /// [resolveUrl] turns the API's relative photo path into an absolute URL.
-  factory Vehicle.fromJson(Map<String, dynamic> j, String Function(String) resolveUrl) {
+  factory Vehicle.fromJson(
+    Map<String, dynamic> j,
+    String Function(String) resolveUrl,
+  ) {
     final images = [
       for (final m in (j['images'] as List? ?? const []))
-        VehicleImage(id: (m as Map)['id'] as String, url: resolveUrl(m['url'] as String)),
+        VehicleImage(
+          id: (m as Map)['id'] as String,
+          url: resolveUrl(m['url'] as String),
+        ),
     ];
     final year = j['year'] as int;
     final variant = j['variant'] as String?;
     return Vehicle(
       id: j['id'] as String,
-      title: '$year ${j['make']} ${j['model']}${variant == null || variant.isEmpty ? '' : ' $variant'}',
+      title:
+          '$year ${j['make']} ${j['model']}${variant == null || variant.isEmpty ? '' : ' $variant'}',
       make: j['make'] as String,
       model: j['model'] as String,
       year: year,

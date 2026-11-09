@@ -8,7 +8,8 @@ class SupabaseService {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
-  SupabaseClient? get client => _isInitialized ? Supabase.instance.client : null;
+  SupabaseClient? get client =>
+      _isInitialized ? Supabase.instance.client : null;
 
   /// Initializes Supabase. If credentials are empty or placeholder, it degrades gracefully
   /// so the app can continue operating in local/mock mode.
@@ -16,8 +17,12 @@ class SupabaseService {
     required String supabaseUrl,
     required String anonKey,
   }) async {
-    if (supabaseUrl.isEmpty || anonKey.isEmpty || supabaseUrl.contains('YOUR_')) {
-      debugPrint('[SupabaseService] Credentials not provided or placeholder. Running in local/mock mode.');
+    if (supabaseUrl.isEmpty ||
+        anonKey.isEmpty ||
+        supabaseUrl.contains('YOUR_')) {
+      debugPrint(
+        '[SupabaseService] Credentials not provided or placeholder. Running in local/mock mode.',
+      );
       _isInitialized = false;
       return;
     }

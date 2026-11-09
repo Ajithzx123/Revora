@@ -12,7 +12,8 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = SupabaseService.instance.client?.auth.currentSession?.accessToken;
+    final token =
+        SupabaseService.instance.client?.auth.currentSession?.accessToken;
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -20,7 +21,10 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final request = err.requestOptions;
     final client = SupabaseService.instance.client;
     if (err.response?.statusCode == 401 &&

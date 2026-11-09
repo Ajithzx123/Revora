@@ -15,6 +15,8 @@ class DealerKPI {
     required this.carsSold,
   });
 
-  String get formattedRevenue => '₹${(monthlyRevenue / 100000).toStringAsFixed(1)}L';
-  double get conversionRate => quotesSent > 0 ? (quotesAccepted / quotesSent) * 100 : 0.0;
+  String get formattedRevenue =>
+      '₹${(monthlyRevenue / 100000).toStringAsFixed(1)}L';
+  double get conversionRate =>
+      quotesSent > 0 ? (quotesAccepted / quotesSent) * 100 : 0.0;
 }

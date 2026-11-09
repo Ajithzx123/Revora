@@ -28,7 +28,7 @@ class OfferCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final difference = offerPrice - askingPrice;
     final isPositive = difference >= 0;
-    
+
     return CustomCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -40,7 +40,10 @@ class OfferCard extends StatelessWidget {
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 child: Text(
                   dealerName.substring(0, 1).toUpperCase(),
-                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -52,21 +55,28 @@ class OfferCard extends StatelessWidget {
                       children: [
                         Text(
                           dealerName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (isVerified) ...[
                           const SizedBox(width: 4),
-                          const Icon(Icons.verified, color: AppColors.success, size: 16),
+                          const Icon(
+                            Icons.verified,
+                            color: AppColors.success,
+                            size: 16,
+                          ),
                         ],
                       ],
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.star, color: AppColors.accent, size: 14),
+                        const Icon(
+                          Icons.star,
+                          color: AppColors.accent,
+                          size: 14,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           dealerRating.toStringAsFixed(1),
@@ -83,15 +93,15 @@ class OfferCard extends StatelessWidget {
                   Text(
                     PriceFormatter.formatINR(offerPrice),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: isPositive ? AppColors.success : AppColors.error,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: isPositive ? AppColors.success : AppColors.error,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     '${isPositive ? '+' : ''}${PriceFormatter.formatINR(difference)}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isPositive ? AppColors.success : AppColors.error,
-                        ),
+                      color: isPositive ? AppColors.success : AppColors.error,
+                    ),
                   ),
                 ],
               ),

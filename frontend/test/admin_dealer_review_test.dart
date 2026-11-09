@@ -24,13 +24,25 @@ void main() {
       expect((await repo.detail('d1')).status, DealerStatus.approved);
     });
 
-    test('rejecting a document needs a note; invalid moves are refused', () async {
-      final repo = MockAdminDealerReviewRepository();
-      final doc = (await repo.detail('d1')).documents.first;
-      await expectLater(repo.reviewDocument('d1', doc.id, accept: false), throwsException);
-      await expectLater(repo.suspend('d1', 'x'), throwsException); // pending -> suspended
-      await expectLater(repo.reactivate('d3'), throwsException); // approved -> approved
-    });
+    test(
+      'rejecting a document needs a note; invalid moves are refused',
+      () async {
+        final repo = MockAdminDealerReviewRepository();
+        final doc = (await repo.detail('d1')).documents.first;
+        await expectLater(
+          repo.reviewDocument('d1', doc.id, accept: false),
+          throwsException,
+        );
+        await expectLater(
+          repo.suspend('d1', 'x'),
+          throwsException,
+        ); // pending -> suspended
+        await expectLater(
+          repo.reactivate('d3'),
+          throwsException,
+        ); // approved -> approved
+      },
+    );
 
     test('list filters by status', () async {
       final repo = MockAdminDealerReviewRepository();
@@ -44,23 +56,31 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        adminDealerReviewRepositoryProvider.overrideWithValue(MockAdminDealerReviewRepository()),
-      ],
-      child: const MaterialApp(home: AdminDealerVerificationScreen()),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          adminDealerReviewRepositoryProvider.overrideWithValue(
+            MockAdminDealerReviewRepository(),
+          ),
+        ],
+        child: const MaterialApp(home: AdminDealerVerificationScreen()),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Apex Motor Corp'), findsOneWidget);
     expect(find.text('Sunrise Cars'), findsOneWidget);
-    expect(find.text('City Wheels'), findsNothing); // approved, hidden by the Pending filter
+    expect(
+      find.text('City Wheels'),
+      findsNothing,
+    ); // approved, hidden by the Pending filter
 
     await tester.tap(find.text('Apex Motor Corp'));
     await tester.pumpAndSettle();
 
-    FilledButton approve() =>
-        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Approve dealer'));
+    FilledButton approve() => tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Approve dealer'),
+    );
     expect(approve().onPressed, isNull);
 
     for (var i = 0; i < 3; i++) {
@@ -73,6 +93,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Approved'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, 'Suspend dealer'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Suspend dealer'),
+      findsOneWidget,
+    );
   });
 }

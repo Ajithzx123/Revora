@@ -9,10 +9,7 @@ import '../providers/dealer_providers.dart';
 class MakeOfferScreen extends ConsumerStatefulWidget {
   final String listingId;
 
-  const MakeOfferScreen({
-    super.key,
-    required this.listingId,
-  });
+  const MakeOfferScreen({super.key, required this.listingId});
 
   @override
   ConsumerState<MakeOfferScreen> createState() => _MakeOfferScreenState();
@@ -49,9 +46,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Make Purchase Offer'),
-      ),
+      appBar: AppBar(title: const Text('Make Purchase Offer')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
@@ -72,8 +67,9 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
                         child: Image.network(
                           lead.imageUrl,
                           width: 90,
@@ -83,8 +79,10 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                             width: 90,
                             height: 65,
                             color: AppColors.primarySubtle,
-                            child: const Icon(Icons.directions_car,
-                                color: AppColors.icon),
+                            child: const Icon(
+                              Icons.directions_car,
+                              color: AppColors.icon,
+                            ),
                           ),
                         ),
                       ),
@@ -95,9 +93,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                           children: [
                             Text(
                               '${lead.year} ${lead.make} ${lead.model}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
@@ -152,8 +148,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content:
-                        Text('Purchase offer submitted successfully!'),
+                    content: Text('Purchase offer submitted successfully!'),
                     backgroundColor: AppColors.success,
                   ),
                 );

@@ -25,7 +25,8 @@ class CustomerActivityScreen extends ConsumerWidget {
               children: [
                 const SectionHeader(
                   title: 'Activity & Notifications',
-                  subtitle: 'Real-time updates on your requirements, quotes, and dealer offers',
+                  subtitle:
+                      'Real-time updates on your requirements, quotes, and dealer offers',
                 ),
                 Container(
                   decoration: BoxDecoration(

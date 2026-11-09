@@ -30,12 +30,14 @@ abstract class DealerOnboardingRepository {
   Future<DealerApplication> setSourcingMakes(List<String> makes);
 }
 
-final dealerOnboardingRepositoryProvider = Provider<DealerOnboardingRepository>((ref) {
-  if (AppConfig.instance.useMockData) {
-    return MockDealerOnboardingRepository();
-  }
-  return ApiDealerOnboardingRepository(ref.watch(dioProvider));
-});
+final dealerOnboardingRepositoryProvider = Provider<DealerOnboardingRepository>(
+  (ref) {
+    if (AppConfig.instance.useMockData) {
+      return MockDealerOnboardingRepository();
+    }
+    return ApiDealerOnboardingRepository(ref.watch(dioProvider));
+  },
+);
 
 class ApiDealerOnboardingRepository implements DealerOnboardingRepository {
   final Dio _dio;
@@ -45,7 +47,8 @@ class ApiDealerOnboardingRepository implements DealerOnboardingRepository {
       DealerApplication.fromJson(res.data as Map<String, dynamic>);
 
   @override
-  Future<DealerApplication> fetch() async => _parse(await _dio.get('/dealers/me'));
+  Future<DealerApplication> fetch() async =>
+      _parse(await _dio.get('/dealers/me'));
 
   @override
   Future<DealerApplication> updateDetails({
@@ -54,12 +57,17 @@ class ApiDealerOnboardingRepository implements DealerOnboardingRepository {
     String? address,
     String? city,
   }) async {
-    return _parse(await _dio.patch('/dealers/me', data: {
-      'business_name': ?businessName,
-      'gstin': ?gstin,
-      'address': ?address,
-      'city': ?city,
-    }));
+    return _parse(
+      await _dio.patch(
+        '/dealers/me',
+        data: {
+          'business_name': ?businessName,
+          'gstin': ?gstin,
+          'address': ?address,
+          'city': ?city,
+        },
+      ),
+    );
   }
 
   @override
@@ -87,7 +95,8 @@ class ApiDealerOnboardingRepository implements DealerOnboardingRepository {
   }
 
   @override
-  Future<DealerApplication> submit() async => _parse(await _dio.post('/dealers/me/submit'));
+  Future<DealerApplication> submit() async =>
+      _parse(await _dio.post('/dealers/me/submit'));
 
   @override
   Future<DealerApplication> setSourcingMakes(List<String> makes) async =>

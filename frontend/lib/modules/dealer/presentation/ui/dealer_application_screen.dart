@@ -15,10 +15,12 @@ class DealerApplicationScreen extends ConsumerStatefulWidget {
   const DealerApplicationScreen({super.key});
 
   @override
-  ConsumerState<DealerApplicationScreen> createState() => _DealerApplicationScreenState();
+  ConsumerState<DealerApplicationScreen> createState() =>
+      _DealerApplicationScreenState();
 }
 
-class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScreen> {
+class _DealerApplicationScreenState
+    extends ConsumerState<DealerApplicationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _business = TextEditingController();
   final _gstin = TextEditingController();
@@ -61,16 +63,20 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
   void _toast(String message, {bool error = false}) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(message),
-        backgroundColor: error ? AppColors.error : null,
-      ));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: error ? AppColors.error : null,
+        ),
+      );
   }
 
   Future<void> _saveDetails() async {
     if (!_formKey.currentState!.validate()) return;
     await _run(
-      () => ref.read(dealerApplicationProvider.notifier).saveDetails(
+      () => ref
+          .read(dealerApplicationProvider.notifier)
+          .saveDetails(
             businessName: _business.text.trim(),
             gstin: _gstin.text.trim(),
             address: _address.text.trim(),
@@ -89,7 +95,9 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
     if (picked == null) return;
     final bytes = await picked.readAsBytes();
     await _run(
-      () => ref.read(dealerApplicationProvider.notifier).upload(type, picked.name, bytes),
+      () => ref
+          .read(dealerApplicationProvider.notifier)
+          .upload(type, picked.name, bytes),
       success: '${type.label} uploaded',
     );
   }
@@ -103,8 +111,14 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
           'You will not be able to edit your details or documents while we review them.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Not yet')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Submit')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Not yet'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Submit'),
+          ),
         ],
       ),
     );
@@ -137,7 +151,8 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
           IconButton(
             tooltip: 'Sign out',
             icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+            onPressed: () =>
+                ref.read(authControllerProvider.notifier).signOut(),
           ),
         ],
       ),
@@ -149,11 +164,22 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.cloud_off_outlined, size: 48, color: AppColors.textMuted),
+                const Icon(
+                  Icons.cloud_off_outlined,
+                  size: 48,
+                  color: AppColors.textMuted,
+                ),
                 const SizedBox(height: AppSpacing.md),
-                Text(apiErrorMessage(e), textAlign: TextAlign.center, style: AppTextStyles.bodyMedium),
+                Text(
+                  apiErrorMessage(e),
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium,
+                ),
                 const SizedBox(height: AppSpacing.lg),
-                OutlinedButton(onPressed: _refresh, child: const Text('Try again')),
+                OutlinedButton(
+                  onPressed: _refresh,
+                  child: const Text('Try again'),
+                ),
               ],
             ),
           ),
@@ -179,12 +205,19 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
                         const SizedBox(height: AppSpacing.xxl),
                         if (data.editable)
                           FilledButton(
-                            onPressed: (data.canSubmit && !_busy) ? _submit : null,
-                            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                            onPressed: (data.canSubmit && !_busy)
+                                ? _submit
+                                : null,
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                            ),
                             child: _busy
                                 ? const SizedBox(
-                                    height: 20, width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text('Submit for review'),
                           ),
@@ -241,7 +274,9 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
               enabled: enabled,
               textInputAction: TextInputAction.next,
               decoration: const InputDecoration(labelText: 'Business name'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your business name' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Enter your business name'
+                  : null,
             ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
@@ -249,7 +284,8 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
               enabled: enabled,
               textInputAction: TextInputAction.next,
               decoration: const InputDecoration(labelText: 'City'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your city' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Enter your city' : null,
             ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
@@ -258,7 +294,9 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
               minLines: 2,
               maxLines: 3,
               decoration: const InputDecoration(labelText: 'Showroom address'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your showroom address' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Enter your showroom address'
+                  : null,
             ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
@@ -302,7 +340,9 @@ class _DealerApplicationScreenState extends ConsumerState<DealerApplicationScree
               document: app.documentOf(type),
               editable: app.editable && !_busy,
               onUpload: () => _pickAndUpload(type),
-              onRemove: (id) => _run(() => ref.read(dealerApplicationProvider.notifier).remove(id)),
+              onRemove: (id) => _run(
+                () => ref.read(dealerApplicationProvider.notifier).remove(id),
+              ),
             ),
         ],
       ),
@@ -316,37 +356,56 @@ class _StatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (IconData icon, Color fg, Color bg, String title, String body) = switch (app.status) {
+    final (
+      IconData icon,
+      Color fg,
+      Color bg,
+      String title,
+      String body,
+    ) = switch (app.status) {
       DealerStatus.draft => (
-          Icons.edit_note, AppColors.info, AppColors.infoBg,
-          'Complete your application',
-          'Add your business details and documents, then submit for review.',
-        ),
+        Icons.edit_note,
+        AppColors.info,
+        AppColors.infoBg,
+        'Complete your application',
+        'Add your business details and documents, then submit for review.',
+      ),
       DealerStatus.pending => (
-          Icons.hourglass_top, AppColors.warning, AppColors.warningBg,
-          'Under review',
-          'Our team is checking your documents. This usually takes 1–2 working days.',
-        ),
+        Icons.hourglass_top,
+        AppColors.warning,
+        AppColors.warningBg,
+        'Under review',
+        'Our team is checking your documents. This usually takes 1–2 working days.',
+      ),
       DealerStatus.needsChanges => (
-          Icons.report_problem_outlined, AppColors.warning, AppColors.warningBg,
-          'Changes needed',
-          app.statusReason ?? 'Please update your application and submit it again.',
-        ),
+        Icons.report_problem_outlined,
+        AppColors.warning,
+        AppColors.warningBg,
+        'Changes needed',
+        app.statusReason ??
+            'Please update your application and submit it again.',
+      ),
       DealerStatus.rejected => (
-          Icons.cancel_outlined, AppColors.error, AppColors.errorBg,
-          'Application not approved',
-          app.statusReason ?? 'Contact support if you think this is a mistake.',
-        ),
+        Icons.cancel_outlined,
+        AppColors.error,
+        AppColors.errorBg,
+        'Application not approved',
+        app.statusReason ?? 'Contact support if you think this is a mistake.',
+      ),
       DealerStatus.suspended => (
-          Icons.block, AppColors.error, AppColors.errorBg,
-          'Account suspended',
-          app.statusReason ?? 'Contact support for details.',
-        ),
+        Icons.block,
+        AppColors.error,
+        AppColors.errorBg,
+        'Account suspended',
+        app.statusReason ?? 'Contact support for details.',
+      ),
       DealerStatus.approved => (
-          Icons.verified_outlined, AppColors.success, AppColors.successBg,
-          'Approved',
-          'Your dealership is verified.',
-        ),
+        Icons.verified_outlined,
+        AppColors.success,
+        AppColors.successBg,
+        'Approved',
+        'Your dealership is verified.',
+      ),
     };
     return Semantics(
       container: true,
@@ -366,7 +425,10 @@ class _StatusBanner extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTextStyles.labelLarge.copyWith(color: fg)),
+                  Text(
+                    title,
+                    style: AppTextStyles.labelLarge.copyWith(color: fg),
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(body, style: AppTextStyles.bodyMedium),
                 ],
@@ -398,7 +460,10 @@ class _DocumentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final doc = document;
     final (String label, Color color) = switch (doc?.status) {
-      null => (type.required ? 'Required' : 'Optional', AppColors.textSecondary),
+      null => (
+        type.required ? 'Required' : 'Optional',
+        AppColors.textSecondary,
+      ),
       DocumentStatus.pending => ('Uploaded · awaiting review', AppColors.info),
       DocumentStatus.accepted => ('Accepted', AppColors.success),
       DocumentStatus.rejected => ('Rejected', AppColors.error),
@@ -419,19 +484,35 @@ class _DocumentRow extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      doc == null ? Icons.circle_outlined
-                          : doc.status == DocumentStatus.accepted ? Icons.check_circle
-                          : doc.status == DocumentStatus.rejected ? Icons.error : Icons.schedule,
-                      size: 16, color: color,
+                      doc == null
+                          ? Icons.circle_outlined
+                          : doc.status == DocumentStatus.accepted
+                          ? Icons.check_circle
+                          : doc.status == DocumentStatus.rejected
+                          ? Icons.error
+                          : Icons.schedule,
+                      size: 16,
+                      color: color,
                     ),
                     const SizedBox(width: 6),
-                    Flexible(child: Text(label, style: AppTextStyles.bodySmall.copyWith(color: color))),
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: AppTextStyles.bodySmall.copyWith(color: color),
+                      ),
+                    ),
                   ],
                 ),
-                if (doc?.status == DocumentStatus.rejected && doc?.reviewNote != null)
+                if (doc?.status == DocumentStatus.rejected &&
+                    doc?.reviewNote != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: Text(doc!.reviewNote!, style: AppTextStyles.bodySmall.copyWith(color: AppColors.error)),
+                    child: Text(
+                      doc!.reviewNote!,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.error,
+                      ),
+                    ),
                   ),
               ],
             ),

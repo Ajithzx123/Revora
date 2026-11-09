@@ -31,8 +31,16 @@ void main() {
       await expectLater(repo.submit(), throwsException);
 
       app = await repo.updateDetails(address: '12 MG Road');
-      for (final t in [DocumentType.ownerId, DocumentType.businessProof, DocumentType.addressProof]) {
-        app = await repo.uploadDocument(t, fileName: 'a.jpg', bytes: Uint8List(4));
+      for (final t in [
+        DocumentType.ownerId,
+        DocumentType.businessProof,
+        DocumentType.addressProof,
+      ]) {
+        app = await repo.uploadDocument(
+          t,
+          fileName: 'a.jpg',
+          bytes: Uint8List(4),
+        );
       }
       expect(app.canSubmit, isTrue);
 
@@ -44,8 +52,16 @@ void main() {
 
     test('a newer upload replaces the older one of the same type', () async {
       final repo = MockDealerOnboardingRepository();
-      await repo.uploadDocument(DocumentType.ownerId, fileName: 'one.jpg', bytes: Uint8List(1));
-      final app = await repo.uploadDocument(DocumentType.ownerId, fileName: 'two.jpg', bytes: Uint8List(1));
+      await repo.uploadDocument(
+        DocumentType.ownerId,
+        fileName: 'one.jpg',
+        bytes: Uint8List(1),
+      );
+      final app = await repo.uploadDocument(
+        DocumentType.ownerId,
+        fileName: 'two.jpg',
+        bytes: Uint8List(1),
+      );
       expect(app.documents.map((d) => d.originalName), ['two.jpg']);
     });
   });
@@ -59,14 +75,23 @@ void main() {
         'status': 'NEEDS_CHANGES',
         'status_reason': 'Blurry ID',
         'documents': [
-          {'id': 'd1', 'doc_type': 'OWNER_ID', 'original_name': 'id.jpg', 'status': 'REJECTED', 'review_note': 'Unreadable'},
+          {
+            'id': 'd1',
+            'doc_type': 'OWNER_ID',
+            'original_name': 'id.jpg',
+            'status': 'REJECTED',
+            'review_note': 'Unreadable',
+          },
         ],
         'missing_documents': ['ADDRESS_PROOF'],
         'can_submit': false,
         'editable': true,
       });
       expect(app.status, DealerStatus.needsChanges);
-      expect(app.documentOf(DocumentType.ownerId)?.status, DocumentStatus.rejected);
+      expect(
+        app.documentOf(DocumentType.ownerId)?.status,
+        DocumentStatus.rejected,
+      );
       expect(app.documentOf(DocumentType.ownerId)?.reviewNote, 'Unreadable');
       expect(app.missingDocuments, ['ADDRESS_PROOF']);
     });
@@ -77,26 +102,43 @@ void main() {
     });
   });
 
-  testWidgets('screen guides the dealer from draft to submitted', (tester) async {
+  testWidgets('screen guides the dealer from draft to submitted', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1200, 2600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
     final repo = MockDealerOnboardingRepository();
-    await tester.pumpWidget(ProviderScope(
-      overrides: [dealerOnboardingRepositoryProvider.overrideWithValue(repo)],
-      child: const MaterialApp(home: DealerApplicationScreen()),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [dealerOnboardingRepositoryProvider.overrideWithValue(repo)],
+        child: const MaterialApp(home: DealerApplicationScreen()),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Complete your application'), findsOneWidget);
-    FilledButton submit() => tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Submit for review'));
+    FilledButton submit() => tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Submit for review'),
+    );
     expect(submit().onPressed, isNull);
 
-    final container = ProviderScope.containerOf(tester.element(find.byType(DealerApplicationScreen)));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DealerApplicationScreen)),
+    );
     final notifier = container.read(dealerApplicationProvider.notifier);
-    await notifier.saveDetails(businessName: 'Demo Motors', gstin: '', address: '12 MG Road', city: 'Bengaluru');
-    for (final t in [DocumentType.ownerId, DocumentType.businessProof, DocumentType.addressProof]) {
+    await notifier.saveDetails(
+      businessName: 'Demo Motors',
+      gstin: '',
+      address: '12 MG Road',
+      city: 'Bengaluru',
+    );
+    for (final t in [
+      DocumentType.ownerId,
+      DocumentType.businessProof,
+      DocumentType.addressProof,
+    ]) {
       await notifier.upload(t, 'a.jpg', Uint8List(4));
     }
     await tester.pumpAndSettle();
@@ -108,6 +150,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Under review'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Submit for review'), findsNothing);
+    expect(
+      find.widgetWithText(FilledButton, 'Submit for review'),
+      findsNothing,
+    );
   });
 }

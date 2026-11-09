@@ -84,10 +84,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -104,7 +101,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/customer/edit-requirement/:id',
-        builder: (context, state) => _EditRequirementRoute(id: state.pathParameters['id']!),
+        builder: (context, state) =>
+            _EditRequirementRoute(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/customer/post-sell',
@@ -157,7 +155,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/dealer/edit-car/:id',
-        builder: (context, state) => _EditVehicleRoute(id: state.pathParameters['id']!),
+        builder: (context, state) =>
+            _EditVehicleRoute(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/dealer/add-car',
@@ -193,7 +192,9 @@ class _DealerGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(authControllerProvider.select((s) => s.user?.dealerStatus));
+    final status = ref.watch(
+      authControllerProvider.select((s) => s.user?.dealerStatus),
+    );
     if (status == null || status == 'APPROVED') return const DealerShell();
     return const DealerApplicationScreen();
   }
@@ -208,12 +209,19 @@ class _EditRequirementRoute extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final requirements = ref.watch(requirementsProvider);
     return requirements.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(appBar: AppBar(), body: Center(child: Text(apiErrorMessage(e)))),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text(apiErrorMessage(e))),
+      ),
       data: (items) {
         final match = items.where((r) => r.id == id);
         if (match.isEmpty) {
-          return Scaffold(appBar: AppBar(), body: const Center(child: Text('This request no longer exists.')));
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('This request no longer exists.')),
+          );
         }
         return PostBuyRequirementScreen(existing: match.first);
       },
@@ -230,12 +238,19 @@ class _EditVehicleRoute extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final inventory = ref.watch(inventoryProvider);
     return inventory.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(appBar: AppBar(), body: Center(child: Text(apiErrorMessage(e)))),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text(apiErrorMessage(e))),
+      ),
       data: (items) {
         final match = items.where((v) => v.id == id);
         if (match.isEmpty) {
-          return Scaffold(appBar: AppBar(), body: const Center(child: Text('This car no longer exists.')));
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('This car no longer exists.')),
+          );
         }
         return AddCarToInventoryScreen(existing: match.first);
       },

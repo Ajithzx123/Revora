@@ -18,7 +18,8 @@ class CustomerSellScreen extends ConsumerWidget {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
-        heroTag: null, // several tabs each have a "+" button; a shared tag breaks navigation
+        heroTag:
+            null, // several tabs each have a "+" button; a shared tag breaks navigation
         onPressed: () => context.push('/customer/post-sell'),
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.onAccent,
@@ -27,7 +28,12 @@ class CustomerSellScreen extends ConsumerWidget {
         label: const Text('Sell a car'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 96),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          96,
+        ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1100),
@@ -51,7 +57,11 @@ class CustomerSellScreen extends ConsumerWidget {
                     ),
                     child: Column(
                       children: [
-                        const Icon(Icons.directions_car_outlined, size: 44, color: AppColors.textMuted),
+                        const Icon(
+                          Icons.directions_car_outlined,
+                          size: 44,
+                          color: AppColors.textMuted,
+                        ),
                         const SizedBox(height: AppSpacing.md),
                         Text('No cars listed yet', style: t.titleMedium),
                         const SizedBox(height: AppSpacing.xs),
@@ -69,7 +79,8 @@ class CustomerSellScreen extends ConsumerWidget {
                       for (final post in sellPosts)
                         CustomerSellPostCard(
                           post: post,
-                          onViewOffers: () => context.push('/customer/listing/${post.id}'),
+                          onViewOffers: () =>
+                              context.push('/customer/listing/${post.id}'),
                         ),
                     ],
                   ),
@@ -101,57 +112,71 @@ class _HowItWorks extends StatelessWidget {
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
       ),
-      child: LayoutBuilder(builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 640;
-        final tiles = [
-          for (var i = 0; i < _steps.length; i++)
-            Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 640;
+          final tiles = [
+            for (var i = 0; i < _steps.length; i++)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: const BoxDecoration(
+                      color: AppColors.accent,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${i + 1}',
+                      style: t.labelLarge?.copyWith(color: AppColors.onAccent),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _steps[i].$1,
+                          style: t.titleSmall?.copyWith(color: Colors.white),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _steps[i].$2,
+                          style: t.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.72),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+          ];
+          if (wide) {
+            return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
-                  alignment: Alignment.center,
-                  child: Text('${i + 1}', style: t.labelLarge?.copyWith(color: AppColors.onAccent)),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_steps[i].$1, style: t.titleSmall?.copyWith(color: Colors.white)),
-                      const SizedBox(height: 2),
-                      Text(
-                        _steps[i].$2,
-                        style: t.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.72)),
-                      ),
-                    ],
-                  ),
-                ),
+                for (var i = 0; i < tiles.length; i++) ...[
+                  Expanded(child: tiles[i]),
+                  if (i < tiles.length - 1)
+                    const SizedBox(width: AppSpacing.xl),
+                ],
               ],
-            ),
-        ];
-        if (wide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            );
+          }
+          return Column(
             children: [
               for (var i = 0; i < tiles.length; i++) ...[
-                Expanded(child: tiles[i]),
-                if (i < tiles.length - 1) const SizedBox(width: AppSpacing.xl),
+                tiles[i],
+                if (i < tiles.length - 1) const SizedBox(height: AppSpacing.lg),
               ],
             ],
           );
-        }
-        return Column(
-          children: [
-            for (var i = 0; i < tiles.length; i++) ...[
-              tiles[i],
-              if (i < tiles.length - 1) const SizedBox(height: AppSpacing.lg),
-            ],
-          ],
-        );
-      }),
+        },
+      ),
     );
   }
 }

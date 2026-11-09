@@ -23,9 +23,7 @@ class SellLeadsTab extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sell Leads (Cars for Sale)'),
-      ),
+      appBar: AppBar(title: const Text('Sell Leads (Cars for Sale)')),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: sellLeads.length,
@@ -43,14 +41,14 @@ class SellLeadsTab extends StatelessWidget {
                     Text(
                       lead['location'] as String,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     Text(
                       lead['time'] as String,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -58,8 +56,8 @@ class SellLeadsTab extends StatelessWidget {
                 Text(
                   lead['title'] as String,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -70,9 +68,9 @@ class SellLeadsTab extends StatelessWidget {
                 Text(
                   'Asking Price: ${PriceFormatter.formatINR(lead['askingPrice'] as num)}',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomButton(

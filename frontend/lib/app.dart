@@ -14,7 +14,8 @@ class RevoraApp extends ConsumerWidget {
       title: 'Revora',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light, // light-first; dark follows once screens stop hard-coding colours
+      themeMode: ThemeMode
+          .light, // light-first; dark follows once screens stop hard-coding colours
       routerConfig: router,
     );
   }

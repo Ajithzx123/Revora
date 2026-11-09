@@ -40,9 +40,7 @@ class AppSidebar extends StatelessWidget {
       width: 250,
       decoration: const BoxDecoration(
         color: AppColors.primary,
-        border: Border(
-          right: BorderSide(color: Color(0xFF1E293B), width: 1),
-        ),
+        border: Border(right: BorderSide(color: Color(0xFF1E293B), width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,8 +94,9 @@ class AppSidebar extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.accent.withValues(alpha: 0.2),
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusPill),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusPill,
+                        ),
                       ),
                       child: Text(
                         roleBadge.toUpperCase(),
@@ -141,8 +140,9 @@ class AppSidebar extends StatelessWidget {
                         color: isSelected
                             ? AppColors.accent.withValues(alpha: 0.15)
                             : Colors.transparent,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
                         border: isSelected
                             ? const Border(
                                 left: BorderSide(
@@ -189,7 +189,8 @@ class AppSidebar extends StatelessWidget {
                                     ? AppColors.accent
                                     : const Color(0xFF334155),
                                 borderRadius: BorderRadius.circular(
-                                    AppSpacing.radiusPill),
+                                  AppSpacing.radiusPill,
+                                ),
                               ),
                               child: Text(
                                 '${item.badgeCount}',

@@ -73,7 +73,8 @@ class AdminMockData {
       transmission: 'Automatic',
       mileage: 28400,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
       dealerName: 'Apex Motor Corp',
       isVerified: true,
       status: 'active',
@@ -89,7 +90,8 @@ class AdminMockData {
       transmission: 'Automatic',
       mileage: 21000,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
       dealerName: 'Royal City Motors',
       isVerified: true,
       status: 'active',
@@ -105,7 +107,8 @@ class AdminMockData {
       transmission: 'Automatic',
       mileage: 36000,
       city: 'Thane',
-      imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
       dealerName: 'Autoverse Prime',
       isVerified: true,
       status: 'active',
@@ -132,7 +135,8 @@ class AdminMockData {
     AdminActivity(
       id: 'AA-3',
       title: 'Dealer flagged for policy review',
-      subtitle: 'Metro Motors received 2 customer disputes regarding vehicle history',
+      subtitle:
+          'Metro Motors received 2 customer disputes regarding vehicle history',
       time: '1d ago',
       type: 'flagged',
       timestamp: DateTime.now().subtract(const Duration(days: 1)),

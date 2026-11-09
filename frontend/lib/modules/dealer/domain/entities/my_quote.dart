@@ -22,12 +22,12 @@ class MyQuote {
   });
 
   factory MyQuote.fromJson(Map<String, dynamic> j) => MyQuote(
-        quote: Quote.fromJson(j),
-        requestTitle: (j['request_title'] as String?) ?? '',
-        requestCity: (j['request_city'] as String?) ?? '',
-        requestStatus: (j['request_status'] as String?) ?? '',
-        buyerFirstName: (j['buyer_first_name'] as String?) ?? 'Buyer',
-        buyerName: j['buyer_name'] as String?,
-        buyerPhone: j['buyer_phone'] as String?,
-      );
+    quote: Quote.fromJson(j),
+    requestTitle: (j['request_title'] as String?) ?? '',
+    requestCity: (j['request_city'] as String?) ?? '',
+    requestStatus: (j['request_status'] as String?) ?? '',
+    buyerFirstName: (j['buyer_first_name'] as String?) ?? 'Buyer',
+    buyerName: j['buyer_name'] as String?,
+    buyerPhone: j['buyer_phone'] as String?,
+  );
 }

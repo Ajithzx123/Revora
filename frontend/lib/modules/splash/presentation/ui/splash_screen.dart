@@ -9,14 +9,17 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
-      ..forward();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..forward();
     Future.delayed(const Duration(milliseconds: 1400), () {
       if (mounted) context.go('/login');
     });
@@ -30,7 +33,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final fade = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    final fade = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Center(
@@ -52,25 +58,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Text(
                     'R',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: AppColors.onAccent,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: AppColors.onAccent,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 Text(
                   'Revora',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Post once. Dealers compete.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
                 ),
               ],
             ),

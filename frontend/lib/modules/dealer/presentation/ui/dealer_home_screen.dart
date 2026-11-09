@@ -102,7 +102,8 @@ class DealerHomeScreen extends ConsumerWidget {
                     for (final lead in buyLeads.take(3))
                       BuyLeadCard(
                         lead: lead,
-                        onSendQuote: () => context.push('/dealer/send-quote/${lead.id}'),
+                        onSendQuote: () =>
+                            context.push('/dealer/send-quote/${lead.id}'),
                       ),
                   ],
                 ),

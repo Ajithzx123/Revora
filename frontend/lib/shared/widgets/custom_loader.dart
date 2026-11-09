@@ -4,10 +4,7 @@ import '../../core/theme/app_colors.dart';
 class CustomLoader extends StatelessWidget {
   final bool isFullScreen;
 
-  const CustomLoader({
-    super.key,
-    this.isFullScreen = false,
-  });
+  const CustomLoader({super.key, this.isFullScreen = false});
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +29,7 @@ class CustomLoader extends StatelessWidget {
     }
 
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: spinner,
-      ),
+      child: Padding(padding: const EdgeInsets.all(16.0), child: spinner),
     );
   }
 }

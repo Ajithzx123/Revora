@@ -20,7 +20,11 @@ class InventoryNotifier extends AsyncNotifier<List<Vehicle>> {
 
   void _put(Vehicle v) {
     final exists = _current.any((x) => x.id == v.id);
-    state = AsyncData(exists ? [for (final x in _current) x.id == v.id ? v : x] : [v, ..._current]);
+    state = AsyncData(
+      exists
+          ? [for (final x in _current) x.id == v.id ? v : x]
+          : [v, ..._current],
+    );
   }
 
   Future<Vehicle> create(VehicleDraft draft) async {
@@ -43,7 +47,10 @@ class InventoryNotifier extends AsyncNotifier<List<Vehicle>> {
 
   Future<void> remove(String id) async {
     await _repo.delete(id);
-    state = AsyncData([for (final x in _current) if (x.id != id) x]);
+    state = AsyncData([
+      for (final x in _current)
+        if (x.id != id) x,
+    ]);
   }
 
   Future<Vehicle> addPhoto(String id, String fileName, Uint8List bytes) async {
@@ -60,11 +67,18 @@ class InventoryNotifier extends AsyncNotifier<List<Vehicle>> {
 
   Future<Vehicle> makeCover(String id, String photoId) async {
     final current = _current.firstWhere((v) => v.id == id);
-    final order = [photoId, for (final m in current.images) if (m.id != photoId) m.id];
+    final order = [
+      photoId,
+      for (final m in current.images)
+        if (m.id != photoId) m.id,
+    ];
     final v = await _repo.reorderPhotos(id, order);
     _put(v);
     return v;
   }
 }
 
-final inventoryProvider = AsyncNotifierProvider<InventoryNotifier, List<Vehicle>>(InventoryNotifier.new);
+final inventoryProvider =
+    AsyncNotifierProvider<InventoryNotifier, List<Vehicle>>(
+      InventoryNotifier.new,
+    );

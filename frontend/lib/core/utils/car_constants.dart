@@ -25,8 +25,5 @@ class CarConstants {
     'Hybrid',
   ];
 
-  static const List<String> transmissionTypes = [
-    'Manual',
-    'Automatic',
-  ];
+  static const List<String> transmissionTypes = ['Manual', 'Automatic'];
 }

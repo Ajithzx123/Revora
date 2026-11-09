@@ -27,13 +27,21 @@ class CustomerHomeScreen extends ConsumerWidget {
     final requirements = ref.watch(customerRequirementsProvider);
     final allQuotes = ref.watch(allCustomerQuotesProvider);
     final topDealers = ref.watch(topDealersProvider);
-    final name = ref.watch(authControllerProvider.select((s) => s.user?.fullName));
+    final name = ref.watch(
+      authControllerProvider.select((s) => s.user?.fullName),
+    );
 
-    void goToTab(int index) => ref.read(customerActiveTabProvider.notifier).state = index;
+    void goToTab(int index) =>
+        ref.read(customerActiveTabProvider.notifier).state = index;
 
     return Scaffold(
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxxl),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.lg,
+          AppSpacing.xxxl,
+        ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1100),
@@ -65,12 +73,15 @@ class CustomerHomeScreen extends ConsumerWidget {
                 _Carousel(
                   height: _cardHeight,
                   count: allQuotes.length,
-                  emptyMessage: 'No quotes yet. Post a request and dealers will reply.',
+                  emptyMessage:
+                      'No quotes yet. Post a request and dealers will reply.',
                   itemBuilder: (context, i) => CustomerQuoteCard(
                     quote: allQuotes[i],
                     isHomeScreen: true,
                     imageHeight: _imageHeight,
-                    onAccept: () => context.push('/customer/requirement/${allQuotes[i].requirementId}'),
+                    onAccept: () => context.push(
+                      '/customer/requirement/${allQuotes[i].requirementId}',
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxxl),
@@ -117,7 +128,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                     scrollDirection: Axis.horizontal,
                     clipBehavior: Clip.none,
                     itemCount: topDealers.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(width: AppSpacing.md),
                     itemBuilder: (context, i) => DealerMatchCard(
                       dealer: topDealers[i],
                       onConnect: () => context.push('/chat'),
@@ -182,89 +194,104 @@ class _HeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= 640;
-      final copy = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Post once.\nDealers compete.', style: t.displaySmall?.copyWith(color: Colors.white)),
-          const SizedBox(height: 10),
-          Text(
-            'Tell us the car you want, or the one you are selling. '
-            'Verified dealers send their best price.',
-            style: t.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.78)),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          Wrap(
-            spacing: AppSpacing.md,
-            runSpacing: AppSpacing.md,
-            children: [
-              FilledButton.icon(
-                onPressed: onBuy,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: AppColors.onAccent,
-                ),
-                icon: const Icon(Icons.search_rounded),
-                label: const Text('Buy a car'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onSell,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.4), width: 1.4),
-                ),
-                icon: const Icon(Icons.sell_outlined),
-                label: const Text('Sell my car'),
-              ),
-            ],
-          ),
-        ],
-      );
-
-      return Container(
-        width: double.infinity,
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        ),
-        child: Stack(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 640;
+        final copy = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Positioned(
-              right: -80,
-              top: -80,
-              child: IgnorePointer(
-                child: Container(
-                  width: 280,
-                  height: 280,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(colors: [
-                      AppColors.accent.withValues(alpha: 0.34),
-                      AppColors.accent.withValues(alpha: 0),
-                    ]),
+            Text(
+              'Post once.\nDealers compete.',
+              style: t.displaySmall?.copyWith(color: Colors.white),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Tell us the car you want, or the one you are selling. '
+              'Verified dealers send their best price.',
+              style: t.bodyMedium?.copyWith(
+                color: Colors.white.withValues(alpha: 0.78),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.md,
+              children: [
+                FilledButton.icon(
+                  onPressed: onBuy,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: AppColors.onAccent,
+                  ),
+                  icon: const Icon(Icons.search_rounded),
+                  label: const Text('Buy a car'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onSell,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      width: 1.4,
+                    ),
+                  ),
+                  icon: const Icon(Icons.sell_outlined),
+                  label: const Text('Sell my car'),
+                ),
+              ],
+            ),
+          ],
+        );
+
+        return Container(
+          width: double.infinity,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -80,
+                top: -80,
+                child: IgnorePointer(
+                  child: Container(
+                    width: 280,
+                    height: 280,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.accent.withValues(alpha: 0.34),
+                          AppColors.accent.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
-              child: wide
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(flex: 5, child: copy),
-                        const SizedBox(width: AppSpacing.xxl),
-                        const Expanded(flex: 4, child: Center(child: BidStack(width: 300))),
-                      ],
-                    )
-                  : copy,
-            ),
-          ],
-        ),
-      );
-    });
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xxl),
+                child: wide
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(flex: 5, child: copy),
+                          const SizedBox(width: AppSpacing.xxl),
+                          const Expanded(
+                            flex: 4,
+                            child: Center(child: BidStack(width: 300)),
+                          ),
+                        ],
+                      )
+                    : copy,
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -368,7 +395,9 @@ class _Tile extends StatelessWidget {
             padding: EdgeInsets.all(large ? AppSpacing.lg : AppSpacing.md),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-              border: Border.all(color: large ? Colors.transparent : AppColors.border),
+              border: Border.all(
+                color: large ? Colors.transparent : AppColors.border,
+              ),
             ),
             child: large
                 ? Column(
@@ -377,7 +406,12 @@ class _Tile extends StatelessWidget {
                       Icon(icon, color: AppColors.accentDeep),
                       const Spacer(),
                       Text(value, style: t.displayMedium),
-                      Text(label, style: t.bodyMedium?.copyWith(color: AppColors.textPrimary)),
+                      Text(
+                        label,
+                        style: t.bodyMedium?.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ],
                   )
                 : Row(
@@ -421,26 +455,32 @@ class _Carousel extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           border: Border.all(color: AppColors.border),
         ),
-        child: Text(emptyMessage, style: Theme.of(context).textTheme.bodyMedium),
-      );
-    }
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      final itemWidth = width >= 900
-          ? (width - 2 * AppSpacing.md) / 3
-          : width >= 600
-              ? (width - AppSpacing.md) / 2
-              : width * 0.8;
-      return SizedBox(
-        height: height,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none,
-          itemCount: count,
-          separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-          itemBuilder: (context, i) => SizedBox(width: itemWidth, child: itemBuilder(context, i)),
+        child: Text(
+          emptyMessage,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
       );
-    });
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final itemWidth = width >= 900
+            ? (width - 2 * AppSpacing.md) / 3
+            : width >= 600
+            ? (width - AppSpacing.md) / 2
+            : width * 0.8;
+        return SizedBox(
+          height: height,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            itemCount: count,
+            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+            itemBuilder: (context, i) =>
+                SizedBox(width: itemWidth, child: itemBuilder(context, i)),
+          ),
+        );
+      },
+    );
   }
 }

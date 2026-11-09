@@ -25,13 +25,11 @@ class MyRequirementsScreen extends StatelessWidget {
         'quotesCount': 2,
         'date': 'Oct 14, 2026',
         'type': 'sell',
-      }
+      },
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Activity'),
-      ),
+      appBar: AppBar(title: const Text('My Activity')),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: requirements.length,
@@ -55,24 +53,29 @@ class MyRequirementsScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isBuy ? AppColors.primary.withValues(alpha: 0.1) : AppColors.accent.withValues(alpha: 0.1),
+                        color: isBuy
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.accent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         isBuy ? 'BUY' : 'SELL',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: isBuy ? AppColors.primary : AppColors.accent,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: isBuy ? AppColors.primary : AppColors.accent,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Text(
                       item['date'] as String,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -80,8 +83,8 @@ class MyRequirementsScreen extends StatelessWidget {
                 Text(
                   item['title'] as String,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -97,14 +100,16 @@ class MyRequirementsScreen extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           '${item['quotesCount']} ${isBuy ? 'Quotes' : 'Offers'}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
@@ -112,9 +117,9 @@ class MyRequirementsScreen extends StatelessWidget {
                       child: Text(
                         item['status'] as String,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.success,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: AppColors.success,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],

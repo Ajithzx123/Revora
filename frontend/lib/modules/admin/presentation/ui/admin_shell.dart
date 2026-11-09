@@ -208,8 +208,11 @@ class AdminShell extends ConsumerWidget {
                             ),
                             const SizedBox(width: AppSpacing.sm),
                             IconButton(
-                              icon: const Icon(Icons.logout,
-                                  size: 18, color: AppColors.error),
+                              icon: const Icon(
+                                Icons.logout,
+                                size: 18,
+                                color: AppColors.error,
+                              ),
                               tooltip: 'Log Out',
                               onPressed: () async {
                                 await ref

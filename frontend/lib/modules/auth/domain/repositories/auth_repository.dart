@@ -18,7 +18,8 @@ class EmailConfirmationRequired implements Exception {
   const EmailConfirmationRequired(this.email);
 
   @override
-  String toString() => 'Please confirm your email address ($email) to continue.';
+  String toString() =>
+      'Please confirm your email address ($email) to continue.';
 }
 
 abstract class AuthRepository {
@@ -61,7 +62,9 @@ class SupabaseAuthRepository implements AuthRepository {
   sb.SupabaseClient get _client {
     final client = _supabase.client;
     if (client == null) {
-      throw Exception('Sign-in is unavailable right now. Please try again later.');
+      throw Exception(
+        'Sign-in is unavailable right now. Please try again later.',
+      );
     }
     return client;
   }
@@ -72,7 +75,10 @@ class SupabaseAuthRepository implements AuthRepository {
     required String password,
   }) async {
     try {
-      final res = await _client.auth.signInWithPassword(email: email, password: password);
+      final res = await _client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
       final user = res.user;
       if (user == null) {
         throw Exception('Authentication returned no user details.');
@@ -175,16 +181,26 @@ class SupabaseAuthRepository implements AuthRepository {
       final res = await _dio.get('/me');
       return UserModel.fromJson(res.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      final detail = (e.response?.data is Map) ? e.response?.data['detail'] : null;
+      final detail = (e.response?.data is Map)
+          ? e.response?.data['detail']
+          : null;
       if (e.response?.statusCode == 403 && detail == 'Profile not created') {
         final meta = user.userMetadata ?? {};
         final fullName = (meta['full_name'] as String?)?.trim();
-        final res = await _dio.post('/profile', data: {
-          'name': (fullName == null || fullName.isEmpty) ? (user.email ?? 'User').split('@').first : fullName,
-          'account_type': meta['account_type'] == 'DEALER' ? 'DEALER' : 'CUSTOMER',
-          if (meta['business_name'] != null) 'business_name': meta['business_name'],
-          if (meta['city'] != null) 'city': meta['city'],
-        });
+        final res = await _dio.post(
+          '/profile',
+          data: {
+            'name': (fullName == null || fullName.isEmpty)
+                ? (user.email ?? 'User').split('@').first
+                : fullName,
+            'account_type': meta['account_type'] == 'DEALER'
+                ? 'DEALER'
+                : 'CUSTOMER',
+            if (meta['business_name'] != null)
+              'business_name': meta['business_name'],
+            if (meta['city'] != null) 'city': meta['city'],
+          },
+        );
         return UserModel.fromJson(res.data as Map<String, dynamic>);
       }
       rethrow;

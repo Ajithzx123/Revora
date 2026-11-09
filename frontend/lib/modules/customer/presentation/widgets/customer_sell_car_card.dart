@@ -61,10 +61,7 @@ class CustomerSellCarCard extends StatelessWidget {
           icon: Icons.local_gas_station_outlined,
           label: post.fuelType,
         ),
-        CarSpecItem(
-          icon: Icons.tune,
-          label: post.transmission,
-        ),
+        CarSpecItem(icon: Icons.tune, label: post.transmission),
       ],
       // Replaced contact button with "View Details"
       primaryAction: FilledButton(

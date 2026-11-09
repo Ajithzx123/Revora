@@ -12,13 +12,13 @@ import '../../domain/repositories/dealer_repository.dart';
 class LiveDealerRepository implements DealerRepository {
   @override
   DealerKPI getKPIs() => const DealerKPI(
-        activeInventory: 0,
-        buyLeadsMatching: 0,
-        quotesSent: 0,
-        quotesAccepted: 0,
-        monthlyRevenue: 0,
-        carsSold: 0,
-      );
+    activeInventory: 0,
+    buyLeadsMatching: 0,
+    quotesSent: 0,
+    quotesAccepted: 0,
+    monthlyRevenue: 0,
+    carsSold: 0,
+  );
   @override
   List<BuyLead> getBuyLeads() => const [];
   @override

@@ -74,10 +74,7 @@ class ActivityTile extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Text(
               time,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textMuted,
-              ),
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
         ),

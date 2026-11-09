@@ -14,7 +14,13 @@ class MockRequirementRepository implements RequirementRepository {
     return i;
   }
 
-  BuyRequirement _build(String id, RequirementDraft d, {required String status, required DateTime createdAt, int quotes = 0}) {
+  BuyRequirement _build(
+    String id,
+    RequirementDraft d, {
+    required String status,
+    required DateTime createdAt,
+    int quotes = 0,
+  }) {
     final year = DateTime.now().year;
     return BuyRequirement(
       id: id,
@@ -50,9 +56,16 @@ class MockRequirementRepository implements RequirementRepository {
   Future<BuyRequirement> create(RequirementDraft draft) async {
     final open = _items.where((r) => r.isEditable).length;
     if (open >= 5) {
-      throw Exception('You already have 5 open requests. Close one to post another.');
+      throw Exception(
+        'You already have 5 open requests. Close one to post another.',
+      );
     }
-    final created = _build('REQ-${_next++}', draft, status: 'open', createdAt: DateTime.now());
+    final created = _build(
+      'REQ-${_next++}',
+      draft,
+      status: 'open',
+      createdAt: DateTime.now(),
+    );
     _items.insert(0, created);
     return created;
   }
@@ -61,28 +74,53 @@ class MockRequirementRepository implements RequirementRepository {
   Future<BuyRequirement> update(String id, RequirementDraft draft) async {
     final i = _index(id);
     final old = _items[i];
-    if (!old.isEditable) throw Exception('This request can no longer be edited.');
-    final updated = _build(id, draft, status: old.status, createdAt: old.createdAt, quotes: old.quotesReceived);
+    if (!old.isEditable) {
+      throw Exception('This request can no longer be edited.');
+    }
+    final updated = _build(
+      id,
+      draft,
+      status: old.status,
+      createdAt: old.createdAt,
+      quotes: old.quotesReceived,
+    );
     _items[i] = updated;
     return updated;
   }
 
-  Future<BuyRequirement> _setStatus(String id, String status, {required bool Function(BuyRequirement) allowed}) async {
+  Future<BuyRequirement> _setStatus(
+    String id,
+    String status, {
+    required bool Function(BuyRequirement) allowed,
+  }) async {
     final i = _index(id);
     final old = _items[i];
-    if (!allowed(old)) throw Exception('A request that is ${old.statusLabel.toLowerCase()} cannot do that.');
+    if (!allowed(old)) {
+      throw Exception(
+        'A request that is ${old.statusLabel.toLowerCase()} cannot do that.',
+      );
+    }
     final d = RequirementDraft.from(old);
-    final updated = _build(id, d, status: status, createdAt: old.createdAt, quotes: old.quotesReceived);
+    final updated = _build(
+      id,
+      d,
+      status: status,
+      createdAt: old.createdAt,
+      quotes: old.quotesReceived,
+    );
     _items[i] = updated;
     return updated;
   }
 
   @override
-  Future<BuyRequirement> pause(String id) => _setStatus(id, 'paused', allowed: (r) => r.isOpen);
+  Future<BuyRequirement> pause(String id) =>
+      _setStatus(id, 'paused', allowed: (r) => r.isOpen);
 
   @override
-  Future<BuyRequirement> resume(String id) => _setStatus(id, 'open', allowed: (r) => r.isPaused);
+  Future<BuyRequirement> resume(String id) =>
+      _setStatus(id, 'open', allowed: (r) => r.isPaused);
 
   @override
-  Future<BuyRequirement> cancel(String id) => _setStatus(id, 'cancelled', allowed: (r) => r.isEditable);
+  Future<BuyRequirement> cancel(String id) =>
+      _setStatus(id, 'cancelled', allowed: (r) => r.isEditable);
 }

@@ -7,19 +7,28 @@ class ResponsiveCardGrid extends StatelessWidget {
   final List<Widget> children;
   final double gap;
 
-  const ResponsiveCardGrid({super.key, required this.children, this.gap = AppSpacing.md});
+  const ResponsiveCardGrid({
+    super.key,
+    required this.children,
+    this.gap = AppSpacing.md,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      final columns = width >= 1000 ? 3 : (width >= 640 ? 2 : 1);
-      final itemWidth = (width - gap * (columns - 1)) / columns;
-      return Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: [for (final child in children) SizedBox(width: itemWidth, child: child)],
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final columns = width >= 1000 ? 3 : (width >= 640 ? 2 : 1);
+        final itemWidth = (width - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final child in children)
+              SizedBox(width: itemWidth, child: child),
+          ],
+        );
+      },
+    );
   }
 }

@@ -50,19 +50,22 @@ class CustomerSellPostCard extends StatelessWidget {
           icon: Icons.local_gas_station_outlined,
           label: post.fuelType,
         ),
-        CarSpecItem(
-          icon: Icons.tune,
-          label: post.transmission,
-        ),
+        CarSpecItem(icon: Icons.tune, label: post.transmission),
         CarSpecItem(
           icon: Icons.local_offer_outlined,
-          label: post.offersCount == 1 ? '1 offer' : '${post.offersCount} offers',
+          label: post.offersCount == 1
+              ? '1 offer'
+              : '${post.offersCount} offers',
           color: AppColors.success,
         ),
       ],
       primaryAction: FilledButton(
         onPressed: onViewOffers,
-        child: Text(post.offersCount == 1 ? 'View 1 offer' : 'View ${post.offersCount} offers'),
+        child: Text(
+          post.offersCount == 1
+              ? 'View 1 offer'
+              : 'View ${post.offersCount} offers',
+        ),
       ),
     );
   }

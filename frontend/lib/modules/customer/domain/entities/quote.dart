@@ -23,14 +23,14 @@ class QuoteRound {
   bool get isOpen => status == 'OPEN' && validUntil.isAfter(DateTime.now());
 
   factory QuoteRound.fromJson(Map<String, dynamic> j) => QuoteRound(
-        id: j['id'] as String,
-        roundNo: j['round_no'] as int,
-        by: j['by'] as String,
-        price: j['price'] as int,
-        note: j['note'] as String?,
-        status: j['status'] as String,
-        validUntil: parseUtc(j['valid_until'] as String),
-      );
+    id: j['id'] as String,
+    roundNo: j['round_no'] as int,
+    by: j['by'] as String,
+    price: j['price'] as int,
+    note: j['note'] as String?,
+    status: j['status'] as String,
+    validUntil: parseUtc(j['valid_until'] as String),
+  );
 }
 
 /// The API sends UTC without a zone suffix.
@@ -92,7 +92,8 @@ class Quote {
     this.rounds = const [],
   });
 
-  String get formattedPrice => '₹${(quotedPrice / 100000).toStringAsFixed(2)} Lakh';
+  String get formattedPrice =>
+      '₹${(quotedPrice / 100000).toStringAsFixed(2)} Lakh';
 
   int get price => quotedPrice.round();
 
@@ -151,31 +152,37 @@ class Quote {
     return 'Expires in ${left.inMinutes.clamp(1, 59)}m';
   }
 
-  Quote copyWith({String? status, double? quotedPrice, String? statusReason, List<QuoteRound>? rounds, int? revision}) => Quote(
-        id: id,
-        requirementId: requirementId,
-        dealerId: dealerId,
-        dealerName: dealerName,
-        dealerCity: dealerCity,
-        dealerRating: dealerRating,
-        carTitle: carTitle,
-        carYear: carYear,
-        carMileage: carMileage,
-        carFuel: carFuel,
-        quotedPrice: quotedPrice ?? this.quotedPrice,
-        carImageUrl: carImageUrl,
-        comment: comment,
-        status: status ?? this.status,
-        matchPercentage: matchPercentage,
-        createdAt: createdAt,
-        kind: kind,
-        revision: revision ?? this.revision,
-        validUntil: validUntil,
-        deliveryDays: deliveryDays,
-        warrantyMonths: warrantyMonths,
-        statusReason: statusReason ?? this.statusReason,
-        rounds: rounds ?? this.rounds,
-      );
+  Quote copyWith({
+    String? status,
+    double? quotedPrice,
+    String? statusReason,
+    List<QuoteRound>? rounds,
+    int? revision,
+  }) => Quote(
+    id: id,
+    requirementId: requirementId,
+    dealerId: dealerId,
+    dealerName: dealerName,
+    dealerCity: dealerCity,
+    dealerRating: dealerRating,
+    carTitle: carTitle,
+    carYear: carYear,
+    carMileage: carMileage,
+    carFuel: carFuel,
+    quotedPrice: quotedPrice ?? this.quotedPrice,
+    carImageUrl: carImageUrl,
+    comment: comment,
+    status: status ?? this.status,
+    matchPercentage: matchPercentage,
+    createdAt: createdAt,
+    kind: kind,
+    revision: revision ?? this.revision,
+    validUntil: validUntil,
+    deliveryDays: deliveryDays,
+    warrantyMonths: warrantyMonths,
+    statusReason: statusReason ?? this.statusReason,
+    rounds: rounds ?? this.rounds,
+  );
 
   factory Quote.fromJson(Map<String, dynamic> j) {
     final image = j['vehicle_image_url'] as String?;
@@ -198,11 +205,16 @@ class Quote {
       createdAt: parseUtc(j['created_at'] as String),
       kind: (j['kind'] as String?) ?? 'IN_STOCK',
       revision: (j['revision'] as int?) ?? 1,
-      validUntil: j['valid_until'] == null ? null : parseUtc(j['valid_until'] as String),
+      validUntil: j['valid_until'] == null
+          ? null
+          : parseUtc(j['valid_until'] as String),
       deliveryDays: j['delivery_days'] as int?,
       warrantyMonths: j['warranty_months'] as int?,
       statusReason: j['status_reason'] as String?,
-      rounds: [for (final r in (j['rounds'] as List? ?? const [])) QuoteRound.fromJson(r as Map<String, dynamic>)],
+      rounds: [
+        for (final r in (j['rounds'] as List? ?? const []))
+          QuoteRound.fromJson(r as Map<String, dynamic>),
+      ],
     );
   }
 }

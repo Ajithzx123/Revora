@@ -10,10 +10,7 @@ import '../providers/customer_providers.dart';
 class ListingDetailsScreen extends ConsumerWidget {
   final String listingId;
 
-  const ListingDetailsScreen({
-    super.key,
-    required this.listingId,
-  });
+  const ListingDetailsScreen({super.key, required this.listingId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,9 +21,7 @@ class ListingDetailsScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Offers Received'),
-      ),
+      appBar: AppBar(title: const Text('Offers Received')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
@@ -48,18 +43,19 @@ class ListingDetailsScreen extends ConsumerWidget {
                     children: [
                       Text(
                         '${post.year} ${post.make} ${post.model} ${post.variant}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm, vertical: 4),
+                          horizontal: AppSpacing.sm,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.accentLight,
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
                         ),
                         child: Text(
                           post.status.toUpperCase(),
@@ -86,10 +82,9 @@ class ListingDetailsScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xl),
             Text(
               'Dealer Offers (${post.offersCount})',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppSpacing.md),
             OfferCard(

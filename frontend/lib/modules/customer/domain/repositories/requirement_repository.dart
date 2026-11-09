@@ -31,7 +31,8 @@ class ApiRequirementRepository implements RequirementRepository {
   Future<List<BuyRequirement>> list() async {
     final res = await _dio.get('/requirements/');
     return [
-      for (final j in res.data as List) BuyRequirement.fromJson(j as Map<String, dynamic>),
+      for (final j in res.data as List)
+        BuyRequirement.fromJson(j as Map<String, dynamic>),
     ];
   }
 
@@ -44,11 +45,14 @@ class ApiRequirementRepository implements RequirementRepository {
       _one(await _dio.patch('/requirements/$id', data: draft.toJson()));
 
   @override
-  Future<BuyRequirement> pause(String id) async => _one(await _dio.post('/requirements/$id/pause'));
+  Future<BuyRequirement> pause(String id) async =>
+      _one(await _dio.post('/requirements/$id/pause'));
 
   @override
-  Future<BuyRequirement> resume(String id) async => _one(await _dio.post('/requirements/$id/resume'));
+  Future<BuyRequirement> resume(String id) async =>
+      _one(await _dio.post('/requirements/$id/resume'));
 
   @override
-  Future<BuyRequirement> cancel(String id) async => _one(await _dio.post('/requirements/$id/cancel'));
+  Future<BuyRequirement> cancel(String id) async =>
+      _one(await _dio.post('/requirements/$id/cancel'));
 }

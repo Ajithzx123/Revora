@@ -38,7 +38,10 @@ class AuthScaffold extends StatelessWidget {
       children: [
         Text(title, style: t.headlineMedium),
         const SizedBox(height: AppSpacing.xs),
-        Text(subtitle, style: t.bodyMedium?.copyWith(color: AppColors.textSecondary)),
+        Text(
+          subtitle,
+          style: t.bodyMedium?.copyWith(color: AppColors.textSecondary),
+        ),
         const SizedBox(height: AppSpacing.xxl),
       ],
     );
@@ -48,7 +51,9 @@ class AuthScaffold extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     return SingleChildScrollView(
       child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: MediaQuery.sizeOf(context).height),
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.sizeOf(context).height,
+        ),
         child: Column(
           children: [
             // Brand header
@@ -57,7 +62,11 @@ class AuthScaffold extends StatelessWidget {
               color: AppColors.primary,
               child: Stack(
                 children: [
-                  const Positioned(right: -70, top: -70, child: _Glow(size: 260)),
+                  const Positioned(
+                    right: -70,
+                    top: -70,
+                    child: _Glow(size: 260),
+                  ),
                   SafeArea(
                     bottom: false,
                     child: Padding(
@@ -69,12 +78,16 @@ class AuthScaffold extends StatelessWidget {
                           const SizedBox(height: 28),
                           Text(
                             'Post once.\nDealers compete.',
-                            style: t.displaySmall?.copyWith(color: Colors.white),
+                            style: t.displaySmall?.copyWith(
+                              color: Colors.white,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           Text(
                             'Verified dealers send you their best price. You pick the winner.',
-                            style: t.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.78)),
+                            style: t.bodyMedium?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.78),
+                            ),
                           ),
                         ],
                       ),
@@ -91,7 +104,9 @@ class AuthScaffold extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
                 decoration: const BoxDecoration(
                   color: AppColors.background,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(AppSpacing.radiusXl),
+                  ),
                 ),
                 child: Center(
                   child: ConstrainedBox(
@@ -120,8 +135,16 @@ class AuthScaffold extends StatelessWidget {
             color: AppColors.primary,
             child: Stack(
               children: [
-                const Positioned(right: -120, top: -120, child: _Glow(size: 460)),
-                const Positioned(left: -140, bottom: -160, child: _Glow(size: 380, opacity: 0.18)),
+                const Positioned(
+                  right: -120,
+                  top: -120,
+                  child: _Glow(size: 460),
+                ),
+                const Positioned(
+                  left: -140,
+                  bottom: -160,
+                  child: _Glow(size: 380, opacity: 0.18),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(56),
                   child: Column(
@@ -129,15 +152,22 @@ class AuthScaffold extends StatelessWidget {
                     children: [
                       const _Logo(),
                       const Spacer(),
-                      Text('Post once.\nDealers compete.',
-                          style: t.displayMedium?.copyWith(color: Colors.white, fontSize: 44)),
+                      Text(
+                        'Post once.\nDealers compete.',
+                        style: t.displayMedium?.copyWith(
+                          color: Colors.white,
+                          fontSize: 44,
+                        ),
+                      ),
                       const SizedBox(height: 14),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 420),
                         child: Text(
                           'Tell us the car you want, or the car you are selling. '
                           'Verified dealers send itemised offers and you choose the best one.',
-                          style: t.bodyLarge?.copyWith(color: Colors.white.withValues(alpha: 0.78)),
+                          style: t.bodyLarge?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.78),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -145,7 +175,9 @@ class AuthScaffold extends StatelessWidget {
                       const Spacer(),
                       Text(
                         'Verified dealers  ·  Itemised prices  ·  Price lock after you accept',
-                        style: t.labelMedium?.copyWith(color: Colors.white.withValues(alpha: 0.6)),
+                        style: t.labelMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
                       ),
                     ],
                   ),
@@ -193,20 +225,20 @@ class _Logo extends StatelessWidget {
           child: Text(
             'R',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.onAccent,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                ),
+              color: AppColors.onAccent,
+              fontWeight: FontWeight.w800,
+              fontSize: 22,
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Text(
           'Revora',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 22,
-              ),
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
+          ),
         ),
       ],
     );
@@ -228,7 +260,10 @@ class _Glow extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [AppColors.accent.withValues(alpha: opacity), AppColors.accent.withValues(alpha: 0)],
+            colors: [
+              AppColors.accent.withValues(alpha: opacity),
+              AppColors.accent.withValues(alpha: 0),
+            ],
           ),
         ),
       ),

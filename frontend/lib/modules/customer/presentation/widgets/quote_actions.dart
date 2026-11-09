@@ -18,7 +18,11 @@ class QuoteActions {
     ref.invalidate(requirementsProvider);
   }
 
-  Future<void> _run(Quote q, Future<void> Function() action, String done) async {
+  Future<void> _run(
+    Quote q,
+    Future<void> Function() action,
+    String done,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await action();
@@ -39,14 +43,22 @@ class QuoteActions {
           'and cannot be reopened.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Not yet')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Accept deal')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Not yet'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Accept deal'),
+          ),
         ],
       ),
     );
     if (ok != true || !context.mounted) return;
     await _run(q, () async {
-      await ref.read(quotesRepositoryProvider).accept(q.id, expectedPrice: q.price);
+      await ref
+          .read(quotesRepositoryProvider)
+          .accept(q.id, expectedPrice: q.price);
     }, 'Deal accepted. ${q.dealerName} will be in touch.');
   }
 
@@ -57,8 +69,14 @@ class QuoteActions {
         title: const Text('Turn this quote down?'),
         content: Text('${q.dealerName} will no longer see it as open.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep it')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Turn down')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep it'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Turn down'),
+          ),
         ],
       ),
     );
@@ -72,7 +90,8 @@ class QuoteActions {
     final price = await askPrice(
       context,
       title: 'Your counter-offer',
-      help: 'Quoted at ${PriceFormatter.formatINR(q.quotedPrice)}. The dealer has 24 hours to reply.',
+      help:
+          'Quoted at ${PriceFormatter.formatINR(q.quotedPrice)}. The dealer has 24 hours to reply.',
       maxExclusive: q.price,
     );
     if (price == null || !context.mounted) return;
@@ -81,9 +100,15 @@ class QuoteActions {
     }, 'Counter-offer sent.');
   }
 
-  Future<void> respond(Quote q, String action) => _run(q, () async {
-        await ref.read(quotesRepositoryProvider).respond(q.id, action);
-      }, action == 'ACCEPT' ? 'New price agreed. You can accept the deal now.' : 'Counter-offer declined.');
+  Future<void> respond(Quote q, String action) => _run(
+    q,
+    () async {
+      await ref.read(quotesRepositoryProvider).respond(q.id, action);
+    },
+    action == 'ACCEPT'
+        ? 'New price agreed. You can accept the deal now.'
+        : 'Counter-offer declined.',
+  );
 }
 
 /// Asks for a rupee amount. Returns null if cancelled.
@@ -106,26 +131,44 @@ Future<int?> askPrice(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (help != null) Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(help)),
+            if (help != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(help),
+              ),
             TextField(
               controller: controller,
               autofocus: true,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Amount in ₹', errorText: error),
+              decoration: InputDecoration(
+                labelText: 'Amount in ₹',
+                errorText: error,
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () {
-              final v = int.tryParse(controller.text.replaceAll(',', '').trim());
+              final v = int.tryParse(
+                controller.text.replaceAll(',', '').trim(),
+              );
               if (v == null || v <= 0) {
                 setState(() => error = 'Enter an amount');
               } else if (maxExclusive != null && v >= maxExclusive) {
-                setState(() => error = 'Must be lower than ${PriceFormatter.formatINR(maxExclusive)}');
+                setState(
+                  () => error =
+                      'Must be lower than ${PriceFormatter.formatINR(maxExclusive)}',
+                );
               } else if (minExclusive != null && v <= minExclusive) {
-                setState(() => error = 'Must be higher than ${PriceFormatter.formatINR(minExclusive)}');
+                setState(
+                  () => error =
+                      'Must be higher than ${PriceFormatter.formatINR(minExclusive)}',
+                );
               } else {
                 Navigator.pop(ctx, v);
               }

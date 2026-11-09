@@ -13,7 +13,9 @@ import 'package:revora/shared/domain/entities/vehicle.dart';
 
 final dealerRepositoryProvider = Provider<DealerRepository>((ref) {
   // Live accounts never see demo numbers.
-  return AppConfig.instance.useMockData ? MockDealerRepository() : LiveDealerRepository();
+  return AppConfig.instance.useMockData
+      ? MockDealerRepository()
+      : LiveDealerRepository();
 });
 
 final dealerKPIsProvider = Provider<DealerKPI>((ref) {
@@ -22,7 +24,10 @@ final dealerKPIsProvider = Provider<DealerKPI>((ref) {
   if (AppConfig.instance.useMockData) return base;
   // Real counts where the data exists; the rest stay zero until their slices land.
   return DealerKPI(
-    activeInventory: ref.watch(dealerInventoryProvider).where((v) => v.isAvailable).length,
+    activeInventory: ref
+        .watch(dealerInventoryProvider)
+        .where((v) => v.isAvailable)
+        .length,
     buyLeadsMatching: ref.watch(dealerBuyLeadsProvider).length,
     quotesSent: base.quotesSent,
     quotesAccepted: base.quotesAccepted,

@@ -25,7 +25,8 @@ class DealerActivityScreen extends ConsumerWidget {
               children: [
                 const SectionHeader(
                   title: 'Dealership Activity & Alerts',
-                  subtitle: 'Real-time broadcasted leads, accepted quotes, and system logs',
+                  subtitle:
+                      'Real-time broadcasted leads, accepted quotes, and system logs',
                 ),
                 Container(
                   decoration: BoxDecoration(

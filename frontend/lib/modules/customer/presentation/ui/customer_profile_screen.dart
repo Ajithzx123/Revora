@@ -17,13 +17,13 @@ class CustomerProfileScreen extends ConsumerWidget {
     final phone = user?.phone ?? '+91 98201 12345';
     final initials = fullName.isNotEmpty
         ? fullName
-            .trim()
-            .split(' ')
-            .where((w) => w.isNotEmpty)
-            .map((e) => e[0])
-            .take(2)
-            .join()
-            .toUpperCase()
+              .trim()
+              .split(' ')
+              .where((w) => w.isNotEmpty)
+              .map((e) => e[0])
+              .take(2)
+              .join()
+              .toUpperCase()
         : 'RV';
 
     return Scaffold(
@@ -127,10 +127,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                         title: 'Quote Alerts & WhatsApp Updates',
                         subtitle:
                             'Receive quotes immediately when dealers respond',
-                        trailing: Switch(
-                          value: true,
-                          onChanged: (_) {},
-                        ),
+                        trailing: Switch(value: true, onChanged: (_) {}),
                         onTap: () {},
                       ),
                       const Divider(height: 1, color: AppColors.borderLight),

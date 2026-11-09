@@ -45,11 +45,31 @@ enum DocumentStatus {
 
 /// Document types a dealer can upload. [required] ones must be present to submit.
 enum DocumentType {
-  ownerId('OWNER_ID', 'Owner ID proof', 'Aadhaar, PAN, passport or driving licence', true),
-  businessProof('BUSINESS_PROOF', 'Business registration', 'Trade licence, shop registration or GST registration', true),
-  addressProof('ADDRESS_PROOF', 'Business address proof', 'Rent agreement, utility bill or property document', true),
+  ownerId(
+    'OWNER_ID',
+    'Owner ID proof',
+    'Aadhaar, PAN, passport or driving licence',
+    true,
+  ),
+  businessProof(
+    'BUSINESS_PROOF',
+    'Business registration',
+    'Trade licence, shop registration or GST registration',
+    true,
+  ),
+  addressProof(
+    'ADDRESS_PROOF',
+    'Business address proof',
+    'Rent agreement, utility bill or property document',
+    true,
+  ),
   gstCertificate('GST_CERTIFICATE', 'GST certificate', 'Optional', false),
-  brandAuthorisation('BRAND_AUTHORISATION', 'Brand authorisation', 'Only if you are an authorised dealer', false),
+  brandAuthorisation(
+    'BRAND_AUTHORISATION',
+    'Brand authorisation',
+    'Only if you are an authorised dealer',
+    false,
+  ),
   showroomPhoto('SHOWROOM_PHOTO', 'Showroom photo', 'Optional', false);
 
   final String api;
@@ -82,12 +102,12 @@ class DealerDocument {
   });
 
   factory DealerDocument.fromJson(Map<String, dynamic> json) => DealerDocument(
-        id: json['id'] as String,
-        type: DocumentType.fromApi(json['doc_type'] as String?),
-        originalName: json['original_name'] as String? ?? 'document',
-        status: DocumentStatus.fromApi(json['status'] as String?),
-        reviewNote: json['review_note'] as String?,
-      );
+    id: json['id'] as String,
+    type: DocumentType.fromApi(json['doc_type'] as String?),
+    originalName: json['original_name'] as String? ?? 'document',
+    status: DocumentStatus.fromApi(json['status'] as String?),
+    reviewNote: json['review_note'] as String?,
+  );
 }
 
 class DealerApplication {
@@ -126,7 +146,8 @@ class DealerApplication {
     return null;
   }
 
-  factory DealerApplication.fromJson(Map<String, dynamic> json) => DealerApplication(
+  factory DealerApplication.fromJson(Map<String, dynamic> json) =>
+      DealerApplication(
         id: json['id'] as String,
         businessName: json['business_name'] as String? ?? '',
         gstin: json['gstin'] as String?,
@@ -139,10 +160,14 @@ class DealerApplication {
             DealerDocument.fromJson(d as Map<String, dynamic>),
         ],
         missingDocuments: [
-          for (final m in (json['missing_documents'] as List? ?? const [])) m as String,
+          for (final m in (json['missing_documents'] as List? ?? const []))
+            m as String,
         ],
         canSubmit: json['can_submit'] as bool? ?? false,
         editable: json['editable'] as bool? ?? false,
-        sourcingMakes: [for (final m in (json['sourcing_makes'] as List? ?? const [])) m as String],
+        sourcingMakes: [
+          for (final m in (json['sourcing_makes'] as List? ?? const []))
+            m as String,
+        ],
       );
 }

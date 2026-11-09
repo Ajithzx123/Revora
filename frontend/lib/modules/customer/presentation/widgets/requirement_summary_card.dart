@@ -36,8 +36,8 @@ class RequirementSummaryCard extends StatelessWidget {
     final Color badgeColor = requirement.isOpen
         ? AppColors.success
         : requirement.isPaused
-            ? AppColors.warning
-            : AppColors.textSecondary;
+        ? AppColors.warning
+        : AppColors.textSecondary;
     const badgeTextColor = Colors.white;
 
     return CarCard(
@@ -53,23 +53,31 @@ class RequirementSummaryCard extends StatelessWidget {
       badgeTextColor: badgeTextColor,
       specs: [
         if (requirement.fuelType != 'Any')
-          CarSpecItem(icon: Icons.local_gas_station_outlined, label: requirement.fuelType),
+          CarSpecItem(
+            icon: Icons.local_gas_station_outlined,
+            label: requirement.fuelType,
+          ),
         if (requirement.transmission != 'Any')
           CarSpecItem(icon: Icons.tune, label: requirement.transmission),
         if (requirement.bodyType != null)
-          CarSpecItem(icon: Icons.directions_car_outlined, label: requirement.bodyType!),
+          CarSpecItem(
+            icon: Icons.directions_car_outlined,
+            label: requirement.bodyType!,
+          ),
         if (requirement.status == 'open')
           CarSpecItem(
             icon: Icons.storefront_outlined,
             label: requirement.dealersNotified == 0
                 ? 'Finding dealers'
                 : requirement.dealersNotified == 1
-                    ? '1 dealer notified'
-                    : '${requirement.dealersNotified} dealers notified',
+                ? '1 dealer notified'
+                : '${requirement.dealersNotified} dealers notified',
           ),
         CarSpecItem(
           icon: Icons.local_offer_outlined,
-          label: requirement.quotesReceived == 1 ? '1 quote' : '${requirement.quotesReceived} quotes',
+          label: requirement.quotesReceived == 1
+              ? '1 quote'
+              : '${requirement.quotesReceived} quotes',
           color: AppColors.success,
         ),
       ],

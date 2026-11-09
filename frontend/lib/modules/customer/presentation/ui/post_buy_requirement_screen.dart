@@ -21,10 +21,12 @@ class PostBuyRequirementScreen extends ConsumerStatefulWidget {
   const PostBuyRequirementScreen({super.key, this.existing});
 
   @override
-  ConsumerState<PostBuyRequirementScreen> createState() => _PostBuyRequirementScreenState();
+  ConsumerState<PostBuyRequirementScreen> createState() =>
+      _PostBuyRequirementScreenState();
 }
 
-class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScreen> {
+class _PostBuyRequirementScreenState
+    extends ConsumerState<PostBuyRequirementScreen> {
   static const _stepTitles = ['The car', 'Budget & place', 'Review'];
 
   late final RequirementDraft _draft;
@@ -40,7 +42,9 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
   @override
   void initState() {
     super.initState();
-    _draft = widget.existing != null ? RequirementDraft.from(widget.existing!) : RequirementDraft();
+    _draft = widget.existing != null
+        ? RequirementDraft.from(widget.existing!)
+        : RequirementDraft();
     if (!_editing) {
       _draft.budgetMin = 500000;
       _draft.budgetMax = 1000000;
@@ -58,8 +62,12 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
   // ---- navigation ----
   bool _validateStep() {
     String? problem;
-    if (_step == 0 && _draft.make == null) problem = 'Choose a make to continue.';
-    if (_step == 1 && _draft.city == null) problem = 'Choose your city to continue.';
+    if (_step == 0 && _draft.make == null) {
+      problem = 'Choose a make to continue.';
+    }
+    if (_step == 1 && _draft.city == null) {
+      problem = 'Choose your city to continue.';
+    }
     setState(() => _stepError = problem);
     if (problem != null) _showTop();
     return problem == null;
@@ -67,7 +75,11 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
 
   void _showTop() {
     if (_scroll.hasClients) {
-      _scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      _scroll.animateTo(
+        0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -81,9 +93,9 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
   }
 
   void _back() => setState(() {
-        _step--;
-        _stepError = null;
-      });
+    _step--;
+    _stepError = null;
+  });
 
   Future<void> _submit() async {
     setState(() {
@@ -104,9 +116,11 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_editing
-              ? 'Request updated.'
-              : 'Request posted. Verified dealers can now send you quotes.'),
+          content: Text(
+            _editing
+                ? 'Request updated.'
+                : 'Request posted. Verified dealers can now send you quotes.',
+          ),
         ),
       );
     } catch (e) {
@@ -122,7 +136,8 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
   // ---- build ----
   @override
   Widget build(BuildContext context) {
-    final masterData = ref.watch(masterDataProvider).valueOrNull ?? MasterData.bundled;
+    final masterData =
+        ref.watch(masterDataProvider).valueOrNull ?? MasterData.bundled;
     final t = Theme.of(context).textTheme;
     final last = _step == _stepTitles.length - 1;
 
@@ -142,7 +157,12 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
             Expanded(
               child: SingleChildScrollView(
                 controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xxl,
+                ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 640),
@@ -150,7 +170,11 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ['What car do you want?', 'How much, and where?', 'Check and post'][_step],
+                          [
+                            'What car do you want?',
+                            'How much, and where?',
+                            'Check and post',
+                          ][_step],
                           style: t.headlineMedium,
                         ),
                         const SizedBox(height: AppSpacing.xs),
@@ -194,14 +218,25 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
                       ],
                       Expanded(
                         child: FilledButton(
-                          onPressed: _submitting ? null : (last ? _submit : _next),
+                          onPressed: _submitting
+                              ? null
+                              : (last ? _submit : _next),
                           child: _submitting
                               ? const SizedBox(
                                   height: 22,
                                   width: 22,
-                                  child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.4,
+                                    color: Colors.white,
+                                  ),
                                 )
-                              : Text(last ? (_editing ? 'Save changes' : 'Post request') : 'Continue'),
+                              : Text(
+                                  last
+                                      ? (_editing
+                                            ? 'Save changes'
+                                            : 'Post request')
+                                      : 'Continue',
+                                ),
                         ),
                       ),
                     ],
@@ -232,7 +267,10 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           dropdownColor: AppColors.surface,
           decoration: const InputDecoration(hintText: 'Select a make'),
-          items: [for (final m in md.makeNames) DropdownMenuItem(value: m, child: Text(m))],
+          items: [
+            for (final m in md.makeNames)
+              DropdownMenuItem(value: m, child: Text(m)),
+          ],
           onChanged: (v) => setState(() {
             _draft.make = v;
             _draft.model = null; // a model belongs to one make
@@ -247,15 +285,26 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
           isExpanded: true,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           dropdownColor: AppColors.surface,
-          decoration: InputDecoration(hintText: _draft.make == null ? 'Choose a make first' : 'Any model'),
+          decoration: InputDecoration(
+            hintText: _draft.make == null ? 'Choose a make first' : 'Any model',
+          ),
           items: [
-            const DropdownMenuItem<String?>(value: null, child: Text('Any model')),
-            for (final m in models) DropdownMenuItem<String?>(value: m, child: Text(m)),
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Any model'),
+            ),
+            for (final m in models)
+              DropdownMenuItem<String?>(value: m, child: Text(m)),
           ],
-          onChanged: _draft.make == null ? null : (v) => setState(() => _draft.model = v),
+          onChanged: _draft.make == null
+              ? null
+              : (v) => setState(() => _draft.model = v),
         ),
         const SizedBox(height: AppSpacing.xl),
-        _Label('Registered between', trailing: '${_draft.yearMin} - ${_draft.yearMax ?? 'newest'}'),
+        _Label(
+          'Registered between',
+          trailing: '${_draft.yearMin} - ${_draft.yearMax ?? 'newest'}',
+        ),
         RangeSlider(
           values: RangeValues(_draft.yearMin.toDouble(), yearEnd.toDouble()),
           min: md.minYear.toDouble() + 5,
@@ -326,7 +375,10 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
                 min: minLakh,
                 max: maxLakh,
                 divisions: ((maxLakh - minLakh) * 2).round(),
-                labels: RangeLabels('₹${lo.toStringAsFixed(1)} L', '₹${hi.toStringAsFixed(1)} L'),
+                labels: RangeLabels(
+                  '₹${lo.toStringAsFixed(1)} L',
+                  '₹${hi.toStringAsFixed(1)} L',
+                ),
                 onChanged: (v) => setState(() {
                   _draft.budgetMin = (v.start * 100000).round();
                   _draft.budgetMax = (v.end * 100000).round();
@@ -349,8 +401,14 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
           isExpanded: true,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           dropdownColor: AppColors.surface,
-          decoration: const InputDecoration(hintText: 'Select your city', prefixIcon: Icon(Icons.location_on_outlined)),
-          items: [for (final c in md.cities) DropdownMenuItem(value: c, child: Text(c))],
+          decoration: const InputDecoration(
+            hintText: 'Select your city',
+            prefixIcon: Icon(Icons.location_on_outlined),
+          ),
+          items: [
+            for (final c in md.cities)
+              DropdownMenuItem(value: c, child: Text(c)),
+          ],
           onChanged: (v) => setState(() {
             _draft.city = v;
             _stepError = null;
@@ -368,7 +426,11 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
                 selected: _draft.radiusKm == km,
                 showCheckmark: false,
                 selectedColor: AppColors.primary,
-                labelStyle: TextStyle(color: _draft.radiusKm == km ? Colors.white : AppColors.textPrimary),
+                labelStyle: TextStyle(
+                  color: _draft.radiusKm == km
+                      ? Colors.white
+                      : AppColors.textPrimary,
+                ),
                 onSelected: (_) => setState(() => _draft.radiusKm = km),
               ),
           ],
@@ -393,7 +455,9 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('I need a car loan'),
-          subtitle: const Text('Dealers can include finance options in their quote'),
+          subtitle: const Text(
+            'Dealers can include finance options in their quote',
+          ),
           value: _draft.needsFinance,
           onChanged: (v) => setState(() => _draft.needsFinance = v),
         ),
@@ -415,10 +479,18 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
     // A must-have only makes sense for a preference the buyer actually set.
     final mustHaveOptions = <(String key, String label)>[
       if (_draft.fuel != null) ('fuel', 'Fuel: ${_draft.fuel}'),
-      if (_draft.transmission != null) ('transmission', '${_draft.transmission} gearbox'),
+      if (_draft.transmission != null)
+        ('transmission', '${_draft.transmission} gearbox'),
       if (_draft.bodyType != null) ('body_type', _draft.bodyType!),
-      if (_draft.maxKm != null) ('max_km', 'Under ${PriceFormatter.formatKm(_draft.maxKm!)}'),
-      if (_draft.maxOwners != null) ('max_owners', _draft.maxOwners == 1 ? 'First owner only' : 'Up to ${_draft.maxOwners} owners'),
+      if (_draft.maxKm != null)
+        ('max_km', 'Under ${PriceFormatter.formatKm(_draft.maxKm!)}'),
+      if (_draft.maxOwners != null)
+        (
+          'max_owners',
+          _draft.maxOwners == 1
+              ? 'First owner only'
+              : 'Up to ${_draft.maxOwners} owners',
+        ),
     ];
     _draft.mustHave.removeWhere((k) => !mustHaveOptions.any((o) => o.$1 == k));
 
@@ -430,10 +502,17 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
         _Label('Maximum kilometres driven'),
         _ChoiceWrap(
           options: const ['20000', '40000', '60000', '80000', '100000'],
-          labels: const {'20000': '20k', '40000': '40k', '60000': '60k', '80000': '80k', '100000': '1 lakh'},
+          labels: const {
+            '20000': '20k',
+            '40000': '40k',
+            '60000': '60k',
+            '80000': '80k',
+            '100000': '1 lakh',
+          },
           selected: _draft.maxKm?.toString(),
           anyLabel: 'Any',
-          onChanged: (v) => setState(() => _draft.maxKm = v == null ? null : int.parse(v)),
+          onChanged: (v) =>
+              setState(() => _draft.maxKm = v == null ? null : int.parse(v)),
         ),
         const SizedBox(height: AppSpacing.xl),
         _Label('Previous owners'),
@@ -442,7 +521,9 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
           labels: const {'1': 'First owner', '2': 'Up to 2', '3': 'Up to 3'},
           selected: _draft.maxOwners?.toString(),
           anyLabel: 'Any',
-          onChanged: (v) => setState(() => _draft.maxOwners = v == null ? null : int.parse(v)),
+          onChanged: (v) => setState(
+            () => _draft.maxOwners = v == null ? null : int.parse(v),
+          ),
         ),
         if (mustHaveOptions.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xl),
@@ -463,7 +544,11 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
                   showCheckmark: true,
                   selectedColor: AppColors.accentLight,
                   checkmarkColor: AppColors.accentDeep,
-                  onSelected: (on) => setState(() => on ? _draft.mustHave.add(key) : _draft.mustHave.remove(key)),
+                  onSelected: (on) => setState(
+                    () => on
+                        ? _draft.mustHave.add(key)
+                        : _draft.mustHave.remove(key),
+                  ),
                 ),
             ],
           ),
@@ -475,12 +560,18 @@ class _PostBuyRequirementScreenState extends ConsumerState<PostBuyRequirementScr
           maxLength: 500,
           minLines: 3,
           maxLines: 5,
-          decoration: const InputDecoration(hintText: 'Colour, features, service history...'),
+          decoration: const InputDecoration(
+            hintText: 'Colour, features, service history...',
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
-            const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.textSecondary),
+            const Icon(
+              Icons.lock_outline_rounded,
+              size: 16,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -506,7 +597,12 @@ class _Progress extends StatelessWidget {
     return Semantics(
       label: 'Step ${step + 1} of ${titles.length}: ${titles[step]}',
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.lg,
+          AppSpacing.sm,
+        ),
         child: Row(
           children: [
             for (var i = 0; i < titles.length; i++) ...[
@@ -526,9 +622,13 @@ class _Progress extends StatelessWidget {
                     Text(
                       titles[i],
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: i == step ? AppColors.textPrimary : AppColors.textSecondary,
-                            fontWeight: i == step ? FontWeight.w800 : FontWeight.w600,
-                          ),
+                        color: i == step
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
+                        fontWeight: i == step
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -555,7 +655,11 @@ class _Label extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(text, style: t.labelLarge)),
-          if (trailing != null) Text(trailing!, style: t.labelMedium?.copyWith(color: AppColors.accentDeep)),
+          if (trailing != null)
+            Text(
+              trailing!,
+              style: t.labelMedium?.copyWith(color: AppColors.accentDeep),
+            ),
         ],
       ),
     );
@@ -581,19 +685,24 @@ class _ChoiceWrap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget chip(String label, bool on, VoidCallback tap) => ChoiceChip(
-          label: Text(label),
-          selected: on,
-          showCheckmark: false,
-          selectedColor: AppColors.primary,
-          labelStyle: TextStyle(color: on ? Colors.white : AppColors.textPrimary),
-          onSelected: (_) => tap(),
-        );
+      label: Text(label),
+      selected: on,
+      showCheckmark: false,
+      selectedColor: AppColors.primary,
+      labelStyle: TextStyle(color: on ? Colors.white : AppColors.textPrimary),
+      onSelected: (_) => tap(),
+    );
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
       children: [
         chip(anyLabel, selected == null, () => onChanged(null)),
-        for (final o in options) chip(labels[o] ?? o, selected == o, () => onChanged(selected == o ? null : o)),
+        for (final o in options)
+          chip(
+            labels[o] ?? o,
+            selected == o,
+            () => onChanged(selected == o ? null : o),
+          ),
       ],
     );
   }
@@ -604,7 +713,12 @@ class _ChoiceTile extends StatelessWidget {
   final String subtitle;
   final bool selected;
   final VoidCallback onTap;
-  const _ChoiceTile({required this.title, required this.subtitle, required this.selected, required this.onTap});
+  const _ChoiceTile({
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -621,7 +735,10 @@ class _ChoiceTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected ? AppColors.accentLight : AppColors.surface,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: selected ? AppColors.accent : AppColors.border, width: selected ? 1.6 : 1),
+            border: Border.all(
+              color: selected ? AppColors.accent : AppColors.border,
+              width: selected ? 1.6 : 1,
+            ),
           ),
           child: Row(
             children: [
@@ -635,7 +752,9 @@ class _ChoiceTile extends StatelessWidget {
                 ),
               ),
               Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                selected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked,
                 color: selected ? AppColors.accentDeep : AppColors.textMuted,
               ),
             ],
@@ -663,12 +782,19 @@ class _Banner extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+            const Icon(
+              Icons.error_outline_rounded,
+              color: AppColors.error,
+              size: 20,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.error, fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -688,15 +814,18 @@ class _SummaryCard extends StatelessWidget {
   }
 
   String get _urgency => switch (draft.urgency) {
-        'NOW' => 'Needs it now',
-        'WITHIN_60_DAYS' => 'In 30-60 days',
-        _ => 'In 1-2 weeks',
-      };
+    'NOW' => 'Needs it now',
+    'WITHIN_60_DAYS' => 'In 30-60 days',
+    _ => 'In 1-2 weeks',
+  };
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    final car = [draft.make, draft.model ?? 'any model'].whereType<String>().join(' · ');
+    final car = [
+      draft.make,
+      draft.model ?? 'any model',
+    ].whereType<String>().join(' · ');
     final chips = <String>[
       _years,
       if (draft.bodyType != null) draft.bodyType!,
@@ -716,13 +845,21 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('YOUR REQUEST', style: t.labelSmall?.copyWith(color: Colors.white60, letterSpacing: 1.2)),
+          Text(
+            'YOUR REQUEST',
+            style: t.labelSmall?.copyWith(
+              color: Colors.white60,
+              letterSpacing: 1.2,
+            ),
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(car, style: t.headlineMedium?.copyWith(color: Colors.white)),
           const SizedBox(height: AppSpacing.xs),
           Text(
             '${PriceFormatter.formatRange(draft.budgetMin, draft.budgetMax)}  ·  ${draft.city ?? '-'}, within ${draft.radiusKm} km',
-            style: t.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.85)),
+            style: t.bodyMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Wrap(
@@ -731,12 +868,18 @@ class _SummaryCard extends StatelessWidget {
             children: [
               for (final c in chips)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   ),
-                  child: Text(c, style: t.labelMedium?.copyWith(color: Colors.white)),
+                  child: Text(
+                    c,
+                    style: t.labelMedium?.copyWith(color: Colors.white),
+                  ),
                 ),
             ],
           ),

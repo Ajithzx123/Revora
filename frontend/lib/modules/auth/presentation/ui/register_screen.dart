@@ -39,7 +39,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final isDealer = _role == UserRole.dealer;
-    await ref.read(authControllerProvider.notifier).signUp(
+    await ref
+        .read(authControllerProvider.notifier)
+        .signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           fullName: _nameController.text.trim(),
@@ -74,13 +76,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.mark_email_read_outlined, color: AppColors.success),
+                  const Icon(
+                    Icons.mark_email_read_outlined,
+                    color: AppColors.success,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'We sent a confirmation link to $pendingEmail. '
                       'Open it, then come back and sign in.',
-                      style: t.bodyMedium?.copyWith(color: AppColors.textPrimary),
+                      style: t.bodyMedium?.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -137,19 +144,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: AppSpacing.xl),
             if (auth.errorMessage != null) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.errorBg,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         auth.errorMessage!,
-                        style: t.bodySmall?.copyWith(color: AppColors.error, fontWeight: FontWeight.w600),
+                        style: t.bodySmall?.copyWith(
+                          color: AppColors.error,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -221,11 +238,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
                 suffixIcon: IconButton(
                   tooltip: _obscurePassword ? 'Show password' : 'Hide password',
-                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              validator: (v) => (v == null || v.length < 6) ? 'Use at least 6 characters' : null,
+              validator: (v) => (v == null || v.length < 6)
+                  ? 'Use at least 6 characters'
+                  : null,
             ),
             const SizedBox(height: AppSpacing.xl),
             FilledButton(
@@ -234,7 +258,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ? const SizedBox(
                       height: 22,
                       width: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: Colors.white,
+                      ),
                     )
                   : Text(isDealer ? 'Apply as a dealer' : 'Create account'),
             ),

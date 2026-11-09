@@ -98,25 +98,29 @@ class _CarCardState extends State<CarCard> {
               border: Border.all(color: AppColors.border),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: raised ? 0.10 : 0.04),
+                  color: AppColors.primary.withValues(
+                    alpha: raised ? 0.10 : 0.04,
+                  ),
                   blurRadius: raised ? 22 : 10,
                   offset: Offset(0, raised ? 10 : 4),
                 ),
               ],
             ),
             clipBehavior: Clip.antiAlias,
-            child: LayoutBuilder(builder: (context, constraints) {
-              final bounded = constraints.hasBoundedHeight;
-              final body = _body(context, bounded);
-              return Column(
-                mainAxisSize: bounded ? MainAxisSize.max : MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _photo(),
-                  if (bounded) Expanded(child: body) else body,
-                ],
-              );
-            }),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final bounded = constraints.hasBoundedHeight;
+                final body = _body(context, bounded);
+                return Column(
+                  mainAxisSize: bounded ? MainAxisSize.max : MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _photo(),
+                    if (bounded) Expanded(child: body) else body,
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -154,7 +158,10 @@ class _CarCardState extends State<CarCard> {
               left: 10,
               top: 10,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: widget.badgeBgColor ?? Colors.white,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -189,7 +196,9 @@ class _CarCardState extends State<CarCard> {
                       width: 40,
                       height: 40,
                       child: Icon(
-                        _liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        _liked
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
                         size: 20,
                         color: _liked ? AppColors.error : AppColors.textPrimary,
                       ),
@@ -204,7 +213,8 @@ class _CarCardState extends State<CarCard> {
   }
 
   Widget _body(BuildContext context, bool bounded) {
-    final hasActions = widget.primaryAction != null || widget.secondaryAction != null;
+    final hasActions =
+        widget.primaryAction != null || widget.secondaryAction != null;
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -233,11 +243,18 @@ class _CarCardState extends State<CarCard> {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
-                  child: Text(widget.priceText, maxLines: 1, style: AppTextStyles.price),
+                  child: Text(
+                    widget.priceText,
+                    maxLines: 1,
+                    style: AppTextStyles.price,
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(widget.priceLabel.toUpperCase(), style: AppTextStyles.overline.copyWith(fontSize: 10)),
+              Text(
+                widget.priceLabel.toUpperCase(),
+                style: AppTextStyles.overline.copyWith(fontSize: 10),
+              ),
             ],
           ),
           if (widget.specs.isNotEmpty) ...[
@@ -251,7 +268,10 @@ class _CarCardState extends State<CarCard> {
           if (hasActions) ...[
             // Pin the buttons to the bottom when the card has a fixed height (carousels);
             // in a list the card sizes to its content, where a Spacer would be an error.
-            if (bounded) const Spacer() else const SizedBox(height: AppSpacing.sm),
+            if (bounded)
+              const Spacer()
+            else
+              const SizedBox(height: AppSpacing.sm),
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
@@ -277,19 +297,29 @@ class _CarCardState extends State<CarCard> {
     final theme = Theme.of(context);
     final style = ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size(0, 44)),
-      padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
-      textStyle: WidgetStatePropertyAll(AppTextStyles.labelLarge.copyWith(fontSize: 14)),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 12),
+      ),
+      textStyle: WidgetStatePropertyAll(
+        AppTextStyles.labelLarge.copyWith(fontSize: 14),
+      ),
     );
     return Theme(
       data: theme.copyWith(
         elevatedButtonTheme: ElevatedButtonThemeData(
-          style: (theme.elevatedButtonTheme.style ?? const ButtonStyle()).merge(style),
+          style: (theme.elevatedButtonTheme.style ?? const ButtonStyle()).merge(
+            style,
+          ),
         ),
         filledButtonTheme: FilledButtonThemeData(
-          style: (theme.filledButtonTheme.style ?? const ButtonStyle()).merge(style),
+          style: (theme.filledButtonTheme.style ?? const ButtonStyle()).merge(
+            style,
+          ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
-          style: (theme.outlinedButtonTheme.style ?? const ButtonStyle()).merge(style),
+          style: (theme.outlinedButtonTheme.style ?? const ButtonStyle()).merge(
+            style,
+          ),
         ),
       ),
       child: SizedBox(width: double.infinity, child: button),
@@ -297,10 +327,14 @@ class _CarCardState extends State<CarCard> {
   }
 
   Widget _placeholder() => Container(
-        color: AppColors.primarySubtle,
-        alignment: Alignment.center,
-        child: const Icon(Icons.directions_car_filled_outlined, size: 44, color: AppColors.textMuted),
-      );
+    color: AppColors.primarySubtle,
+    alignment: Alignment.center,
+    child: const Icon(
+      Icons.directions_car_filled_outlined,
+      size: 44,
+      color: AppColors.textMuted,
+    ),
+  );
 }
 
 class _SpecPill extends StatelessWidget {
@@ -320,12 +354,19 @@ class _SpecPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (item.icon != null) ...[
-            Icon(item.icon, size: 14, color: item.color ?? AppColors.textSecondary),
+            Icon(
+              item.icon,
+              size: 14,
+              color: item.color ?? AppColors.textSecondary,
+            ),
             const SizedBox(width: 5),
           ],
           Text(
             item.label,
-            style: AppTextStyles.labelMedium.copyWith(fontSize: 12.5, color: color),
+            style: AppTextStyles.labelMedium.copyWith(
+              fontSize: 12.5,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -338,9 +379,5 @@ class CarSpecItem {
   final IconData? icon;
   final Color? color;
 
-  const CarSpecItem({
-    required this.label,
-    this.icon,
-    this.color,
-  });
+  const CarSpecItem({required this.label, this.icon, this.color});
 }

@@ -75,22 +75,25 @@ void main() {
       expect(customerUser.role, UserRole.customer);
     });
 
-    test('Sign up registers new user and retrieves from getCurrentUser', () async {
-      final newUser = await authRepo.signUpWithEmailPassword(
-        email: 'newuser@revora.com',
-        password: 'mypassword',
-        fullName: 'Aarav Patel',
-        role: UserRole.dealer,
-      );
+    test(
+      'Sign up registers new user and retrieves from getCurrentUser',
+      () async {
+        final newUser = await authRepo.signUpWithEmailPassword(
+          email: 'newuser@revora.com',
+          password: 'mypassword',
+          fullName: 'Aarav Patel',
+          role: UserRole.dealer,
+        );
 
-      expect(newUser.email, 'newuser@revora.com');
-      expect(newUser.fullName, 'Aarav Patel');
-      expect(newUser.role, UserRole.dealer);
+        expect(newUser.email, 'newuser@revora.com');
+        expect(newUser.fullName, 'Aarav Patel');
+        expect(newUser.role, UserRole.dealer);
 
-      final cachedUser = await authRepo.getCurrentUser();
-      expect(cachedUser, isNotNull);
-      expect(cachedUser!.email, 'newuser@revora.com');
-    });
+        final cachedUser = await authRepo.getCurrentUser();
+        expect(cachedUser, isNotNull);
+        expect(cachedUser!.email, 'newuser@revora.com');
+      },
+    );
 
     test('Sign out clears the stored session', () async {
       await authRepo.signInWithEmailPassword(

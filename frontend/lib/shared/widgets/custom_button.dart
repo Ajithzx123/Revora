@@ -29,7 +29,9 @@ class CustomButton extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     Color getBackgroundColor() {
-      if (onPressed == null) return isDark ? Colors.grey[800]! : Colors.grey[300]!;
+      if (onPressed == null) {
+        return isDark ? Colors.grey[800]! : Colors.grey[300]!;
+      }
       switch (variant) {
         case ButtonVariant.primary:
           return AppColors.primary;
@@ -42,7 +44,9 @@ class CustomButton extends StatelessWidget {
     }
 
     Color getTextColor() {
-      if (onPressed == null) return isDark ? Colors.grey[600]! : Colors.grey[500]!;
+      if (onPressed == null) {
+        return isDark ? Colors.grey[600]! : Colors.grey[500]!;
+      }
       switch (variant) {
         case ButtonVariant.primary:
           return Colors.white;
@@ -56,7 +60,7 @@ class CustomButton extends StatelessWidget {
 
     Border? getBorder() {
       if (variant == ButtonVariant.outline) {
-        final color = onPressed == null 
+        final color = onPressed == null
             ? (isDark ? Colors.grey[700]! : Colors.grey[400]!)
             : AppColors.primary;
         return Border.all(color: color, width: 1.5);
@@ -69,9 +73,7 @@ class CustomButton extends StatelessWidget {
       height: height,
       child: Material(
         color: getBackgroundColor(),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: (isLoading || onPressed == null) ? null : onPressed,
@@ -93,10 +95,7 @@ class CustomButton extends StatelessWidget {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (icon != null) ...[
-                        icon!,
-                        const SizedBox(width: 8),
-                      ],
+                      if (icon != null) ...[icon!, const SizedBox(width: 8)],
                       Text(
                         text,
                         style: theme.textTheme.labelLarge?.copyWith(

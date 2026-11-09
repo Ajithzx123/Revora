@@ -10,7 +10,7 @@ class Helpers {
 
   static String timeAgo(DateTime dateTime) {
     final difference = DateTime.now().difference(dateTime);
-    
+
     if (difference.inDays > 365) {
       return '${(difference.inDays / 365).floor()} years ago';
     } else if (difference.inDays > 30) {

@@ -12,7 +12,9 @@ import 'package:revora/shared/domain/entities/dealer_info.dart';
 
 final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   // Live accounts never see demo quotes, listings or dealers.
-  return AppConfig.instance.useMockData ? MockCustomerRepository() : LiveCustomerRepository();
+  return AppConfig.instance.useMockData
+      ? MockCustomerRepository()
+      : LiveCustomerRepository();
 });
 
 /// The buyer's requests (real data in live mode). Empty while loading; screens that
@@ -21,8 +23,10 @@ final customerRequirementsProvider = Provider<List<BuyRequirement>>((ref) {
   return ref.watch(requirementsProvider).valueOrNull ?? const [];
 });
 
-final customerQuotesProvider =
-    Provider.family<List<Quote>, String>((ref, reqId) {
+final customerQuotesProvider = Provider.family<List<Quote>, String>((
+  ref,
+  reqId,
+) {
   final repo = ref.watch(customerRepositoryProvider);
   return repo.getQuotesForRequirement(reqId);
 });

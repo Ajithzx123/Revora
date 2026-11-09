@@ -23,17 +23,24 @@ class RequirementsNotifier extends AsyncNotifier<List<BuyRequirement>> {
     return created;
   }
 
-  Future<BuyRequirement> _replace(Future<BuyRequirement> Function() action) async {
+  Future<BuyRequirement> _replace(
+    Future<BuyRequirement> Function() action,
+  ) async {
     final updated = await action();
-    state = AsyncData([for (final r in _current) r.id == updated.id ? updated : r]);
+    state = AsyncData([
+      for (final r in _current) r.id == updated.id ? updated : r,
+    ]);
     return updated;
   }
 
-  Future<BuyRequirement> edit(String id, RequirementDraft draft) => _replace(() => _repo.update(id, draft));
+  Future<BuyRequirement> edit(String id, RequirementDraft draft) =>
+      _replace(() => _repo.update(id, draft));
   Future<BuyRequirement> pause(String id) => _replace(() => _repo.pause(id));
   Future<BuyRequirement> resume(String id) => _replace(() => _repo.resume(id));
   Future<BuyRequirement> cancel(String id) => _replace(() => _repo.cancel(id));
 }
 
 final requirementsProvider =
-    AsyncNotifierProvider<RequirementsNotifier, List<BuyRequirement>>(RequirementsNotifier.new);
+    AsyncNotifierProvider<RequirementsNotifier, List<BuyRequirement>>(
+      RequirementsNotifier.new,
+    );

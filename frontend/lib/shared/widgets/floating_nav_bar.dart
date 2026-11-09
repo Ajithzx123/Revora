@@ -71,7 +71,11 @@ class _NavItem extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _NavItem({required this.item, required this.selected, required this.onTap});
+  const _NavItem({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +83,9 @@ class _NavItem extends StatelessWidget {
     final icon = Icon(
       selected ? (item.selectedIcon ?? item.icon) : item.icon,
       size: 22,
-      color: selected ? AppColors.onAccent : Colors.white.withValues(alpha: 0.72),
+      color: selected
+          ? AppColors.onAccent
+          : Colors.white.withValues(alpha: 0.72),
     );
 
     return Semantics(
@@ -119,9 +125,9 @@ class _NavItem extends StatelessWidget {
                       overflow: TextOverflow.fade,
                       softWrap: false,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: AppColors.onAccent,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: AppColors.onAccent,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],

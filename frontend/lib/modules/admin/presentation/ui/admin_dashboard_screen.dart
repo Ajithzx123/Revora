@@ -62,10 +62,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                         ),
                         KpiTile(
                           title: 'Pending Verifications',
-                          value: ref.watch(adminPendingDealersProvider).maybeWhen(
-                            data: (items) => '${items.length}',
-                            orElse: () => '—',
-                          ),
+                          value: ref
+                              .watch(adminPendingDealersProvider)
+                              .maybeWhen(
+                                data: (items) => '${items.length}',
+                                orElse: () => '—',
+                              ),
                           icon: Icons.pending_actions,
                           iconColor: AppColors.warning,
                           iconBgColor: AppColors.warningBg,
@@ -182,27 +184,33 @@ class _PendingDealersPreview extends ConsumerWidget {
     final pending = ref.watch(adminPendingDealersProvider);
 
     Widget box(Widget child) => Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: AppColors.border, width: 0.8),
-          ),
-          child: child,
-        );
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border: Border.all(color: AppColors.border, width: 0.8),
+      ),
+      child: child,
+    );
 
     return pending.when(
       loading: () => box(const Center(child: CircularProgressIndicator())),
-      error: (e, _) => box(Text(apiErrorMessage(e),
-          style: const TextStyle(color: AppColors.textSecondary))),
+      error: (e, _) => box(
+        Text(
+          apiErrorMessage(e),
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+      ),
       data: (items) => items.isEmpty
-          ? box(const Center(
-              child: Text(
-                'No dealer applications are waiting for review.',
-                style: TextStyle(color: AppColors.textSecondary),
+          ? box(
+              const Center(
+                child: Text(
+                  'No dealer applications are waiting for review.',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
               ),
-            ))
+            )
           : Column(
               children: [
                 for (final d in items.take(3)) ...[
@@ -219,24 +227,29 @@ class _PendingDealersPreview extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(d.businessName,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
-                                  )),
-                              Text(d.city,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  )),
+                              Text(
+                                d.businessName,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                d.city,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                         FilledButton(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => AdminDealerDetailScreen(dealerId: d.id),
+                              builder: (_) =>
+                                  AdminDealerDetailScreen(dealerId: d.id),
                             ),
                           ),
                           child: const Text('Review'),

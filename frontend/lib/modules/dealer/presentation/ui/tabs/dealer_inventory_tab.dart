@@ -12,7 +12,8 @@ class DealerInventoryTab extends StatelessWidget {
     final inventory = [
       {
         'id': 'INV-001',
-        'imageUrl': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600',
+        'imageUrl':
+            'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600',
         'make': 'Toyota',
         'model': 'Innova Crysta ZX 2.4',
         'year': 2021,
@@ -47,7 +48,8 @@ class DealerInventoryTab extends StatelessWidget {
               imageUrl: car['imageUrl'] as String,
               title: '${car['year']} ${car['make']} ${car['model']}',
               location: 'Verified Dealership Stock',
-              priceText: '₹${((car['price'] as num) / 100000).toStringAsFixed(2)} Lakh',
+              priceText:
+                  '₹${((car['price'] as num) / 100000).toStringAsFixed(2)} Lakh',
               badgeText: 'In Stock',
               badgeBgColor: const Color(0xFFDCFCE7),
               badgeTextColor: const Color(0xFF166534),
@@ -58,7 +60,8 @@ class DealerInventoryTab extends StatelessWidget {
                 ),
                 CarSpecItem(
                   icon: Icons.speed,
-                  label: '${((car['kmDriven'] as num) / 1000).toStringAsFixed(0)}k km',
+                  label:
+                      '${((car['kmDriven'] as num) / 1000).toStringAsFixed(0)}k km',
                 ),
                 CarSpecItem(
                   icon: Icons.local_gas_station_outlined,

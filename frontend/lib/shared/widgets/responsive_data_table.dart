@@ -78,7 +78,9 @@ class ResponsiveDataTable<T> extends StatelessWidget {
             rows: items.map((item) {
               final cells = rowBuilder(item);
               return DataRow(
-                onSelectChanged: onRowTap != null ? (_) => onRowTap!(item) : null,
+                onSelectChanged: onRowTap != null
+                    ? (_) => onRowTap!(item)
+                    : null,
                 cells: cells.map((cell) => DataCell(cell)).toList(),
               );
             }).toList(),

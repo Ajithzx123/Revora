@@ -22,34 +22,58 @@ class ApiQuotesRepository implements QuotesRepository {
   final Dio _dio;
   ApiQuotesRepository(this._dio);
 
-  Quote _one(Response<dynamic> r) => Quote.fromJson(r.data as Map<String, dynamic>);
+  Quote _one(Response<dynamic> r) =>
+      Quote.fromJson(r.data as Map<String, dynamic>);
 
   @override
   Future<List<Quote>> forRequirement(String requirementId) async {
     final res = await _dio.get('/requirements/$requirementId/quotes');
-    return [for (final j in res.data as List) Quote.fromJson(j as Map<String, dynamic>)];
+    return [
+      for (final j in res.data as List)
+        Quote.fromJson(j as Map<String, dynamic>),
+    ];
   }
 
   @override
   Future<Quote> accept(String quoteId, {required int expectedPrice}) async =>
-      _one(await _dio.post('/quotes/$quoteId/accept', data: {'expected_price': expectedPrice}));
+      _one(
+        await _dio.post(
+          '/quotes/$quoteId/accept',
+          data: {'expected_price': expectedPrice},
+        ),
+      );
 
   @override
-  Future<Quote> reject(String quoteId, {String? reason}) async =>
-      _one(await _dio.post('/quotes/$quoteId/reject', data: {'reason': reason}));
+  Future<Quote> reject(String quoteId, {String? reason}) async => _one(
+    await _dio.post('/quotes/$quoteId/reject', data: {'reason': reason}),
+  );
 
   @override
-  Future<Quote> counter(String quoteId, {required int price, String? note}) async =>
-      _one(await _dio.post('/quotes/$quoteId/counter', data: {'price': price, 'note': note}));
+  Future<Quote> counter(
+    String quoteId, {
+    required int price,
+    String? note,
+  }) async => _one(
+    await _dio.post(
+      '/quotes/$quoteId/counter',
+      data: {'price': price, 'note': note},
+    ),
+  );
 
   @override
-  Future<Quote> respond(String quoteId, String action) async =>
-      _one(await _dio.post('/quotes/$quoteId/negotiation/respond', data: {'action': action}));
+  Future<Quote> respond(String quoteId, String action) async => _one(
+    await _dio.post(
+      '/quotes/$quoteId/negotiation/respond',
+      data: {'action': action},
+    ),
+  );
 }
 
 /// Demo data held in memory so accept / reject / counter can be tried without a server.
 class MockQuotesRepository implements QuotesRepository {
-  final List<Quote> _quotes = [for (final q in CustomerMockData.quotes) q.copyWith(status: 'PENDING')];
+  final List<Quote> _quotes = [
+    for (final q in CustomerMockData.quotes) q.copyWith(status: 'PENDING'),
+  ];
 
   Quote _replace(String id, Quote Function(Quote) change) {
     final i = _quotes.indexWhere((q) => q.id == id);
@@ -58,13 +82,19 @@ class MockQuotesRepository implements QuotesRepository {
   }
 
   @override
-  Future<List<Quote>> forRequirement(String requirementId) async =>
-      [for (final q in _quotes) if (q.requirementId == requirementId) q];
+  Future<List<Quote>> forRequirement(String requirementId) async => [
+    for (final q in _quotes)
+      if (q.requirementId == requirementId) q,
+  ];
 
   @override
   Future<Quote> accept(String quoteId, {required int expectedPrice}) async {
     final target = _quotes.firstWhere((q) => q.id == quoteId);
-    if (target.price != expectedPrice) throw Exception('The price changed. Review the new total before accepting.');
+    if (target.price != expectedPrice) {
+      throw Exception(
+        'The price changed. Review the new total before accepting.',
+      );
+    }
     for (final q in List.of(_quotes)) {
       if (q.requirementId != target.requirementId || q.id == quoteId) continue;
       _replace(q.id, (o) => o.copyWith(status: 'NOT_SELECTED'));
@@ -73,28 +103,37 @@ class MockQuotesRepository implements QuotesRepository {
   }
 
   @override
-  Future<Quote> reject(String quoteId, {String? reason}) async =>
-      _replace(quoteId, (q) => q.copyWith(status: 'REJECTED', statusReason: reason));
+  Future<Quote> reject(String quoteId, {String? reason}) async => _replace(
+    quoteId,
+    (q) => q.copyWith(status: 'REJECTED', statusReason: reason),
+  );
 
   @override
-  Future<Quote> counter(String quoteId, {required int price, String? note}) async => _replace(
-        quoteId,
-        (q) => q.copyWith(rounds: [
-          ...q.rounds,
-          QuoteRound(
-            id: 'r${q.rounds.length + 1}',
-            roundNo: q.rounds.length + 1,
-            by: 'CUSTOMER',
-            price: price,
-            note: note,
-            status: 'OPEN',
-            validUntil: DateTime.now().add(const Duration(hours: 24)),
-          ),
-        ]),
-      );
+  Future<Quote> counter(
+    String quoteId, {
+    required int price,
+    String? note,
+  }) async => _replace(
+    quoteId,
+    (q) => q.copyWith(
+      rounds: [
+        ...q.rounds,
+        QuoteRound(
+          id: 'r${q.rounds.length + 1}',
+          roundNo: q.rounds.length + 1,
+          by: 'CUSTOMER',
+          price: price,
+          note: note,
+          status: 'OPEN',
+          validUntil: DateTime.now().add(const Duration(hours: 24)),
+        ),
+      ],
+    ),
+  );
 
   @override
-  Future<Quote> respond(String quoteId, String action) async => _replace(quoteId, (q) => q);
+  Future<Quote> respond(String quoteId, String action) async =>
+      _replace(quoteId, (q) => q);
 }
 
 final quotesRepositoryProvider = Provider<QuotesRepository>((ref) {
@@ -103,7 +142,10 @@ final quotesRepositoryProvider = Provider<QuotesRepository>((ref) {
 });
 
 /// Quotes for one request, cheapest first. Reload after any action with `ref.invalidate`.
-final requirementQuotesProvider = FutureProvider.autoDispose.family<List<Quote>, String>((ref, requirementId) async {
-  final list = await ref.watch(quotesRepositoryProvider).forRequirement(requirementId);
-  return [...list]..sort((a, b) => a.quotedPrice.compareTo(b.quotedPrice));
-});
+final requirementQuotesProvider = FutureProvider.autoDispose
+    .family<List<Quote>, String>((ref, requirementId) async {
+      final list = await ref
+          .watch(quotesRepositoryProvider)
+          .forRequirement(requirementId);
+      return [...list]..sort((a, b) => a.quotedPrice.compareTo(b.quotedPrice));
+    });

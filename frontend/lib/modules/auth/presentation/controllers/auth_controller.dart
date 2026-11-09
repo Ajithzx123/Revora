@@ -54,11 +54,7 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final user = await _repository.getCurrentUser();
-      state = state.copyWith(
-        user: user,
-        isLoading: false,
-        isInitialized: true,
-      );
+      state = state.copyWith(user: user, isLoading: false, isInitialized: true);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -68,20 +64,14 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final user = await _repository.signInWithEmailPassword(
         email: email,
         password: password,
       );
-      state = state.copyWith(
-        user: user,
-        isLoading: false,
-      );
+      state = state.copyWith(user: user, isLoading: false);
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -114,10 +104,7 @@ class AuthController extends StateNotifier<AuthState> {
         businessName: businessName,
         city: city,
       );
-      state = state.copyWith(
-        user: user,
-        isLoading: false,
-      );
+      state = state.copyWith(user: user, isLoading: false);
       return true;
     } on EmailConfirmationRequired catch (e) {
       state = state.copyWith(
@@ -140,10 +127,7 @@ class AuthController extends StateNotifier<AuthState> {
       await _repository.signOut();
       state = const AuthState(isInitialized: true);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
@@ -152,8 +136,9 @@ class AuthController extends StateNotifier<AuthState> {
   }
 }
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AuthState>((ref) {
-  final repo = ref.watch(authRepositoryProvider);
-  return AuthController(repo);
-});
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
+  (ref) {
+    final repo = ref.watch(authRepositoryProvider);
+    return AuthController(repo);
+  },
+);

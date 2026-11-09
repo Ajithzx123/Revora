@@ -4,10 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 class ChatScreen extends StatefulWidget {
   final String chatId;
 
-  const ChatScreen({
-    super.key,
-    required this.chatId,
-  });
+  const ChatScreen({super.key, required this.chatId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -25,9 +22,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Prime Motors'),
-      ),
+      appBar: AppBar(title: const Text('Prime Motors')),
       body: Column(
         children: [
           // Context Bar
@@ -42,9 +37,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Text(
                     'Discussing: 2021 Innova Crysta ZX 2.4 - Quoted ₹18.5L',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
               ],
@@ -54,7 +49,8 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
-              reverse: true, // Show newest at bottom (mock is reversed visually)
+              reverse:
+                  true, // Show newest at bottom (mock is reversed visually)
               children: [
                 _buildMessageBubble(
                   'Yes, it comes with a 1-year comprehensive dealer warranty.',
@@ -95,7 +91,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         filled: true,
                         fillColor: AppColors.background,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   ),
@@ -103,7 +102,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   CircleAvatar(
                     backgroundColor: AppColors.primary,
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                      icon: const Icon(
+                        Icons.send,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       onPressed: () {
                         // Send message logic
                         if (_messageController.text.isNotEmpty) {
@@ -121,11 +124,17 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(String text, {required bool isMe, required String time}) {
+  Widget _buildMessageBubble(
+    String text, {
+    required bool isMe,
+    required String time,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[

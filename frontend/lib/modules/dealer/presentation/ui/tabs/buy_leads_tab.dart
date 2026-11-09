@@ -28,9 +28,7 @@ class BuyLeadsTab extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buy Leads (Customer Requirements)'),
-      ),
+      appBar: AppBar(title: const Text('Buy Leads (Customer Requirements)')),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: buyLeads.length,
@@ -48,14 +46,14 @@ class BuyLeadsTab extends StatelessWidget {
                     Text(
                       lead['location'] as String,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     Text(
                       lead['time'] as String,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -63,16 +61,16 @@ class BuyLeadsTab extends StatelessWidget {
                 Text(
                   lead['title'] as String,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Customer Budget: ${lead['budget']}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomButton(

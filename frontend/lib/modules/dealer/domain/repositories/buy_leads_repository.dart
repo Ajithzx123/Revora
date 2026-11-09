@@ -27,12 +27,18 @@ class ApiBuyLeadsRepository implements BuyLeadsRepository {
   @override
   Future<List<BuyLead>> list() async {
     final res = await _dio.get('/leads/buy');
-    return [for (final j in res.data as List) BuyLead.fromJson(j as Map<String, dynamic>)];
+    return [
+      for (final j in res.data as List)
+        BuyLead.fromJson(j as Map<String, dynamic>),
+    ];
   }
 
   @override
   Future<void> dismiss(String requirementId, {String? reason}) async {
-    await _dio.post('/leads/buy/$requirementId/dismiss', data: {'reason': reason});
+    await _dio.post(
+      '/leads/buy/$requirementId/dismiss',
+      data: {'reason': reason},
+    );
   }
 }
 

@@ -44,11 +44,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
         Text(
           widget.label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: widget.enabled
-                    ? AppColors.textPrimary
-                    : AppColors.textSecondary.withValues(alpha: 0.6),
-              ),
+            fontWeight: FontWeight.w600,
+            color: widget.enabled
+                ? AppColors.textPrimary
+                : AppColors.textSecondary.withValues(alpha: 0.6),
+          ),
         ),
         const SizedBox(height: 6),
         TextFormField(

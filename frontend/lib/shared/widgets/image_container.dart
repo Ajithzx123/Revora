@@ -50,10 +50,7 @@ class ImageContainer extends StatelessWidget {
           color: Theme.of(context).brightness == Brightness.dark
               ? AppColors.borderDark
               : AppColors.border,
-          child: const Icon(
-            Icons.broken_image_outlined,
-            color: AppColors.icon,
-          ),
+          child: const Icon(Icons.broken_image_outlined, color: AppColors.icon),
         ),
       ),
     );

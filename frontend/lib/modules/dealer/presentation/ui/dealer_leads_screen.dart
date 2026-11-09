@@ -41,26 +41,30 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
     try {
       await ref.read(buyLeadsRepositoryProvider).dismiss(id);
       ref.invalidate(buyLeadsProvider);
-      messenger.showSnackBar(const SnackBar(content: Text('Removed from your list')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Removed from your list')),
+      );
     } catch (_) {
-      messenger.showSnackBar(const SnackBar(content: Text('Could not remove it. Try again.')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not remove it. Try again.')),
+      );
     }
   }
 
   Widget _tab(String label, int count) => Tab(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-            const SizedBox(width: AppSpacing.sm),
-            Badge(
-              label: Text('$count'),
-              backgroundColor: AppColors.primarySubtle,
-              textColor: AppColors.textPrimary,
-            ),
-          ],
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+        const SizedBox(width: AppSpacing.sm),
+        Badge(
+          label: Text('$count'),
+          backgroundColor: AppColors.primarySubtle,
+          textColor: AppColors.textPrimary,
         ),
-      );
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +89,8 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                 _page(
                   header: const SectionHeader(
                     title: 'Buyers want these cars',
-                    subtitle: 'Quote a match from your inventory to win the deal',
+                    subtitle:
+                        'Quote a match from your inventory to win the deal',
                   ),
                   child: buyLeads.isEmpty
                       ? const _EmptyLeads()
@@ -94,7 +99,9 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                             for (final lead in buyLeads)
                               BuyLeadCard(
                                 lead: lead,
-                                onSendQuote: () => context.push('/dealer/send-quote/${lead.id}'),
+                                onSendQuote: () => context.push(
+                                  '/dealer/send-quote/${lead.id}',
+                                ),
                                 onDismiss: () => _dismiss(lead.id),
                               ),
                           ],
@@ -103,7 +110,8 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                 _page(
                   header: const SectionHeader(
                     title: 'Owners selling their cars',
-                    subtitle: 'Make an offer to add stock directly from the owner',
+                    subtitle:
+                        'Make an offer to add stock directly from the owner',
                   ),
                   child: ResponsiveCardGrid(
                     children: [
@@ -112,7 +120,8 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                           imageUrl: lead.imageUrl,
                           title: lead.title,
                           // First name and city only; contact details unlock after acceptance.
-                          location: '${lead.customerName.trim().split(' ').first} · ${lead.customerCity}',
+                          location:
+                              '${lead.customerName.trim().split(' ').first} · ${lead.customerCity}',
                           priceText: lead.formattedPrice,
                           priceLabel: 'Asking',
                           imageHeight: 130,
@@ -120,13 +129,21 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
                           specs: [
                             CarSpecItem(
                               icon: Icons.speed,
-                              label: '${(lead.mileage / 1000).toStringAsFixed(0)}k km',
+                              label:
+                                  '${(lead.mileage / 1000).toStringAsFixed(0)}k km',
                             ),
-                            CarSpecItem(icon: Icons.local_gas_station_outlined, label: lead.fuelType),
-                            CarSpecItem(icon: Icons.tune, label: lead.transmission),
+                            CarSpecItem(
+                              icon: Icons.local_gas_station_outlined,
+                              label: lead.fuelType,
+                            ),
+                            CarSpecItem(
+                              icon: Icons.tune,
+                              label: lead.transmission,
+                            ),
                           ],
                           primaryAction: FilledButton(
-                            onPressed: () => context.push('/dealer/make-offer/${lead.id}'),
+                            onPressed: () =>
+                                context.push('/dealer/make-offer/${lead.id}'),
                             child: const Text('Make an offer'),
                           ),
                         ),
@@ -144,7 +161,12 @@ class _DealerLeadsScreenState extends ConsumerState<DealerLeadsScreen>
 
   Widget _page({required Widget header, required Widget child}) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.xxxl,
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1100),
@@ -168,9 +190,16 @@ class _EmptyLeads extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            const Icon(Icons.inbox_outlined, size: 44, color: AppColors.textSecondary),
+            const Icon(
+              Icons.inbox_outlined,
+              size: 44,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(height: AppSpacing.md),
-            const Text('No buyer requests for you yet', textAlign: TextAlign.center),
+            const Text(
+              'No buyer requests for you yet',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Add cars to your inventory, or list the makes you can source on your profile. '

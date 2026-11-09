@@ -35,39 +35,40 @@ class VehicleDraft {
   });
 
   factory VehicleDraft.from(Vehicle v) => VehicleDraft(
-        registrationNo: v.registrationNo,
-        make: v.make,
-        model: v.model,
-        variant: v.variant,
-        year: v.year,
-        fuel: v.fuelType,
-        transmission: v.transmission,
-        km: v.mileage,
-        owners: v.owners,
-        color: v.color,
-        bodyType: v.bodyType,
-        price: v.price.round(),
-        minPrice: v.minPrice?.round(),
-        description: v.description,
-      );
+    registrationNo: v.registrationNo,
+    make: v.make,
+    model: v.model,
+    variant: v.variant,
+    year: v.year,
+    fuel: v.fuelType,
+    transmission: v.transmission,
+    km: v.mileage,
+    owners: v.owners,
+    color: v.color,
+    bodyType: v.bodyType,
+    price: v.price.round(),
+    minPrice: v.minPrice?.round(),
+    description: v.description,
+  );
 
-  String? _clean(String? v) => (v == null || v.trim().isEmpty) ? null : v.trim();
+  String? _clean(String? v) =>
+      (v == null || v.trim().isEmpty) ? null : v.trim();
 
   /// Every field is sent (nulls included) so an edit can clear optional fields.
   Map<String, dynamic> toJson() => {
-        'registration_no': registrationNo,
-        'make': make,
-        'model': model,
-        'variant': _clean(variant),
-        'year': year,
-        'fuel': fuel,
-        'transmission': transmission,
-        'km': km,
-        'owners': owners,
-        'color': color,
-        'body_type': bodyType,
-        'price': price,
-        'min_price': minPrice,
-        'description': _clean(description),
-      };
+    'registration_no': registrationNo,
+    'make': make,
+    'model': model,
+    'variant': _clean(variant),
+    'year': year,
+    'fuel': fuel,
+    'transmission': transmission,
+    'km': km,
+    'owners': owners,
+    'color': color,
+    'body_type': bodyType,
+    'price': price,
+    'min_price': minPrice,
+    'description': _clean(description),
+  };
 }

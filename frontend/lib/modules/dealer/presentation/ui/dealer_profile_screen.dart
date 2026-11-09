@@ -19,13 +19,13 @@ class DealerProfileScreen extends ConsumerWidget {
     final phone = user?.phone ?? '+91 98205 99881';
     final initials = fullName.isNotEmpty
         ? fullName
-            .trim()
-            .split(' ')
-            .where((w) => w.isNotEmpty)
-            .map((e) => e[0])
-            .take(2)
-            .join()
-            .toUpperCase()
+              .trim()
+              .split(' ')
+              .where((w) => w.isNotEmpty)
+              .map((e) => e[0])
+              .take(2)
+              .join()
+              .toUpperCase()
         : 'AM';
 
     return Scaffold(
@@ -141,7 +141,12 @@ class DealerProfileScreen extends ConsumerWidget {
                         icon: Icons.travel_explore_outlined,
                         title: 'Cars I can source',
                         subtitle: () {
-                          final makes = ref.watch(dealerApplicationProvider).valueOrNull?.sourcingMakes ?? const [];
+                          final makes =
+                              ref
+                                  .watch(dealerApplicationProvider)
+                                  .valueOrNull
+                                  ?.sourcingMakes ??
+                              const [];
                           return makes.isEmpty
                               ? 'Get buyer requests for cars not in your stock'
                               : makes.join(', ');
@@ -163,10 +168,7 @@ class DealerProfileScreen extends ConsumerWidget {
                         title: 'Instant Lead Alerts',
                         subtitle:
                             'Receive high-match leads via WhatsApp immediately',
-                        trailing: Switch(
-                          value: true,
-                          onChanged: (_) {},
-                        ),
+                        trailing: Switch(value: true, onChanged: (_) {}),
                         onTap: () {},
                       ),
                       const Divider(height: 1, color: AppColors.borderLight),
@@ -226,8 +228,12 @@ class DealerProfileScreen extends ConsumerWidget {
   }
 
   Future<void> _editSourcing(BuildContext context, WidgetRef ref) async {
-    final current = ref.read(dealerApplicationProvider).valueOrNull?.sourcingMakes ?? const <String>[];
-    final makes = (ref.read(masterDataProvider).valueOrNull ?? MasterData.bundled).makeNames;
+    final current =
+        ref.read(dealerApplicationProvider).valueOrNull?.sourcingMakes ??
+        const <String>[];
+    final makes =
+        (ref.read(masterDataProvider).valueOrNull ?? MasterData.bundled)
+            .makeNames;
     final chosen = {...current};
     final messenger = ScaffoldMessenger.of(context);
     final save = await showModalBottomSheet<bool>(
@@ -241,7 +247,10 @@ class DealerProfileScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Cars I can source', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                const Text(
+                  'Cars I can source',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 const Text(
                   'Pick the makes you can find for a buyer even when you have none in stock. '
@@ -258,7 +267,9 @@ class DealerProfileScreen extends ConsumerWidget {
                           FilterChip(
                             label: Text(make),
                             selected: chosen.contains(make),
-                            onSelected: (on) => setState(() => on ? chosen.add(make) : chosen.remove(make)),
+                            onSelected: (on) => setState(
+                              () => on ? chosen.add(make) : chosen.remove(make),
+                            ),
                           ),
                       ],
                     ),
@@ -267,7 +278,10 @@ class DealerProfileScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.lg),
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Save'),
+                  ),
                 ),
               ],
             ),
@@ -277,10 +291,14 @@ class DealerProfileScreen extends ConsumerWidget {
     );
     if (save != true) return;
     try {
-      await ref.read(dealerApplicationProvider.notifier).setSourcingMakes(chosen.toList()..sort());
+      await ref
+          .read(dealerApplicationProvider.notifier)
+          .setSourcingMakes(chosen.toList()..sort());
       messenger.showSnackBar(const SnackBar(content: Text('Saved')));
     } catch (_) {
-      messenger.showSnackBar(const SnackBar(content: Text('Could not save. Try again.')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not save. Try again.')),
+      );
     }
   }
 

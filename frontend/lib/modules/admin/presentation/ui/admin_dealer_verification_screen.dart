@@ -43,7 +43,8 @@ class AdminDealerVerificationScreen extends ConsumerWidget {
                   children: [
                     const SectionHeader(
                       title: 'Dealer applications',
-                      subtitle: 'Review documents, then approve, request changes or reject',
+                      subtitle:
+                          'Review documents, then approve, request changes or reject',
                     ),
                     Wrap(
                       spacing: AppSpacing.sm,
@@ -54,7 +55,13 @@ class AdminDealerVerificationScreen extends ConsumerWidget {
                             label: Text(label),
                             selected: selected == status,
                             onSelected: (_) =>
-                                ref.read(adminDealerStatusFilterProvider.notifier).state = status,
+                                ref
+                                        .read(
+                                          adminDealerStatusFilterProvider
+                                              .notifier,
+                                        )
+                                        .state =
+                                    status,
                           ),
                       ],
                     ),
@@ -68,7 +75,8 @@ class AdminDealerVerificationScreen extends ConsumerWidget {
                         icon: Icons.cloud_off_outlined,
                         text: apiErrorMessage(e),
                         action: OutlinedButton(
-                          onPressed: () => ref.invalidate(adminDealerListProvider),
+                          onPressed: () =>
+                              ref.invalidate(adminDealerListProvider),
                           child: const Text('Try again'),
                         ),
                       ),
@@ -117,8 +125,15 @@ class _Message extends StatelessWidget {
         children: [
           Icon(icon, size: 40, color: AppColors.textMuted),
           const SizedBox(height: AppSpacing.md),
-          Text(text, textAlign: TextAlign.center, style: AppTextStyles.bodyMedium),
-          if (action != null) ...[const SizedBox(height: AppSpacing.md), action!],
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium,
+          ),
+          if (action != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            action!,
+          ],
         ],
       ),
     );
@@ -136,7 +151,9 @@ class _DealerCard extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => AdminDealerDetailScreen(dealerId: dealer.id)),
+        MaterialPageRoute(
+          builder: (_) => AdminDealerDetailScreen(dealerId: dealer.id),
+        ),
       ),
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -150,8 +167,13 @@ class _DealerCard extends StatelessWidget {
             CircleAvatar(
               backgroundColor: AppColors.primary,
               child: Text(
-                dealer.businessName.isEmpty ? 'D' : dealer.businessName[0].toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                dealer.businessName.isEmpty
+                    ? 'D'
+                    : dealer.businessName[0].toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -171,9 +193,22 @@ class _DealerCard extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-              decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppSpacing.radiusPill)),
-              child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12)),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
             ),
             const Icon(Icons.chevron_right, color: AppColors.textMuted),
           ],
@@ -185,10 +220,18 @@ class _DealerCard extends StatelessWidget {
 
 /// Label, text colour and tint for a dealer status (design system status vocabulary).
 (String, Color, Color) statusStyle(DealerStatus status) => switch (status) {
-      DealerStatus.draft => ('Draft', AppColors.textSecondary, AppColors.primarySubtle),
-      DealerStatus.pending => ('Pending', AppColors.warning, AppColors.warningBg),
-      DealerStatus.needsChanges => ('Needs changes', AppColors.warning, AppColors.warningBg),
-      DealerStatus.approved => ('Approved', AppColors.success, AppColors.successBg),
-      DealerStatus.rejected => ('Rejected', AppColors.error, AppColors.errorBg),
-      DealerStatus.suspended => ('Suspended', AppColors.error, AppColors.errorBg),
-    };
+  DealerStatus.draft => (
+    'Draft',
+    AppColors.textSecondary,
+    AppColors.primarySubtle,
+  ),
+  DealerStatus.pending => ('Pending', AppColors.warning, AppColors.warningBg),
+  DealerStatus.needsChanges => (
+    'Needs changes',
+    AppColors.warning,
+    AppColors.warningBg,
+  ),
+  DealerStatus.approved => ('Approved', AppColors.success, AppColors.successBg),
+  DealerStatus.rejected => ('Rejected', AppColors.error, AppColors.errorBg),
+  DealerStatus.suspended => ('Suspended', AppColors.error, AppColors.errorBg),
+};

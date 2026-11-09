@@ -15,8 +15,9 @@ void main() {
     await StorageHelper.init();
   });
 
-  testWidgets('signed-out user sees splash, then the login screen',
-      (WidgetTester tester) async {
+  testWidgets('signed-out user sees splash, then the login screen', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const ProviderScope(child: RevoraApp()));
 
     expect(find.text('Revora'), findsOneWidget);

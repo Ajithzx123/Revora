@@ -17,10 +17,7 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.addAll([
-    AuthInterceptor(dio),
-    LoggerInterceptor(),
-  ]);
+  dio.interceptors.addAll([AuthInterceptor(dio), LoggerInterceptor()]);
 
   return dio;
 });

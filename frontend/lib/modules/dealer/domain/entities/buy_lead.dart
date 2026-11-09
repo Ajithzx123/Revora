@@ -90,12 +90,16 @@ class BuyLead {
       urgency: (j['urgency'] as String?) ?? 'WITHIN_2_WEEKS',
       needsFinance: (j['needs_finance'] as bool?) ?? false,
       hasExchange: (j['has_exchange'] as bool?) ?? false,
-      mustHave: [for (final m in (j['must_have'] as List? ?? const [])) m as String],
+      mustHave: [
+        for (final m in (j['must_have'] as List? ?? const [])) m as String,
+      ],
       bodyType: j['body_type'] as String?,
       notes: j['notes'] as String?,
       radiusKm: (j['radius_km'] as int?) ?? 50,
       matchTier: (j['match_tier'] as int?) ?? 0,
-      matchReasons: [for (final r in (j['match_reasons'] as List? ?? const [])) r as String],
+      matchReasons: [
+        for (final r in (j['match_reasons'] as List? ?? const [])) r as String,
+      ],
       matchedVehicleTitle: j['matched_vehicle_title'] as String?,
       respondBy: _utc(j['response_deadline'] as String?),
     );
@@ -104,7 +108,8 @@ class BuyLead {
   /// The API sends UTC without a zone suffix.
   static DateTime? _utc(String? raw) {
     if (raw == null) return null;
-    final hasZone = raw.endsWith('Z') || RegExp(r'[+-]\d\d:\d\d$').hasMatch(raw);
+    final hasZone =
+        raw.endsWith('Z') || RegExp(r'[+-]\d\d:\d\d$').hasMatch(raw);
     return DateTime.parse(hasZone ? raw : '${raw}Z').toLocal();
   }
 
@@ -134,7 +139,11 @@ class BuyLead {
 
   String get title {
     final car = model.isEmpty ? make : '$make $model';
-    return maxYear > DateTime.now().year ? '$minYear+ $car' : '$minYear-$maxYear $car';
+    return maxYear > DateTime.now().year
+        ? '$minYear+ $car'
+        : '$minYear-$maxYear $car';
   }
-  String get budgetRange => '₹${(minBudget / 100000).toStringAsFixed(1)} - ${(maxBudget / 100000).toStringAsFixed(1)} Lakh';
+
+  String get budgetRange =>
+      '₹${(minBudget / 100000).toStringAsFixed(1)} - ${(maxBudget / 100000).toStringAsFixed(1)} Lakh';
 }

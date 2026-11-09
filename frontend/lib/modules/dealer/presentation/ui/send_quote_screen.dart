@@ -39,7 +39,8 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
     super.dispose();
   }
 
-  int? _int(TextEditingController c) => int.tryParse(c.text.replaceAll(',', '').trim());
+  int? _int(TextEditingController c) =>
+      int.tryParse(c.text.replaceAll(',', '').trim());
 
   Future<void> _send(bool sourced) async {
     if (!_form.currentState!.validate()) return;
@@ -47,18 +48,26 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
     try {
-      await ref.read(dealerQuotesRepositoryProvider).send(QuoteDraft(
-            requirementId: widget.leadId,
-            vehicleId: sourced ? null : _carId,
-            price: _int(_price)!,
-            message: _note.text,
-            validHours: _validHours,
-            deliveryDays: _int(_delivery),
-            warrantyMonths: _int(_warranty),
-          ));
+      await ref
+          .read(dealerQuotesRepositoryProvider)
+          .send(
+            QuoteDraft(
+              requirementId: widget.leadId,
+              vehicleId: sourced ? null : _carId,
+              price: _int(_price)!,
+              message: _note.text,
+              validHours: _validHours,
+              deliveryDays: _int(_delivery),
+              warrantyMonths: _int(_warranty),
+            ),
+          );
       ref.invalidate(myQuotesProvider);
       ref.invalidate(buyLeadsProvider);
-      messenger.showSnackBar(const SnackBar(content: Text('Quote sent. You will be told if the buyer counters.')));
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Quote sent. You will be told if the buyer counters.'),
+        ),
+      );
       if (router.canPop()) router.pop();
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(apiErrorMessage(e))));
@@ -69,14 +78,21 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    final inventory = ref.watch(dealerInventoryProvider).where((v) => v.isAvailable).toList();
-    final leads = ref.watch(dealerBuyLeadsProvider).where((l) => l.id == widget.leadId);
+    final inventory = ref
+        .watch(dealerInventoryProvider)
+        .where((v) => v.isAvailable)
+        .toList();
+    final leads = ref
+        .watch(dealerBuyLeadsProvider)
+        .where((l) => l.id == widget.leadId);
     final lead = leads.isEmpty ? null : leads.first;
 
     if (lead == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Send quote')),
-        body: const Center(child: Text('This request is no longer available to you.')),
+        body: const Center(
+          child: Text('This request is no longer available to you.'),
+        ),
       );
     }
     // A sourcing match has no car of yours behind it; the quote is for a car you will find.
@@ -126,7 +142,10 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
                     Text('Which car are you quoting?', style: t.titleMedium),
                     const SizedBox(height: AppSpacing.sm),
                     if (inventory.isEmpty)
-                      Text('You have no available cars. Add one to your inventory first.', style: t.bodySmall)
+                      Text(
+                        'You have no available cars. Add one to your inventory first.',
+                        style: t.bodySmall,
+                      )
                     else
                       RadioGroup<String>(
                         groupValue: _carId,
@@ -141,7 +160,9 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
                               RadioListTile<String>(
                                 value: car.id,
                                 contentPadding: EdgeInsets.zero,
-                                title: Text('${car.year} ${car.make} ${car.model}'),
+                                title: Text(
+                                  '${car.year} ${car.make} ${car.model}',
+                                ),
                                 subtitle: Text(
                                   '${PriceFormatter.formatINR(car.price)} · ${PriceFormatter.formatKm(car.mileage)} · ${car.fuelType}',
                                 ),
@@ -156,12 +177,15 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Total price the buyer pays (₹)',
-                      helperText: 'Include everything: registration, handling and delivery. The buyer sees this exact amount.',
+                      helperText:
+                          'Include everything: registration, handling and delivery. The buyer sees this exact amount.',
                       helperMaxLines: 2,
                       prefixIcon: Icon(Icons.currency_rupee, size: 20),
                     ),
                     validator: (v) {
-                      final n = int.tryParse((v ?? '').replaceAll(',', '').trim());
+                      final n = int.tryParse(
+                        (v ?? '').replaceAll(',', '').trim(),
+                      );
                       if (n == null || n <= 0) return 'Enter the total price';
                       if (n > 500000000) return 'That looks too high';
                       return null;
@@ -174,11 +198,17 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
                         child: TextFormField(
                           controller: _delivery,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Delivery in (days)'),
+                          decoration: const InputDecoration(
+                            labelText: 'Delivery in (days)',
+                          ),
                           validator: (v) {
-                            if ((v ?? '').trim().isEmpty) return sourced ? 'Required' : null;
+                            if ((v ?? '').trim().isEmpty) {
+                              return sourced ? 'Required' : null;
+                            }
                             final n = int.tryParse(v!.trim());
-                            return n == null || n < 0 || n > 180 ? '0 to 180' : null;
+                            return n == null || n < 0 || n > 180
+                                ? '0 to 180'
+                                : null;
                           },
                         ),
                       ),
@@ -187,11 +217,15 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
                         child: TextFormField(
                           controller: _warranty,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Warranty (months)'),
+                          decoration: const InputDecoration(
+                            labelText: 'Warranty (months)',
+                          ),
                           validator: (v) {
                             if ((v ?? '').trim().isEmpty) return null;
                             final n = int.tryParse(v!.trim());
-                            return n == null || n < 0 || n > 120 ? '0 to 120' : null;
+                            return n == null || n < 0 || n > 120
+                                ? '0 to 120'
+                                : null;
                           },
                         ),
                       ),
@@ -200,7 +234,9 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
                   const SizedBox(height: AppSpacing.md),
                   DropdownButtonFormField<int>(
                     initialValue: _validHours,
-                    decoration: const InputDecoration(labelText: 'Price holds for'),
+                    decoration: const InputDecoration(
+                      labelText: 'Price holds for',
+                    ),
                     items: const [
                       DropdownMenuItem(value: 24, child: Text('24 hours')),
                       DropdownMenuItem(value: 48, child: Text('2 days')),
@@ -224,14 +260,19 @@ class _SendQuoteScreenState extends ConsumerState<SendQuoteScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: _sending || (!sourced && _carId == null) ? null : () => _send(sourced),
+                      onPressed: _sending || (!sourced && _carId == null)
+                          ? null
+                          : () => _send(sourced),
                       child: Text(_sending ? 'Sending…' : 'Send quote'),
                     ),
                   ),
                   if (!sourced && _carId == null && inventory.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: Text('Choose a car to continue.', style: t.bodySmall),
+                      child: Text(
+                        'Choose a car to continue.',
+                        style: t.bodySmall,
+                      ),
                     ),
                 ],
               ),

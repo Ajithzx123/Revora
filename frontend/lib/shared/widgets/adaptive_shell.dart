@@ -49,10 +49,10 @@ class AdaptiveShell extends StatelessWidget {
                 child: Text(
                   'R',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.onAccent,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    color: AppColors.onAccent,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -60,9 +60,9 @@ class AdaptiveShell extends StatelessWidget {
                 child: Text(
                   title,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
             ],

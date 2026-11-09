@@ -21,12 +21,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: title ?? (titleText != null ? Text(titleText!) : null),
       actions: actions,
-      leading: leading ?? (showBackButton && Navigator.canPop(context)
-          ? IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => Navigator.maybePop(context),
-            )
-          : null),
+      leading:
+          leading ??
+          (showBackButton && Navigator.canPop(context)
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                  onPressed: () => Navigator.maybePop(context),
+                )
+              : null),
       centerTitle: true,
     );
   }

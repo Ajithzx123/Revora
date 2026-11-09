@@ -44,15 +44,16 @@ class MasterData {
   }
 
   factory MasterData.fromJson(Map<String, dynamic> json) {
-    List<String> strings(String key) => [for (final v in (json[key] as List)) v as String];
+    List<String> strings(String key) => [
+      for (final v in (json[key] as List)) v as String,
+    ];
     final limits = (json['limits'] as Map?) ?? const {};
     return MasterData(
       makes: [
         for (final m in (json['makes'] as List))
-          MakeInfo(
-            (m as Map)['name'] as String,
-            [for (final model in (m['models'] as List)) model as String],
-          ),
+          MakeInfo((m as Map)['name'] as String, [
+            for (final model in (m['models'] as List)) model as String,
+          ]),
       ],
       fuels: strings('fuels'),
       transmissions: strings('transmissions'),
@@ -68,12 +69,47 @@ class MasterData {
   /// Mirrors backend/app/core/master_data.py (used offline and in demo mode).
   static const bundled = MasterData(
     makes: [
-      MakeInfo('Maruti Suzuki', ['Alto K10', 'Swift', 'Baleno', 'Dzire', 'WagonR', 'Celerio', 'Brezza', 'Ertiga', 'Fronx', 'Grand Vitara', 'S-Presso']),
-      MakeInfo('Hyundai', ['i10 Nios', 'i20', 'Aura', 'Venue', 'Exter', 'Creta', 'Verna', 'Alcazar']),
-      MakeInfo('Tata', ['Tiago', 'Tigor', 'Altroz', 'Punch', 'Nexon', 'Harrier', 'Safari']),
+      MakeInfo('Maruti Suzuki', [
+        'Alto K10',
+        'Swift',
+        'Baleno',
+        'Dzire',
+        'WagonR',
+        'Celerio',
+        'Brezza',
+        'Ertiga',
+        'Fronx',
+        'Grand Vitara',
+        'S-Presso',
+      ]),
+      MakeInfo('Hyundai', [
+        'i10 Nios',
+        'i20',
+        'Aura',
+        'Venue',
+        'Exter',
+        'Creta',
+        'Verna',
+        'Alcazar',
+      ]),
+      MakeInfo('Tata', [
+        'Tiago',
+        'Tigor',
+        'Altroz',
+        'Punch',
+        'Nexon',
+        'Harrier',
+        'Safari',
+      ]),
       MakeInfo('Mahindra', ['Bolero', 'XUV 3XO', 'Scorpio', 'Thar', 'XUV700']),
       MakeInfo('Honda', ['Amaze', 'City', 'Elevate']),
-      MakeInfo('Toyota', ['Glanza', 'Urban Cruiser Hyryder', 'Innova Crysta', 'Fortuner', 'Hilux']),
+      MakeInfo('Toyota', [
+        'Glanza',
+        'Urban Cruiser Hyryder',
+        'Innova Crysta',
+        'Fortuner',
+        'Hilux',
+      ]),
       MakeInfo('Kia', ['Sonet', 'Seltos', 'Carens']),
       MakeInfo('Renault', ['Kwid', 'Triber', 'Kiger']),
       MakeInfo('Volkswagen', ['Polo', 'Virtus', 'Taigun']),
@@ -85,11 +121,45 @@ class MasterData {
     fuels: ['Petrol', 'Diesel', 'CNG', 'Electric', 'Hybrid'],
     transmissions: ['Manual', 'Automatic'],
     bodyTypes: ['Hatchback', 'Sedan', 'SUV', 'MUV', 'Coupe', 'Convertible'],
-    colors: ['White', 'Silver', 'Grey', 'Black', 'Red', 'Blue', 'Brown', 'Green', 'Orange', 'Yellow', 'Beige', 'Other'],
+    colors: [
+      'White',
+      'Silver',
+      'Grey',
+      'Black',
+      'Red',
+      'Blue',
+      'Brown',
+      'Green',
+      'Orange',
+      'Yellow',
+      'Beige',
+      'Other',
+    ],
     cities: [
-      'Bengaluru', 'Mumbai', 'Delhi', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad',
-      'Jaipur', 'Surat', 'Lucknow', 'Kochi', 'Chandigarh', 'Indore', 'Nagpur', 'Coimbatore',
-      'Visakhapatnam', 'Bhopal', 'Patna', 'Vadodara', 'Gurugram', 'Noida', 'Thane', 'Navi Mumbai',
+      'Bengaluru',
+      'Mumbai',
+      'Delhi',
+      'Hyderabad',
+      'Chennai',
+      'Pune',
+      'Kolkata',
+      'Ahmedabad',
+      'Jaipur',
+      'Surat',
+      'Lucknow',
+      'Kochi',
+      'Chandigarh',
+      'Indore',
+      'Nagpur',
+      'Coimbatore',
+      'Visakhapatnam',
+      'Bhopal',
+      'Patna',
+      'Vadodara',
+      'Gurugram',
+      'Noida',
+      'Thane',
+      'Navi Mumbai',
     ],
   );
 }

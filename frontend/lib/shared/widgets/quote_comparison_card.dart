@@ -37,7 +37,10 @@ class QuoteComparisonCard extends StatelessWidget {
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 child: Text(
                   dealerName.substring(0, 1).toUpperCase(),
-                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -49,21 +52,28 @@ class QuoteComparisonCard extends StatelessWidget {
                       children: [
                         Text(
                           dealerName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (isVerified) ...[
                           const SizedBox(width: 4),
-                          const Icon(Icons.verified, color: AppColors.success, size: 16),
+                          const Icon(
+                            Icons.verified,
+                            color: AppColors.success,
+                            size: 16,
+                          ),
                         ],
                       ],
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.star, color: AppColors.accent, size: 14),
+                        const Icon(
+                          Icons.star,
+                          color: AppColors.accent,
+                          size: 14,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           dealerRating.toStringAsFixed(1),
@@ -77,9 +87,9 @@ class QuoteComparisonCard extends StatelessWidget {
               Text(
                 PriceFormatter.formatINR(quotedPrice),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),

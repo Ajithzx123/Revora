@@ -14,7 +14,12 @@ class BuyLeadCard extends StatelessWidget {
   final VoidCallback onSendQuote;
   final VoidCallback? onDismiss;
 
-  const BuyLeadCard({super.key, required this.lead, required this.onSendQuote, this.onDismiss});
+  const BuyLeadCard({
+    super.key,
+    required this.lead,
+    required this.onSendQuote,
+    this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,19 +38,30 @@ class BuyLeadCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(lead.title, style: AppTextStyles.titleLarge.copyWith(fontSize: 17)),
+                child: Text(
+                  lead.title,
+                  style: AppTextStyles.titleLarge.copyWith(fontSize: 17),
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              if (lead.matchPercentage > 0) MatchBadge(percentage: lead.matchPercentage),
+              if (lead.matchPercentage > 0)
+                MatchBadge(percentage: lead.matchPercentage),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text('$firstName · ${lead.customerCity}', style: AppTextStyles.bodySmall),
+          Text(
+            '$firstName · ${lead.customerCity}',
+            style: AppTextStyles.bodySmall,
+          ),
           if (lead.tierLabel != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              lead.matchedVehicleTitle == null ? lead.tierLabel! : '${lead.tierLabel!}: ${lead.matchedVehicleTitle}',
-              style: AppTextStyles.labelMedium.copyWith(color: AppColors.success),
+              lead.matchedVehicleTitle == null
+                  ? lead.tierLabel!
+                  : '${lead.tierLabel!}: ${lead.matchedVehicleTitle}',
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.success,
+              ),
             ),
           ],
           const SizedBox(height: AppSpacing.md),
@@ -60,7 +76,10 @@ class BuyLeadCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text('BUDGET', style: AppTextStyles.overline.copyWith(fontSize: 10)),
+              Text(
+                'BUDGET',
+                style: AppTextStyles.overline.copyWith(fontSize: 10),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -68,13 +87,32 @@ class BuyLeadCard extends StatelessWidget {
             spacing: 6,
             runSpacing: 6,
             children: [
-              if (lead.fuelType != 'Any') _Pill(icon: Icons.local_gas_station_outlined, label: lead.fuelType),
-              if (lead.transmission != 'Any') _Pill(icon: Icons.tune, label: lead.transmission),
-              if (lead.bodyType != null) _Pill(icon: Icons.directions_car_outlined, label: lead.bodyType!),
+              if (lead.fuelType != 'Any')
+                _Pill(
+                  icon: Icons.local_gas_station_outlined,
+                  label: lead.fuelType,
+                ),
+              if (lead.transmission != 'Any')
+                _Pill(icon: Icons.tune, label: lead.transmission),
+              if (lead.bodyType != null)
+                _Pill(
+                  icon: Icons.directions_car_outlined,
+                  label: lead.bodyType!,
+                ),
               _Pill(icon: Icons.schedule_rounded, label: lead.urgencyLabel),
-              if (lead.needsFinance) const _Pill(icon: Icons.account_balance_outlined, label: 'Needs a loan'),
-              if (lead.hasExchange) const _Pill(icon: Icons.swap_horiz_rounded, label: 'Exchange'),
-              _Pill(icon: Icons.forum_outlined, label: lead.quotesCount == 1 ? '1 quote so far' : '${lead.quotesCount} quotes so far'),
+              if (lead.needsFinance)
+                const _Pill(
+                  icon: Icons.account_balance_outlined,
+                  label: 'Needs a loan',
+                ),
+              if (lead.hasExchange)
+                const _Pill(icon: Icons.swap_horiz_rounded, label: 'Exchange'),
+              _Pill(
+                icon: Icons.forum_outlined,
+                label: lead.quotesCount == 1
+                    ? '1 quote so far'
+                    : '${lead.quotesCount} quotes so far',
+              ),
             ],
           ),
           if (lead.mustHave.isNotEmpty) ...[
@@ -86,7 +124,10 @@ class BuyLeadCard extends StatelessWidget {
           ],
           if (lead.matchReasons.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
-            Text('Why you', style: AppTextStyles.overline.copyWith(fontSize: 10)),
+            Text(
+              'Why you',
+              style: AppTextStyles.overline.copyWith(fontSize: 10),
+            ),
             const SizedBox(height: 4),
             for (final reason in lead.matchReasons.take(4))
               Padding(
@@ -96,10 +137,16 @@ class BuyLeadCard extends StatelessWidget {
                   children: [
                     const Padding(
                       padding: EdgeInsets.only(top: 2),
-                      child: Icon(Icons.check_rounded, size: 14, color: AppColors.success),
+                      child: Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: AppColors.success,
+                      ),
                     ),
                     const SizedBox(width: 6),
-                    Expanded(child: Text(reason, style: AppTextStyles.bodySmall)),
+                    Expanded(
+                      child: Text(reason, style: AppTextStyles.bodySmall),
+                    ),
                   ],
                 ),
               ),
@@ -110,7 +157,12 @@ class BuyLeadCard extends StatelessWidget {
           ],
           if ((lead.notes ?? '').isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
-            Text('"${lead.notes}"', style: AppTextStyles.bodySmall.copyWith(fontStyle: FontStyle.italic)),
+            Text(
+              '"${lead.notes}"',
+              style: AppTextStyles.bodySmall.copyWith(
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ],
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
@@ -124,7 +176,10 @@ class BuyLeadCard extends StatelessWidget {
           if (onDismiss != null)
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(onPressed: onDismiss, child: const Text('Not for me')),
+              child: TextButton(
+                onPressed: onDismiss,
+                child: const Text('Not for me'),
+              ),
             ),
         ],
       ),
@@ -150,7 +205,10 @@ class _Pill extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: AppColors.textSecondary),
           const SizedBox(width: 5),
-          Text(label, style: AppTextStyles.labelMedium.copyWith(fontSize: 12.5)),
+          Text(
+            label,
+            style: AppTextStyles.labelMedium.copyWith(fontSize: 12.5),
+          ),
         ],
       ),
     );

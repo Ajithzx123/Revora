@@ -9,7 +9,9 @@ String apiErrorMessage(Object error) {
       if (detail is String) return detail;
       if (detail is List && detail.isNotEmpty) {
         final first = detail.first;
-        if (first is Map && first['msg'] != null) return first['msg'].toString();
+        if (first is Map && first['msg'] != null) {
+          return first['msg'].toString();
+        }
       }
     }
     switch (error.type) {
@@ -24,7 +26,9 @@ String apiErrorMessage(Object error) {
     final code = error.response?.statusCode;
     if (code == 413) return 'That file is too large.';
     if (code == 415) return 'Only PDF, JPEG and PNG files are accepted.';
-    if (code != null && code >= 500) return 'Something went wrong on our side. Please try again.';
+    if (code != null && code >= 500) {
+      return 'Something went wrong on our side. Please try again.';
+    }
   }
   return error.toString().replaceAll('Exception:', '').trim();
 }

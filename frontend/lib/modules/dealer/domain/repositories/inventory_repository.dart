@@ -12,9 +12,16 @@ abstract class InventoryRepository {
   Future<List<Vehicle>> list();
   Future<Vehicle> create(VehicleDraft draft);
   Future<Vehicle> update(String id, VehicleDraft draft);
-  Future<Vehicle> setStatus(String id, String status); // available | reserved | sold
+  Future<Vehicle> setStatus(
+    String id,
+    String status,
+  ); // available | reserved | sold
   Future<void> delete(String id);
-  Future<Vehicle> addPhoto(String vehicleId, {required String fileName, required Uint8List bytes});
+  Future<Vehicle> addPhoto(
+    String vehicleId, {
+    required String fileName,
+    required Uint8List bytes,
+  });
   Future<Vehicle> removePhoto(String vehicleId, String photoId);
 
   /// The first id becomes the cover photo.
@@ -30,24 +37,30 @@ class ApiInventoryRepository implements InventoryRepository {
   final Dio _dio;
   ApiInventoryRepository(this._dio);
 
-  Vehicle _one(Response<dynamic> res) => Vehicle.fromJson(res.data as Map<String, dynamic>, resolveMediaUrl);
+  Vehicle _one(Response<dynamic> res) =>
+      Vehicle.fromJson(res.data as Map<String, dynamic>, resolveMediaUrl);
 
   @override
   Future<List<Vehicle>> list() async {
     final res = await _dio.get('/inventory');
-    return [for (final j in res.data as List) Vehicle.fromJson(j as Map<String, dynamic>, resolveMediaUrl)];
+    return [
+      for (final j in res.data as List)
+        Vehicle.fromJson(j as Map<String, dynamic>, resolveMediaUrl),
+    ];
   }
 
   @override
-  Future<Vehicle> create(VehicleDraft draft) async => _one(await _dio.post('/inventory', data: draft.toJson()));
+  Future<Vehicle> create(VehicleDraft draft) async =>
+      _one(await _dio.post('/inventory', data: draft.toJson()));
 
   @override
   Future<Vehicle> update(String id, VehicleDraft draft) async =>
       _one(await _dio.patch('/inventory/$id', data: draft.toJson()));
 
   @override
-  Future<Vehicle> setStatus(String id, String status) async =>
-      _one(await _dio.patch('/inventory/$id', data: {'status': status.toUpperCase()}));
+  Future<Vehicle> setStatus(String id, String status) async => _one(
+    await _dio.patch('/inventory/$id', data: {'status': status.toUpperCase()}),
+  );
 
   @override
   Future<void> delete(String id) async {
@@ -55,13 +68,21 @@ class ApiInventoryRepository implements InventoryRepository {
   }
 
   @override
-  Future<Vehicle> addPhoto(String vehicleId, {required String fileName, required Uint8List bytes}) async {
-    final form = FormData.fromMap({'file': MultipartFile.fromBytes(bytes, filename: fileName)});
-    return _one(await _dio.post(
-      '/inventory/$vehicleId/media',
-      data: form,
-      options: Options(contentType: 'multipart/form-data'),
-    ));
+  Future<Vehicle> addPhoto(
+    String vehicleId, {
+    required String fileName,
+    required Uint8List bytes,
+  }) async {
+    final form = FormData.fromMap({
+      'file': MultipartFile.fromBytes(bytes, filename: fileName),
+    });
+    return _one(
+      await _dio.post(
+        '/inventory/$vehicleId/media',
+        data: form,
+        options: Options(contentType: 'multipart/form-data'),
+      ),
+    );
   }
 
   @override
@@ -69,6 +90,13 @@ class ApiInventoryRepository implements InventoryRepository {
       _one(await _dio.delete('/inventory/$vehicleId/media/$photoId'));
 
   @override
-  Future<Vehicle> reorderPhotos(String vehicleId, List<String> orderedIds) async =>
-      _one(await _dio.put('/inventory/$vehicleId/media/order', data: {'ids': orderedIds}));
+  Future<Vehicle> reorderPhotos(
+    String vehicleId,
+    List<String> orderedIds,
+  ) async => _one(
+    await _dio.put(
+      '/inventory/$vehicleId/media/order',
+      data: {'ids': orderedIds},
+    ),
+  );
 }

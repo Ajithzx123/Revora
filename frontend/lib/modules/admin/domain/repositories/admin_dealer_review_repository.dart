@@ -22,14 +22,14 @@ class DealerSummary {
   });
 
   factory DealerSummary.fromJson(Map<String, dynamic> json) => DealerSummary(
-        id: json['id'] as String,
-        businessName: json['business_name'] as String? ?? '',
-        city: json['city'] as String? ?? '',
-        status: DealerStatus.fromApi(json['status'] as String?),
-        submittedAt: json['submitted_at'] == null
-            ? null
-            : DateTime.tryParse(json['submitted_at'] as String),
-      );
+    id: json['id'] as String,
+    businessName: json['business_name'] as String? ?? '',
+    city: json['city'] as String? ?? '',
+    status: DealerStatus.fromApi(json['status'] as String?),
+    submittedAt: json['submitted_at'] == null
+        ? null
+        : DateTime.tryParse(json['submitted_at'] as String),
+  );
 }
 
 class DocumentFile {
@@ -43,7 +43,12 @@ abstract class AdminDealerReviewRepository {
   /// [status] null means all applications.
   Future<List<DealerSummary>> list({DealerStatus? status});
   Future<DealerApplication> detail(String dealerId);
-  Future<void> reviewDocument(String dealerId, String documentId, {required bool accept, String? note});
+  Future<void> reviewDocument(
+    String dealerId,
+    String documentId, {
+    required bool accept,
+    String? note,
+  });
   Future<DocumentFile> documentFile(String dealerId, String documentId);
   Future<void> approve(String dealerId);
   Future<void> requestChanges(String dealerId, String reason);
@@ -52,25 +57,26 @@ abstract class AdminDealerReviewRepository {
   Future<void> reactivate(String dealerId);
 }
 
-final adminDealerReviewRepositoryProvider = Provider<AdminDealerReviewRepository>((ref) {
-  if (AppConfig.instance.useMockData) {
-    return MockAdminDealerReviewRepository();
-  }
-  return ApiAdminDealerReviewRepository(ref.watch(dioProvider));
-});
+final adminDealerReviewRepositoryProvider =
+    Provider<AdminDealerReviewRepository>((ref) {
+      if (AppConfig.instance.useMockData) {
+        return MockAdminDealerReviewRepository();
+      }
+      return ApiAdminDealerReviewRepository(ref.watch(dioProvider));
+    });
 
 class ApiAdminDealerReviewRepository implements AdminDealerReviewRepository {
   final Dio _dio;
   ApiAdminDealerReviewRepository(this._dio);
 
   static String _statusParam(DealerStatus s) => switch (s) {
-        DealerStatus.draft => 'DRAFT',
-        DealerStatus.pending => 'PENDING',
-        DealerStatus.needsChanges => 'NEEDS_CHANGES',
-        DealerStatus.approved => 'APPROVED',
-        DealerStatus.rejected => 'REJECTED',
-        DealerStatus.suspended => 'SUSPENDED',
-      };
+    DealerStatus.draft => 'DRAFT',
+    DealerStatus.pending => 'PENDING',
+    DealerStatus.needsChanges => 'NEEDS_CHANGES',
+    DealerStatus.approved => 'APPROVED',
+    DealerStatus.rejected => 'REJECTED',
+    DealerStatus.suspended => 'SUSPENDED',
+  };
 
   @override
   Future<List<DealerSummary>> list({DealerStatus? status}) async {
@@ -79,7 +85,8 @@ class ApiAdminDealerReviewRepository implements AdminDealerReviewRepository {
       queryParameters: {if (status != null) 'status': _statusParam(status)},
     );
     return [
-      for (final j in res.data as List) DealerSummary.fromJson(j as Map<String, dynamic>),
+      for (final j in res.data as List)
+        DealerSummary.fromJson(j as Map<String, dynamic>),
     ];
   }
 
@@ -90,12 +97,16 @@ class ApiAdminDealerReviewRepository implements AdminDealerReviewRepository {
   }
 
   @override
-  Future<void> reviewDocument(String dealerId, String documentId,
-      {required bool accept, String? note}) async {
-    await _dio.post('/admin/dealers/$dealerId/documents/$documentId/review', data: {
-      'status': accept ? 'ACCEPTED' : 'REJECTED',
-      'note': ?note,
-    });
+  Future<void> reviewDocument(
+    String dealerId,
+    String documentId, {
+    required bool accept,
+    String? note,
+  }) async {
+    await _dio.post(
+      '/admin/dealers/$dealerId/documents/$documentId/review',
+      data: {'status': accept ? 'ACCEPTED' : 'REJECTED', 'note': ?note},
+    );
   }
 
   @override
@@ -111,16 +122,22 @@ class ApiAdminDealerReviewRepository implements AdminDealerReviewRepository {
   }
 
   Future<void> _post(String dealerId, String action, [String? reason]) =>
-      _dio.post('/admin/dealers/$dealerId/$action', data: reason == null ? null : {'reason': reason});
+      _dio.post(
+        '/admin/dealers/$dealerId/$action',
+        data: reason == null ? null : {'reason': reason},
+      );
 
   @override
   Future<void> approve(String dealerId) => _post(dealerId, 'approve');
   @override
-  Future<void> requestChanges(String dealerId, String reason) => _post(dealerId, 'request-changes', reason);
+  Future<void> requestChanges(String dealerId, String reason) =>
+      _post(dealerId, 'request-changes', reason);
   @override
-  Future<void> reject(String dealerId, String reason) => _post(dealerId, 'reject', reason);
+  Future<void> reject(String dealerId, String reason) =>
+      _post(dealerId, 'reject', reason);
   @override
-  Future<void> suspend(String dealerId, String reason) => _post(dealerId, 'suspend', reason);
+  Future<void> suspend(String dealerId, String reason) =>
+      _post(dealerId, 'suspend', reason);
   @override
   Future<void> reactivate(String dealerId) => _post(dealerId, 'reactivate');
 }

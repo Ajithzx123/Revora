@@ -99,7 +99,8 @@ class DealerMockData {
       fuelType: 'Petrol',
       transmission: 'Automatic',
       expectedPrice: 620000,
-      imageUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=500',
       status: 'active',
       offersCount: 3,
       createdAt: DateTime.now().subtract(const Duration(hours: 5)),
@@ -117,7 +118,8 @@ class DealerMockData {
       fuelType: 'Petrol',
       transmission: 'Automatic',
       expectedPrice: 940000,
-      imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
       status: 'active',
       offersCount: 2,
       createdAt: DateTime.now().subtract(const Duration(hours: 18)),
@@ -136,7 +138,8 @@ class DealerMockData {
       transmission: 'Automatic',
       mileage: 28400,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
       dealerId: 'DLR-01',
       isVerified: true,
       status: 'active',
@@ -152,7 +155,8 @@ class DealerMockData {
       transmission: 'Automatic',
       mileage: 21000,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
       dealerId: 'DLR-01',
       isVerified: true,
       status: 'active',
@@ -168,7 +172,8 @@ class DealerMockData {
       transmission: 'Automatic',
       mileage: 36000,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
       dealerId: 'DLR-01',
       isVerified: true,
       status: 'active',
@@ -184,7 +189,8 @@ class DealerMockData {
       transmission: 'Manual',
       mileage: 18000,
       city: 'Mumbai',
-      imageUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=500',
+      imageUrl:
+          'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=500',
       dealerId: 'DLR-01',
       isVerified: true,
       status: 'active',
@@ -195,7 +201,8 @@ class DealerMockData {
     DealerActivity(
       id: 'DA-1',
       title: 'Customer accepted your quote!',
-      subtitle: 'Amit Kumar accepted quote ₹13.80L for Hyundai Creta. Contact unlocked.',
+      subtitle:
+          'Amit Kumar accepted quote ₹13.80L for Hyundai Creta. Contact unlocked.',
       time: '1h ago',
       type: 'quote_accepted',
       timestamp: DateTime.now().subtract(const Duration(hours: 1)),
@@ -203,7 +210,8 @@ class DealerMockData {
     DealerActivity(
       id: 'DA-2',
       title: 'New high-match buy lead broadcasted',
-      subtitle: 'Rahul Verma wants 2020-2023 Hyundai Creta (96% match with your inventory)',
+      subtitle:
+          'Rahul Verma wants 2020-2023 Hyundai Creta (96% match with your inventory)',
       time: '3h ago',
       type: 'lead',
       timestamp: DateTime.now().subtract(const Duration(hours: 3)),

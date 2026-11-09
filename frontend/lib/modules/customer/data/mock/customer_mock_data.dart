@@ -66,8 +66,10 @@ class CustomerMockData {
       carMileage: 28400,
       carFuel: 'Petrol',
       quotedPrice: 1380000,
-      carImageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
-      comment: 'First owner, comprehensive insurance valid till Oct 2026. Zero accidental history.',
+      carImageUrl:
+          'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
+      comment:
+          'First owner, comprehensive insurance valid till Oct 2026. Zero accidental history.',
       status: 'pending',
       matchPercentage: 96,
       createdAt: DateTime.now().subtract(const Duration(hours: 4)),
@@ -84,7 +86,8 @@ class CustomerMockData {
       carMileage: 19500,
       carFuel: 'Petrol',
       quotedPrice: 1420000,
-      carImageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
+      carImageUrl:
+          'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500',
       comment: 'Company serviced, showroom condition. Ready for inspection.',
       status: 'pending',
       matchPercentage: 91,
@@ -102,7 +105,8 @@ class CustomerMockData {
       carMileage: 34000,
       carFuel: 'Petrol',
       quotedPrice: 1250000,
-      carImageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
+      carImageUrl:
+          'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500',
       comment: 'Certified 150-point checked with 6-month warranty.',
       status: 'pending',
       matchPercentage: 88,
@@ -237,7 +241,8 @@ class CustomerMockData {
     CustomerActivity(
       id: 'ACT-1',
       title: 'New quote received',
-      subtitle: 'Apex Motor Corp sent a quote of ₹13.80 Lakh for your Creta requirement',
+      subtitle:
+          'Apex Motor Corp sent a quote of ₹13.80 Lakh for your Creta requirement',
       time: '4h ago',
       type: 'quote',
       timestamp: DateTime.now().subtract(const Duration(hours: 4)),
@@ -253,7 +258,8 @@ class CustomerMockData {
     CustomerActivity(
       id: 'ACT-3',
       title: 'Requirement posted',
-      subtitle: 'Your buy requirement for Hyundai Creta was broadcasted to 14 verified dealers',
+      subtitle:
+          'Your buy requirement for Hyundai Creta was broadcasted to 14 verified dealers',
       time: '2d ago',
       type: 'requirement',
       timestamp: DateTime.now().subtract(const Duration(days: 2)),

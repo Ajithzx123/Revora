@@ -57,25 +57,41 @@ class MyQuoteTile extends StatelessWidget {
             children: [
               Expanded(child: Text(item.requestTitle, style: t.titleMedium)),
               const SizedBox(width: AppSpacing.sm),
-              Text(label, style: t.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w700)),
+              Text(
+                label,
+                style: t.labelMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 2),
           Text(
-            [item.buyerFirstName, if (item.requestCity.isNotEmpty) item.requestCity, q.kindLabel].join(' · '),
+            [
+              item.buyerFirstName,
+              if (item.requestCity.isNotEmpty) item.requestCity,
+              q.kindLabel,
+            ].join(' · '),
             style: t.bodySmall,
           ),
           const SizedBox(height: AppSpacing.md),
           Text(PriceFormatter.formatINR(q.quotedPrice), style: t.titleLarge),
-          if (q.validityLabel != null) Text(q.validityLabel!, style: t.bodySmall),
-          if (q.revision > 1) Text('Revision ${q.revision}', style: t.bodySmall),
-          if (q.statusReason != null && !live) Text(q.statusReason!, style: t.bodySmall),
+          if (q.validityLabel != null)
+            Text(q.validityLabel!, style: t.bodySmall),
+          if (q.revision > 1)
+            Text('Revision ${q.revision}', style: t.bodySmall),
+          if (q.statusReason != null && !live)
+            Text(q.statusReason!, style: t.bodySmall),
           if (buyerCountered) ...[
             const SizedBox(height: AppSpacing.md),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(color: AppColors.warningBg, borderRadius: BorderRadius.circular(AppSpacing.radiusSm)),
+              decoration: BoxDecoration(
+                color: AppColors.warningBg,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
               child: Text(
                 'Buyer offers ${PriceFormatter.formatINR(open.price)}. Reply within 24 hours.',
                 style: t.bodyMedium,
@@ -86,23 +102,41 @@ class MyQuoteTile extends StatelessWidget {
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
-                FilledButton(onPressed: onAcceptCounter, child: const Text('Accept offer')),
-                OutlinedButton(onPressed: onCounterBack, child: const Text('Counter')),
-                TextButton(onPressed: onDeclineCounter, child: const Text('Decline')),
+                FilledButton(
+                  onPressed: onAcceptCounter,
+                  child: const Text('Accept offer'),
+                ),
+                OutlinedButton(
+                  onPressed: onCounterBack,
+                  child: const Text('Counter'),
+                ),
+                TextButton(
+                  onPressed: onDeclineCounter,
+                  child: const Text('Decline'),
+                ),
               ],
             ),
           ],
           if (q.isAccepted && item.buyerName != null) ...[
             const SizedBox(height: AppSpacing.md),
-            Text('Buyer: ${item.buyerName}${item.buyerPhone == null ? '' : ' · ${item.buyerPhone}'}', style: t.bodyMedium),
+            Text(
+              'Buyer: ${item.buyerName}${item.buyerPhone == null ? '' : ' · ${item.buyerPhone}'}',
+              style: t.bodyMedium,
+            ),
           ],
           if (live && !buyerCountered) ...[
             const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: AppSpacing.sm,
               children: [
-                OutlinedButton(onPressed: onRevise, child: const Text('Revise price')),
-                TextButton(onPressed: onWithdraw, child: const Text('Withdraw')),
+                OutlinedButton(
+                  onPressed: onRevise,
+                  child: const Text('Revise price'),
+                ),
+                TextButton(
+                  onPressed: onWithdraw,
+                  child: const Text('Withdraw'),
+                ),
               ],
             ),
           ],

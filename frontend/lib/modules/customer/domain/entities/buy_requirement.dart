@@ -133,13 +133,17 @@ class BuyRequirement {
       urgency: (j['urgency'] as String?) ?? 'WITHIN_2_WEEKS',
       needsFinance: (j['needs_finance'] as bool?) ?? false,
       hasExchange: (j['has_exchange'] as bool?) ?? false,
-      mustHave: [for (final m in (j['must_have'] as List? ?? const [])) m as String],
+      mustHave: [
+        for (final m in (j['must_have'] as List? ?? const [])) m as String,
+      ],
       notes: j['notes'] as String?,
       status: ((j['status'] as String?) ?? 'OPEN').toLowerCase(),
       quotesReceived: (j['quote_count'] as int?) ?? 0,
       dealersNotified: (j['dealers_notified'] as int?) ?? 0,
       createdAt: DateTime.parse(j['created_at'] as String),
-      expiresAt: j['expires_at'] == null ? null : DateTime.parse(j['expires_at'] as String),
+      expiresAt: j['expires_at'] == null
+          ? null
+          : DateTime.parse(j['expires_at'] as String),
     );
   }
 }

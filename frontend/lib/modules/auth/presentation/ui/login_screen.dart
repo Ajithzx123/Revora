@@ -39,7 +39,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
-    await ref.read(authControllerProvider.notifier).signIn(
+    await ref
+        .read(authControllerProvider.notifier)
+        .signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
@@ -115,11 +117,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
                 suffixIcon: IconButton(
                   tooltip: _obscurePassword ? 'Show password' : 'Hide password',
-                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Enter your password' : null,
             ),
             Align(
               alignment: Alignment.centerRight,
@@ -135,7 +143,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ? const SizedBox(
                       height: 22,
                       width: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: Colors.white,
+                      ),
                     )
                   : const Text('Sign in'),
             ),
@@ -153,7 +164,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             if (demo) ...[
               const SizedBox(height: AppSpacing.lg),
-              Text('DEMO ACCOUNTS', style: t.labelSmall?.copyWith(letterSpacing: 1.2)),
+              Text(
+                'DEMO ACCOUNTS',
+                style: t.labelSmall?.copyWith(letterSpacing: 1.2),
+              ),
               const SizedBox(height: AppSpacing.sm),
               Wrap(
                 spacing: AppSpacing.sm,
@@ -194,15 +208,19 @@ class _ErrorBanner extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+            const Icon(
+              Icons.error_outline_rounded,
+              color: AppColors.error,
+              size: 20,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.error,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

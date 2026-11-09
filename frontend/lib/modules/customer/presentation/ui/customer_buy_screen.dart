@@ -36,41 +36,53 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
   }
 
   Widget _tab(String label, int count, {bool highlight = false}) => Tab(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-            const SizedBox(width: AppSpacing.sm),
-            Badge(
-              label: Text('$count'),
-              backgroundColor: highlight ? AppColors.accent : AppColors.primarySubtle,
-              textColor: highlight ? AppColors.onAccent : AppColors.textPrimary,
-            ),
-          ],
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+        const SizedBox(width: AppSpacing.sm),
+        Badge(
+          label: Text('$count'),
+          backgroundColor: highlight
+              ? AppColors.accent
+              : AppColors.primarySubtle,
+          textColor: highlight ? AppColors.onAccent : AppColors.textPrimary,
         ),
-      );
+      ],
+    ),
+  );
 
   Widget _empty(String title, String body) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          border: Border.all(color: AppColors.border),
+    width: double.infinity,
+    padding: const EdgeInsets.all(AppSpacing.xxl),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: Column(
+      children: [
+        const Icon(Icons.inbox_outlined, size: 40, color: AppColors.textMuted),
+        const SizedBox(height: AppSpacing.md),
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          body,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
-        child: Column(
-          children: [
-            const Icon(Icons.inbox_outlined, size: 40, color: AppColors.textMuted),
-            const SizedBox(height: AppSpacing.md),
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.xs),
-            Text(body, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 
-  Widget _page({required Widget header, required Widget child}) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 96),
+  Widget _page({required Widget header, required Widget child}) =>
+      SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          96,
+        ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1100),
@@ -90,7 +102,8 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
-        heroTag: null, // several tabs each have a "+" button; a shared tag breaks navigation
+        heroTag:
+            null, // several tabs each have a "+" button; a shared tag breaks navigation
         onPressed: () => context.push('/customer/post-buy'),
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.onAccent,
@@ -121,16 +134,26 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                       padding: EdgeInsets.all(AppSpacing.xxxl),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (e, _) => _empty('Could not load your requests', apiErrorMessage(e)),
+                    error: (e, _) => _empty(
+                      'Could not load your requests',
+                      apiErrorMessage(e),
+                    ),
                     data: (items) => items.isEmpty
-                        ? _empty('No requests yet', 'Tap "New request" and tell us what you are looking for.')
+                        ? _empty(
+                            'No requests yet',
+                            'Tap "New request" and tell us what you are looking for.',
+                          )
                         : ResponsiveCardGrid(
                             children: [
                               for (final r in items)
                                 RequirementSummaryCard(
                                   requirement: r,
-                                  onTap: () => context.push('/customer/requirement/${r.id}'),
-                                  onViewQuotes: () => context.push('/customer/requirement/${r.id}'),
+                                  onTap: () => context.push(
+                                    '/customer/requirement/${r.id}',
+                                  ),
+                                  onViewQuotes: () => context.push(
+                                    '/customer/requirement/${r.id}',
+                                  ),
                                 ),
                             ],
                           ),
@@ -139,16 +162,22 @@ class _CustomerBuyScreenState extends ConsumerState<CustomerBuyScreen>
                 _page(
                   header: const SectionHeader(
                     title: 'Compare dealer quotes',
-                    subtitle: 'Review the car, the price and the dealer, then choose',
+                    subtitle:
+                        'Review the car, the price and the dealer, then choose',
                   ),
                   child: allQuotes.isEmpty
-                      ? _empty('No quotes yet', 'Dealers usually reply within a few hours of you posting a request.')
+                      ? _empty(
+                          'No quotes yet',
+                          'Dealers usually reply within a few hours of you posting a request.',
+                        )
                       : ResponsiveCardGrid(
                           children: [
                             for (final q in allQuotes)
                               CustomerQuoteCard(
                                 quote: q,
-                                onAccept: () => context.push('/customer/requirement/${q.requirementId}'),
+                                onAccept: () => context.push(
+                                  '/customer/requirement/${q.requirementId}',
+                                ),
                               ),
                           ],
                         ),
