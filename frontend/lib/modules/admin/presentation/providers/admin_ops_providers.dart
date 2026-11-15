@@ -68,3 +68,25 @@ final adminQuotesProvider =
     AsyncNotifierProvider.autoDispose<AdminQuotesNotifier, Paged<AdminQuote>>(
       AdminQuotesNotifier.new,
     );
+
+/// Overview numbers, counted by the server.
+final adminKpisProvider = FutureProvider.autoDispose<AdminKpis>((ref) {
+  return ref.watch(adminOpsRepositoryProvider).kpis();
+});
+
+/// The latest audit events, for the overview's activity trail.
+final adminRecentActivityProvider =
+    FutureProvider.autoDispose<List<AuditEntry>>((ref) async {
+      final page = await ref.watch(adminOpsRepositoryProvider).audit(limit: 8);
+      return page.items;
+    });
+
+final adminRequirementsProvider =
+    FutureProvider.autoDispose<Paged<AdminRequirementRow>>((ref) {
+      return ref.watch(adminOpsRepositoryProvider).requirements();
+    });
+
+final adminVehiclesProvider =
+    FutureProvider.autoDispose<Paged<AdminVehicleRow>>((ref) {
+      return ref.watch(adminOpsRepositoryProvider).vehicles();
+    });

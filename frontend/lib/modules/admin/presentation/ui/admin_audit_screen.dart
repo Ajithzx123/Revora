@@ -23,11 +23,6 @@ class AdminAuditScreen extends ConsumerWidget {
     'user': 'Customers',
   };
 
-  static String _label(String action) => action
-      .split('_')
-      .map((w) => w.isEmpty ? w : w[0] + w.substring(1).toLowerCase())
-      .join(' ');
-
   static String _change(
     Map<String, dynamic>? before,
     Map<String, dynamic>? after,
@@ -136,7 +131,7 @@ class _AuditTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AdminAuditScreen._label(entry.action),
+              humanizeAction(entry.action),
               style: AppTextStyles.bodyLarge.copyWith(
                 fontWeight: FontWeight.w700,
               ),

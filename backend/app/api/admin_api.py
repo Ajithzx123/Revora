@@ -4,7 +4,9 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
-from sqlalchemy import func
+from datetime import datetime, timedelta
+
+from sqlalchemy import case, func
 from sqlmodel import Session, col, select
 
 from backend.app.api.dealer_onboarding_api import dealer_response
@@ -18,13 +20,21 @@ from backend.app.models.marketplace_models import (
     DealerDocument,
     DealerStatus,
     BuyRequirement,
+    MatchRecord,
+    RequirementStatus,
     SellListing,
     DealerQuote,
     DealerOffer,
+    Vehicle,
+    VehicleStatus,
 )
 from backend.app.schemas.admin_schema import (
     AdminOfferPage,
     AdminOfferRow,
+    AdminRequirementPage,
+    AdminRequirementRow,
+    AdminVehiclePage,
+    AdminVehicleRow,
     AdminQuotePage,
     AdminQuoteRow,
     AuditEventResponse,
@@ -67,7 +77,31 @@ def get_admin_metrics(
     pending = session.exec(
         select(func.count()).select_from(Dealer).where(Dealer.status == DealerStatus.PENDING)
     ).one()
+    since = datetime.utcnow() - timedelta(days=30)
+    quote_deals = session.exec(
+        select(func.count(), func.coalesce(func.sum(DealerQuote.quoted_price), 0)).where(
+            DealerQuote.status == "ACCEPTED", DealerQuote.accepted_at >= since
+        )
+    ).one()
+    final_price = case((DealerOffer.final_status == "ACCEPTED", DealerOffer.final_price), else_=DealerOffer.offered_price)
+    offer_deals = session.exec(
+        select(func.count(), func.coalesce(func.sum(final_price), 0)).where(
+            DealerOffer.status == "ACCEPTED", DealerOffer.accepted_at >= since
+        )
+    ).one()
     return {
+        # Counts and sums, all read from the database. Money is whole rupees.
+        "open_requirements": session.exec(
+            select(func.count()).select_from(BuyRequirement).where(BuyRequirement.status == RequirementStatus.OPEN)
+        ).one(),
+        "open_listings": session.exec(
+            select(func.count()).select_from(SellListing).where(SellListing.status == "ACTIVE")
+        ).one(),
+        "active_vehicles": session.exec(
+            select(func.count()).select_from(Vehicle).where(Vehicle.status == VehicleStatus.AVAILABLE)
+        ).one(),
+        "deals_last_30_days": quote_deals[0] + offer_deals[0],
+        "deal_value_last_30_days": int(quote_deals[1] or 0) + int(offer_deals[1] or 0),
         "total_users": _count(session, User),
         "active_dealers": approved,
         "pending_dealer_applications": pending,
@@ -501,3 +535,63 @@ def unfreeze_listing(
     sell_service.unfreeze(session, listing, current_user_id(admin))
     session.commit()
     return {"id": listing.id, "status": listing.status}
+
+
+# ---------------------------------------------------------------- marketplace lists (read-only)
+@router.get("/requirements", response_model=AdminRequirementPage)
+def list_requirements(
+    status: Optional[str] = Query(None, max_length=30),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    _admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    """Every buy request on the platform, newest first, with how many dealers saw it and quoted."""
+    query = select(BuyRequirement)
+    if status:
+        query = query.where(BuyRequirement.status == status)
+    total = session.exec(select(func.count()).select_from(query.subquery())).one()
+    rows = session.exec(query.order_by(col(BuyRequirement.created_at).desc()).offset(offset).limit(limit)).all()
+    items = []
+    for r in rows:
+        customer = session.get(User, r.customer_id)
+        items.append(
+            AdminRequirementRow(
+                id=r.id,
+                title=f"{r.make} {r.model}" if r.model else r.make,
+                city=r.city, budget_min=r.budget_min, budget_max=r.budget_max, status=r.status.value,
+                customer_name=customer.name if customer else "",
+                quotes_count=session.exec(select(func.count()).select_from(DealerQuote).where(DealerQuote.requirement_id == r.id)).one(),
+                matches_count=session.exec(select(func.count()).select_from(MatchRecord).where(MatchRecord.requirement_id == r.id)).one(),
+                created_at=r.created_at, expires_at=r.expires_at,
+            )
+        )
+    return AdminRequirementPage(items=items, total=total, limit=limit, offset=offset)
+
+
+@router.get("/vehicles", response_model=AdminVehiclePage)
+def list_vehicles(
+    status: Optional[str] = Query(None, max_length=30),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    _admin: dict = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    """Every car in dealer stock, newest first. The dealer's private minimum price is not exposed."""
+    query = select(Vehicle)
+    if status:
+        query = query.where(Vehicle.status == status)
+    total = session.exec(select(func.count()).select_from(query.subquery())).one()
+    rows = session.exec(query.order_by(col(Vehicle.created_at).desc()).offset(offset).limit(limit)).all()
+    items = []
+    for v in rows:
+        dealer = session.get(Dealer, v.dealer_id)
+        items.append(
+            AdminVehicleRow(
+                id=v.id, title=f"{v.year} {v.make} {v.model}" + (f" {v.variant}" if v.variant else ""),
+                registration_no=v.registration_no, dealer_id=v.dealer_id,
+                dealer_name=dealer.business_name if dealer else "Dealer", price=v.price, km=v.km, fuel=v.fuel,
+                city=dealer.city if dealer else "", status=v.status.value, created_at=v.created_at,
+            )
+        )
+    return AdminVehiclePage(items=items, total=total, limit=limit, offset=offset)

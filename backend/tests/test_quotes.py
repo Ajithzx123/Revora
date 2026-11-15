@@ -255,3 +255,23 @@ def test_my_quotes_hides_buyer_contact_until_accepted(client, actors):
     mine = client.get("/api/quotes/mine", headers=d).json()
     assert mine[0]["status"] == "ACCEPTED" and mine[0]["buyer_name"] == "Cust"
     assert client.get("/api/quotes/mine", headers=customer).status_code == 403
+
+
+def test_repeated_accept_races_never_deadlock_or_error(client, actors):
+    """On Postgres, locking the quote before the shared request deadlocked about one race in
+    three (the loser got a 500). Repeat the race so a regression shows up reliably."""
+    a, b = (source(client, actors.dealer(approved=True)) for _ in range(2))  # the same two dealers each round
+    for _ in range(8):
+        customer = actors.customer()
+        rid = client.post("/api/requirements/", headers=customer, json=REQUIREMENT).json()["id"]
+        qa, qb = quote(client, a, rid, 650_000).json()["id"], quote(client, b, rid, 640_000).json()["id"]
+        barrier, codes = threading.Barrier(2), []
+
+        def go(qid, price):
+            barrier.wait()
+            codes.append(accept(client, customer, qid, price).status_code)
+
+        threads = [threading.Thread(target=go, args=args) for args in ((qa, 650_000), (qb, 640_000))]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+        assert sorted(codes) == [200, 409], codes

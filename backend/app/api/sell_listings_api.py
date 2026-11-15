@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, col, select
 
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import (
     ADMIN_ROLES,
     current_user_id,
@@ -31,7 +32,7 @@ def _owned(session: Session, user_data: dict, listing_id: uuid.UUID) -> SellList
     return listing
 
 
-@router.post("/", response_model=SellListingResponse, status_code=201)
+@router.post("/", response_model=SellListingResponse, status_code=201, dependencies=[Depends(rate_limit.create)])
 def create_sell_listing(
     listing_data: SellListingCreate,
     user_data: dict = Depends(require_customer),
@@ -88,7 +89,7 @@ def get_listing_detail(
     return sell_service.listing_response(session, item)
 
 
-@router.put("/{listing_id}/price", response_model=SellListingResponse)
+@router.put("/{listing_id}/price", response_model=SellListingResponse, dependencies=[Depends(rate_limit.action)])
 def change_price(
     listing_id: uuid.UUID,
     body: SellListingPrice,
@@ -103,7 +104,7 @@ def change_price(
     return sell_service.listing_response(session, listing)
 
 
-@router.post("/{listing_id}/close", response_model=SellListingResponse)
+@router.post("/{listing_id}/close", response_model=SellListingResponse, dependencies=[Depends(rate_limit.action)])
 def close_listing(
     listing_id: uuid.UUID,
     body: SellListingClose,

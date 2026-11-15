@@ -6,6 +6,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, col, select
 
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import current_user_id, require_customer, require_verified_dealer
 from backend.app.database.session import get_session
 from backend.app.models.marketplace_models import Dealer, DealerOffer, SellListing
@@ -74,7 +75,7 @@ def my_offers(dealer: Dealer = Depends(require_verified_dealer), session: Sessio
     return out
 
 
-@router.put("/{offer_id}", response_model=DealerOfferResponse)
+@router.put("/{offer_id}", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def revise_offer(
     offer_id: uuid.UUID,
     body: OfferRevise,
@@ -88,7 +89,7 @@ def revise_offer(
     return svc.offer_response(session, offer)
 
 
-@router.post("/{offer_id}/withdraw", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/withdraw", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def withdraw_offer(
     offer_id: uuid.UUID,
     dealer: Dealer = Depends(require_verified_dealer),
@@ -102,7 +103,7 @@ def withdraw_offer(
 
 
 # ---------------------------------------------------------------- seller
-@router.post("/{offer_id}/accept", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/accept", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def accept_offer(
     offer_id: uuid.UUID,
     body: AcceptOffer,
@@ -116,7 +117,7 @@ def accept_offer(
     return svc.offer_response(session, offer, listing)
 
 
-@router.post("/{offer_id}/reject", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/reject", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def reject_offer(
     offer_id: uuid.UUID,
     body: ReasonOptional,
@@ -130,7 +131,7 @@ def reject_offer(
     return svc.offer_response(session, offer, listing)
 
 
-@router.post("/{offer_id}/counter", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/counter", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def counter_offer(
     offer_id: uuid.UUID,
     body: CounterCreate,
@@ -145,7 +146,7 @@ def counter_offer(
     return svc.offer_response(session, offer, listing)
 
 
-@router.post("/{offer_id}/negotiation/respond", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/negotiation/respond", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def seller_negotiation_reply(
     offer_id: uuid.UUID,
     body: NegotiationReply,
@@ -160,7 +161,7 @@ def seller_negotiation_reply(
     return svc.offer_response(session, offer, listing)
 
 
-@router.post("/{offer_id}/negotiation", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/negotiation", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def dealer_negotiation_reply(
     offer_id: uuid.UUID,
     body: NegotiationReply,
@@ -175,7 +176,7 @@ def dealer_negotiation_reply(
     return svc.offer_response(session, offer)
 
 
-@router.post("/{offer_id}/final", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/final", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def submit_final_offer(
     offer_id: uuid.UUID,
     body: FinalOfferCreate,
@@ -190,7 +191,7 @@ def submit_final_offer(
     return svc.offer_response(session, offer)
 
 
-@router.post("/{offer_id}/final/respond", response_model=DealerOfferResponse)
+@router.post("/{offer_id}/final/respond", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.action)])
 def respond_to_final_offer(
     offer_id: uuid.UUID,
     body: FinalOfferRespond,

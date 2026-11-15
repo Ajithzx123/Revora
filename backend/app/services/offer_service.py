@@ -214,16 +214,18 @@ def accept(session: Session, offer: DealerOffer, listing: SellListing, customer_
         raise HTTPException(409, "The offer changed. Review the new price before accepting.")
 
     now = _now()
-    claimed_offer = session.execute(
-        update(DealerOffer)
-        .where(DealerOffer.id == offer.id, DealerOffer.status == "PENDING", DealerOffer.offered_price == expected_price)
-        .values(status="ACCEPTED", accepted_at=now, updated_at=now)
-    ).rowcount
+    # Lock order matters: the shared listing row first, then this offer (see quote_service.accept:
+    # the other order deadlocks on Postgres when two offers on one listing are accepted at once).
     claimed_listing = session.execute(
         update(SellListing)
         .where(SellListing.id == listing.id, SellListing.status == "ACTIVE")
         .values(status="OFFER_ACCEPTED", updated_at=now)
-    ).rowcount if claimed_offer else 0
+    ).rowcount
+    claimed_offer = session.execute(
+        update(DealerOffer)
+        .where(DealerOffer.id == offer.id, DealerOffer.status == "PENDING", DealerOffer.offered_price == expected_price)
+        .values(status="ACCEPTED", accepted_at=now, updated_at=now)
+    ).rowcount if claimed_listing else 0
     if not (claimed_offer and claimed_listing):
         session.rollback()
         raise HTTPException(409, "This listing already has an accepted offer")

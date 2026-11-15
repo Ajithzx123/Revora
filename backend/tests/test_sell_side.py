@@ -391,3 +391,23 @@ def test_suspending_a_dealer_voids_live_offers_and_reactivation_restores_valid_o
         assert s.get(DealerOffer, uuid.UUID(o1)).status == "PENDING"
         assert s.get(DealerOffer, uuid.UUID(o2)).status == "EXPIRED"
     assert accept(client, seller, o1, 380_000).status_code == 200
+
+
+def test_repeated_offer_accept_races_never_deadlock_or_error(client, actors):
+    """Same race as quotes: two offers on one listing accepted at once must give one 200 and one 409."""
+    a, b = (buys(client, actors.dealer(approved=True)) for _ in range(2))  # the same two dealers each round
+    for _ in range(8):
+        seller = actors.customer()
+        lid = client.post("/api/sell-listings/", headers=seller, json=LISTING).json()["id"]
+        oa = offer(client, a, lid, 380_000).json()["id"]
+        ob = offer(client, b, lid, 385_000).json()["id"]
+        results, barrier = [], threading.Barrier(2)
+
+        def go(oid, price):
+            barrier.wait()
+            results.append(accept(client, seller, oid, price).status_code)
+
+        threads = [threading.Thread(target=go, args=(oa, 380_000)), threading.Thread(target=go, args=(ob, 385_000))]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+        assert sorted(results) == [200, 409], results

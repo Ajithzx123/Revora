@@ -6,6 +6,6 @@ connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith(
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=settings.ENVIRONMENT == "dev",
+    echo=settings.SQL_ECHO,
     connect_args=connect_args
 )

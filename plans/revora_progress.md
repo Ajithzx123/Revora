@@ -21,13 +21,14 @@ Update it at the end of every feature (slice) and whenever a decision changes. L
 | What | Command (from repo root unless noted) |
 |---|---|
 | Backend tests | `backend/.venv/bin/python -m pytest backend -q` |
-| Backend server | `backend/.venv/bin/uvicorn backend.main:app --reload` (run from repo root) |
+| Backend server | `ENVIRONMENT=dev backend/.venv/bin/uvicorn backend.main:app --reload` (from repo root). **`ENVIRONMENT=dev` is now required locally**: an unset value means production and the server refuses to start without Postgres/Supabase/CORS config. `SQL_ECHO=1` turns on SQL logging (dev only). |
+| Backend tests on Postgres | start a Postgres 16, then `TEST_DATABASE_URL=postgresql://user@127.0.0.1:PORT/revora_test backend/.venv/bin/python -m pytest backend -q`. CI runs both SQLite and Postgres. On this Mac use `brew install postgresql@16` and `LC_ALL=en_US.UTF-8`; stop and delete the scratch server afterwards. |
 | New migration | add `backend/migrations/versions/000N_*.py`; `test_migrations.py` fails if models and migrations drift |
 | Flutter SDK | `/Users/santhosh/work/softwares/flutter/bin` is **not on PATH**: `export PATH=/Users/santhosh/work/softwares/flutter/bin:$PATH` |
 | Flutter checks (in `frontend/`) | `flutter analyze`, `dart format lib test`, `flutter test` |
 | Mock vs live data | Flutter uses mock repositories by default in debug/test (`USE_MOCK_DATA`); release builds never use mocks |
 
-Current numbers: backend **296** tests passing; Flutter **180** tests passing, analyze and format clean.
+Current numbers: backend **315** tests passing (on both SQLite and Postgres 16); Flutter **194** tests passing, analyze and format clean.
 
 ## 3. Status by slice
 
@@ -56,6 +57,9 @@ Current numbers: backend **296** tests passing; Flutter **180** tests passing, a
 - Lesson: long-lived branches that never merge to `main` diverge. Merge `main` into the branch regularly, or merge each finished slice.
 
 ## 5. Open items and known gaps
+
+**Project review (2026-11-15):** full findings and the recommended order are in `plans/revora_review_2026-11-15.md`. The P0 pass fixed five of six items the same day; the sixth (compliance) waits on your decisions (section 5a of that report). Still open from the review: P1/P2 items (pagination on 8 lists, idempotency keys, indexes, background jobs out of the web process, enums for statuses, 200% text on 8 screens, fake chat/settings, wizard consistency, hard-coded colours/strings, contract tests, branch merge).
+
 
 **Decisions waiting on the user**
 - Merge `main` into the branch (see section 4).
@@ -95,8 +99,20 @@ Current numbers: backend **296** tests passing; Flutter **180** tests passing, a
 | Office email | Must never appear in this repo's history (it was removed from all 21 commits on 2026-11-09; old hashes may still be reachable on GitHub) |
 | Supabase project | ref `hjvzirkdnoaqahzusdbj` (read-only MCP configured in untracked `.mcp.json`) |
 
-## 7. Change log (newest first)
+## 7. gstack (project-local skill suite, installed 2026-11-15)
 
+- **What:** garrytan/gstack v1.99.5.0 (`/gstack-review`, `/gstack-qa`, `/gstack-ship`, `/gstack-office-hours`, design and plan reviews, browser skills, ...). Installed for **Revora only**; no other project and no global Claude setting changed (global `~/.claude/settings.json` and `~/.claude/skills` verified identical before and after).
+- **Where:** source in `/Users/santhosh/work/softwares/gstack`; project links in `.claude/skills/gstack-*` (git-ignored, they point at that folder); state in `~/.gstack` (telemetry off, auto-upgrade off, team mode off).
+- **Installed with:** `/Users/santhosh/work/softwares/gstack/setup --local --prefix --no-team`, with `PATH=/opt/homebrew/opt/node@20/bin:$PATH` so the bundled browser could install. Default Node stays 16. Setup also ran `brew install coreutils`; we added `brew install bun node@20` (node@20 is keg-only).
+- **Health check:** `/Users/santhosh/work/softwares/gstack/bin/gstack-doctor` (11 ok, 0 fail; Codex CLI not installed, so no outside-review coverage).
+- **Conflicts with our rules:** `/gstack-ship` commits, pushes and opens PRs. Our rule is commit only at slice end and push only when asked, so do not run it without saying so. `/gstack-qa` drives a real browser.
+- **Update:** manual only, `/gstack-upgrade` (the channel is `stable`). Re-run the setup command above after upgrading.
+- **Remove:** delete `.claude/skills/gstack*` and `.claude/skills/_gstack-command`, then `rm -rf /Users/santhosh/work/softwares/gstack ~/.gstack`; optionally `brew uninstall bun node@20 coreutils`.
+
+## 8. Change log (newest first)
+
+- 2026-11-15: P0 fix pass from the project review: phone layout fix, real admin data, secure `ENVIRONMENT` default, rate limiting, Postgres verification (found and fixed a deadlock, a missing driver and a foreign-key bug), CI on Postgres.
+- 2026-11-15: gstack installed for Revora only (see section 7).
 - 2026-11-09: S6 complete and committed (S6a sell-side backend, S6b Flutter, S6c counter-offers + inspection final offer; migrations 0007, 0008).
 - 2026-11-09: S5a/S5b/S5c built and committed; branch pushed; PR #1 found conflicting with `main`; commit author email rewritten to personal and force-pushed; git/commit policy agreed; this document created.
 - Earlier: S0–S4 (see `git log`).

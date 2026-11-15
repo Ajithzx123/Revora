@@ -53,6 +53,50 @@ class VoidBody(BaseModel):
     reason: str = Field(min_length=5, max_length=500)
 
 
+class AdminRequirementRow(BaseModel):
+    id: uuid.UUID
+    title: str
+    city: str
+    budget_min: int
+    budget_max: int
+    status: str
+    customer_name: str
+    quotes_count: int
+    matches_count: int
+    created_at: datetime
+    expires_at: datetime
+
+
+class AdminRequirementPage(BaseModel):
+    items: List[AdminRequirementRow]
+    total: int
+    limit: int
+    offset: int
+
+
+class AdminVehicleRow(BaseModel):
+    """A car in a dealer's stock as the admin sees it. The dealer's private minimum price is never included."""
+
+    id: uuid.UUID
+    title: str
+    registration_no: str
+    dealer_id: uuid.UUID
+    dealer_name: str
+    price: int
+    km: int
+    fuel: str
+    city: str
+    status: str
+    created_at: datetime
+
+
+class AdminVehiclePage(BaseModel):
+    items: List[AdminVehicleRow]
+    total: int
+    limit: int
+    offset: int
+
+
 class UserStatusResponse(BaseModel):
     id: uuid.UUID
     role: str

@@ -18,6 +18,19 @@ abstract class AdminOpsRepository {
     int offset = 0,
   });
   Future<void> voidQuote(String quoteId, String reason);
+
+  /// Real counts for the overview (replaces the old always-fake numbers).
+  Future<AdminKpis> kpis();
+  Future<Paged<AdminRequirementRow>> requirements({
+    String? status,
+    int limit = 100,
+    int offset = 0,
+  });
+  Future<Paged<AdminVehicleRow>> vehicles({
+    String? status,
+    int limit = 100,
+    int offset = 0,
+  });
 }
 
 class ApiAdminOpsRepository implements AdminOpsRepository {
@@ -72,6 +85,50 @@ class ApiAdminOpsRepository implements AdminOpsRepository {
   Future<void> voidQuote(String quoteId, String reason) async {
     await _dio.post('/admin/quotes/$quoteId/void', data: {'reason': reason});
   }
+
+  @override
+  Future<AdminKpis> kpis() async => AdminKpis.fromJson(
+    (await _dio.get('/admin/metrics')).data as Map<String, dynamic>,
+  );
+
+  Paged<T> _page<T>(
+    Response<dynamic> res,
+    T Function(Map<String, dynamic>) parse,
+  ) {
+    final j = res.data as Map<String, dynamic>;
+    return Paged(
+      items: [
+        for (final e in j['items'] as List) parse(e as Map<String, dynamic>),
+      ],
+      total: j['total'] as int,
+    );
+  }
+
+  @override
+  Future<Paged<AdminRequirementRow>> requirements({
+    String? status,
+    int limit = 100,
+    int offset = 0,
+  }) async => _page(
+    await _dio.get(
+      '/admin/requirements',
+      queryParameters: {'status': ?status, 'limit': limit, 'offset': offset},
+    ),
+    AdminRequirementRow.fromJson,
+  );
+
+  @override
+  Future<Paged<AdminVehicleRow>> vehicles({
+    String? status,
+    int limit = 100,
+    int offset = 0,
+  }) async => _page(
+    await _dio.get(
+      '/admin/vehicles',
+      queryParameters: {'status': ?status, 'limit': limit, 'offset': offset},
+    ),
+    AdminVehicleRow.fromJson,
+  );
 }
 
 class MockAdminOpsRepository implements AdminOpsRepository {
@@ -138,6 +195,62 @@ class MockAdminOpsRepository implements AdminOpsRepository {
       createdAt: q.createdAt,
     );
   }
+
+  @override
+  Future<AdminKpis> kpis() async => const AdminKpis(
+    activeDealers: 4,
+    pendingDealerApplications: 2,
+    openRequirements: 7,
+    openListings: 3,
+    activeVehicles: 12,
+    dealsLast30Days: 5,
+    dealValueLast30Days: 3250000,
+  );
+
+  @override
+  Future<Paged<AdminRequirementRow>> requirements({
+    String? status,
+    int limit = 100,
+    int offset = 0,
+  }) async => Paged(
+    items: [
+      AdminRequirementRow(
+        id: 'r1',
+        title: 'Hyundai i20',
+        city: 'Bengaluru',
+        budgetMin: 500000,
+        budgetMax: 700000,
+        status: 'OPEN',
+        customerName: 'Rahul Verma',
+        quotesCount: 2,
+        matchesCount: 5,
+        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+    ],
+    total: 1,
+  );
+
+  @override
+  Future<Paged<AdminVehicleRow>> vehicles({
+    String? status,
+    int limit = 100,
+    int offset = 0,
+  }) async => const Paged(
+    items: [
+      AdminVehicleRow(
+        id: 'v1',
+        title: '2021 Hyundai Creta SX(O)',
+        registrationNo: 'KA01AB1234',
+        dealerName: 'Apex Motors',
+        price: 1450000,
+        km: 32000,
+        fuel: 'Petrol',
+        city: 'Bengaluru',
+        status: 'AVAILABLE',
+      ),
+    ],
+    total: 1,
+  );
 }
 
 final adminOpsRepositoryProvider = Provider<AdminOpsRepository>((ref) {

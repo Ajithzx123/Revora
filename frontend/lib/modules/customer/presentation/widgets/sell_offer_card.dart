@@ -173,15 +173,12 @@ extension on SellOfferCard {
           style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: FilledButton(
-                onPressed: () => onAnswerCounter?.call('ACCEPT'),
-                child: Text('Take ${PriceFormatter.formatINR(open.price)}'),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
+        ActionBar(
+          primary: FilledButton(
+            onPressed: () => onAnswerCounter?.call('ACCEPT'),
+            child: Text('Take ${PriceFormatter.formatINR(open.price)}'),
+          ),
+          secondary: [
             OutlinedButton(
               onPressed: () => onAnswerCounter?.call('DECLINE'),
               child: const Text('Decline'),
@@ -199,22 +196,17 @@ extension on SellOfferCard {
         ),
       ],
       const SizedBox(height: AppSpacing.md),
-      Row(
-        children: [
-          Expanded(
-            child: FilledButton(
-              onPressed: onAccept,
-              child: const Text('Accept offer'),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          if (open == null && onCounter != null) ...[
+      ActionBar(
+        primary: FilledButton(
+          onPressed: onAccept,
+          child: const Text('Accept offer'),
+        ),
+        secondary: [
+          if (open == null && onCounter != null)
             OutlinedButton(
               onPressed: onCounter,
               child: const Text('Ask for more'),
             ),
-            const SizedBox(width: AppSpacing.sm),
-          ],
           OutlinedButton(onPressed: onReject, child: const Text('Turn down')),
         ],
       ),
@@ -261,15 +253,12 @@ extension on SellOfferCard {
               style: t.bodySmall,
             ),
             const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => onAnswerFinal?.call('ACCEPT'),
-                    child: Text('Accept ${PriceFormatter.formatINR(lower)}'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
+            ActionBar(
+              primary: FilledButton(
+                onPressed: () => onAnswerFinal?.call('ACCEPT'),
+                child: Text('Accept ${PriceFormatter.formatINR(lower)}'),
+              ),
+              secondary: [
                 OutlinedButton(
                   onPressed: () => onAnswerFinal?.call('DECLINE'),
                   child: const Text('Decline'),
@@ -280,6 +269,55 @@ extension on SellOfferCard {
         ),
       ),
     ];
+  }
+}
+
+/// A primary button with its alternatives. On a wide card they share one row; on a phone the
+/// primary button takes the full width and the others wrap below it, so none is ever squeezed
+/// into a sliver (three buttons side by side do not fit in 375px).
+class ActionBar extends StatelessWidget {
+  final Widget primary;
+  final List<Widget> secondary;
+  const ActionBar({
+    super.key,
+    required this.primary,
+    this.secondary = const [],
+  });
+
+  /// Below this width the buttons stack.
+  static const double sideBySideFrom = 460;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= sideBySideFrom) {
+          return Row(
+            children: [
+              Expanded(child: primary),
+              for (final w in secondary) ...[
+                const SizedBox(width: AppSpacing.sm),
+                w,
+              ],
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            primary,
+            if (secondary.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: secondary,
+              ),
+            ],
+          ],
+        );
+      },
+    );
   }
 }
 

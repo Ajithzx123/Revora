@@ -7,6 +7,7 @@ from typing import List, Optional
 from sqlmodel import func
 
 from backend.app.database.session import get_session
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import get_dealer_profile, require_verified_dealer
 from pydantic import BaseModel, Field
 from backend.app.models.marketplace_models import (
@@ -92,7 +93,7 @@ class DismissLead(BaseModel):
     reason: str = Field(default="NOT_INTERESTED", max_length=60)
 
 
-@router.post("/leads/buy/{requirement_id}/dismiss", status_code=204)
+@router.post("/leads/buy/{requirement_id}/dismiss", status_code=204, dependencies=[Depends(rate_limit.action)])
 def dismiss_lead(
     requirement_id: uuid.UUID,
     body: DismissLead,
@@ -145,7 +146,7 @@ def get_seller_leads(
 
 
 # --- Dealer Sends Quote on Requirement ---
-@router.post("/quotes", response_model=DealerQuoteResponse)
+@router.post("/quotes", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.submit)])
 def send_quote(
     quote_data: DealerQuoteCreate,
     dealer: Dealer = Depends(require_verified_dealer),
@@ -200,7 +201,7 @@ def send_quote(
 
 
 # --- Dealer Sends Purchase Offer on Sell Listing ---
-@router.post("/offers", response_model=DealerOfferResponse)
+@router.post("/offers", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.submit)])
 def make_offer(
     offer_data: DealerOfferCreate,
     dealer: Dealer = Depends(require_verified_dealer),

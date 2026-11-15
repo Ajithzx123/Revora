@@ -242,16 +242,19 @@ def accept(session: Session, quote: DealerQuote, requirement: BuyRequirement, cu
         raise HTTPException(409, "This car is no longer available")
 
     now = _now()
-    claimed_quote = session.execute(
-        update(DealerQuote)
-        .where(DealerQuote.id == quote.id, DealerQuote.status == "PENDING", DealerQuote.quoted_price == expected_price)
-        .values(status="ACCEPTED", accepted_at=now, updated_at=now)
-    ).rowcount
+    # Lock order matters: always the shared request row first, then this quote. Two buyers or
+    # two quotes racing then queue on the request row; locking the quote first deadlocks on
+    # Postgres (each side holds its own quote and waits for the request the other one holds).
     claimed_request = session.execute(
         update(BuyRequirement)
         .where(BuyRequirement.id == requirement.id, BuyRequirement.status == RequirementStatus.OPEN)
         .values(status=RequirementStatus.QUOTE_ACCEPTED, updated_at=now)
-    ).rowcount if claimed_quote else 0
+    ).rowcount
+    claimed_quote = session.execute(
+        update(DealerQuote)
+        .where(DealerQuote.id == quote.id, DealerQuote.status == "PENDING", DealerQuote.quoted_price == expected_price)
+        .values(status="ACCEPTED", accepted_at=now, updated_at=now)
+    ).rowcount if claimed_request else 0
     if not (claimed_quote and claimed_request):
         session.rollback()
         raise HTTPException(409, "This request already has an accepted quote")
