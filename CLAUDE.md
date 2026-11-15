@@ -2,7 +2,7 @@
 
 Revora is a **reverse car marketplace for India**: customers post what they want to buy or sell, verified dealers compete with quotes (buy) and purchase offers (sell). It is NOT a classified-listing site. Demand and competitive offers are the centre; inventory is supporting.
 
-Current status, process and open items: `plans/revora_progress.md` (keep it updated at the end of every slice).
+**Where we stopped and what is next: read the "START HERE" section of `plans/revora_progress.md` first** (also holds the process, how to run checks, status by slice and open items; keep it updated at the end of every slice).
 
 Read first: `plans/revora_plan_1_audit_and_features.md`, `plans/revora_plan_2_flows_and_rules.md`, `plans/revora_plan_3_screens_tech_roadmap.md`, `plans/revora_scenarios.md`, `design/DESIGN.md`.
 
