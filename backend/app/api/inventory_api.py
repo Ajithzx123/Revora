@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from sqlmodel import Session, select
 
 from backend.app.core import master_data as md
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import current_user_id, get_dealer_profile, require_dealer
 from backend.app.database.session import get_session
 from backend.app.models.audit_model import AuditEvent
@@ -15,6 +16,7 @@ from backend.app.models.marketplace_models import (
     Dealer,
     DealerQuote,
     DealerStatus,
+    MatchRecord,
     Vehicle,
     VehicleMedia,
     VehicleStatus,
@@ -75,7 +77,7 @@ def _ensure_registration_free(session: Session, registration_no: str, ignore_id:
         )
 
 
-@router.post("/inventory", response_model=VehicleResponse, status_code=201)
+@router.post("/inventory", response_model=VehicleResponse, status_code=201, dependencies=[Depends(rate_limit.create)])
 def add_vehicle(
     data: VehicleCreate,
     dealer: Dealer = Depends(get_dealer_profile),
@@ -121,7 +123,7 @@ def get_vehicle(
     return to_response(session, _own_vehicle(session, vehicle_id, dealer))
 
 
-@router.patch("/inventory/{vehicle_id}", response_model=VehicleResponse)
+@router.patch("/inventory/{vehicle_id}", response_model=VehicleResponse, dependencies=[Depends(rate_limit.action)])
 def update_vehicle(
     vehicle_id: uuid.UUID,
     data: VehicleUpdate,
@@ -173,7 +175,7 @@ def update_vehicle(
     return to_response(session, vehicle)
 
 
-@router.delete("/inventory/{vehicle_id}", status_code=204)
+@router.delete("/inventory/{vehicle_id}", status_code=204, dependencies=[Depends(rate_limit.action)])
 def delete_vehicle(
     vehicle_id: uuid.UUID,
     dealer: Dealer = Depends(get_dealer_profile),
@@ -188,6 +190,13 @@ def delete_vehicle(
     for media in _media(session, vehicle.id):
         storage.delete_document(media.storage_key)
         session.delete(media)
+    # Matches that pointed at this car keep their record but no longer name it.
+    for match in session.exec(select(MatchRecord).where(MatchRecord.vehicle_id == vehicle.id)).all():
+        match.vehicle_id = None
+        session.add(match)
+    # Children first: Postgres enforces the foreign keys (SQLite does not), and the unit of work
+    # does not know the media or matches belong to the car.
+    session.flush()
     session.delete(vehicle)
     session.add(
         AuditEvent(
@@ -201,7 +210,7 @@ def delete_vehicle(
 
 
 # ---------- photos ----------
-@router.post("/inventory/{vehicle_id}/media", response_model=VehicleResponse, status_code=201)
+@router.post("/inventory/{vehicle_id}/media", response_model=VehicleResponse, status_code=201, dependencies=[Depends(rate_limit.upload)])
 async def add_photo(
     vehicle_id: uuid.UUID,
     file: UploadFile = File(...),
@@ -226,7 +235,7 @@ async def add_photo(
     return to_response(session, vehicle)
 
 
-@router.delete("/inventory/{vehicle_id}/media/{media_id}", response_model=VehicleResponse)
+@router.delete("/inventory/{vehicle_id}/media/{media_id}", response_model=VehicleResponse, dependencies=[Depends(rate_limit.action)])
 def remove_photo(
     vehicle_id: uuid.UUID,
     media_id: uuid.UUID,
@@ -247,7 +256,7 @@ def remove_photo(
     return to_response(session, vehicle)
 
 
-@router.put("/inventory/{vehicle_id}/media/order", response_model=VehicleResponse)
+@router.put("/inventory/{vehicle_id}/media/order", response_model=VehicleResponse, dependencies=[Depends(rate_limit.action)])
 def reorder_photos(
     vehicle_id: uuid.UUID,
     order: MediaOrder,

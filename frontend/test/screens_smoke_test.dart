@@ -20,7 +20,9 @@ import 'package:revora/modules/customer/presentation/ui/customer_home_screen.dar
 import 'package:revora/modules/customer/presentation/ui/customer_profile_screen.dart';
 import 'package:revora/modules/customer/presentation/ui/customer_sell_screen.dart';
 import 'package:revora/modules/customer/presentation/ui/customer_shell.dart';
+import 'package:revora/modules/customer/presentation/ui/listing_details_screen.dart';
 import 'package:revora/modules/customer/presentation/ui/post_buy_requirement_screen.dart';
+import 'package:revora/modules/customer/presentation/ui/post_sell_listing_screen.dart';
 import 'package:revora/modules/customer/presentation/ui/requirement_details_screen.dart';
 import 'package:revora/modules/dealer/presentation/ui/add_car_to_inventory_screen.dart';
 import 'package:revora/modules/notifications/presentation/ui/notification_preferences_screen.dart';
@@ -31,6 +33,8 @@ import 'package:revora/modules/dealer/presentation/ui/dealer_inventory_screen.da
 import 'package:revora/modules/dealer/presentation/ui/dealer_leads_screen.dart';
 import 'package:revora/modules/dealer/presentation/ui/dealer_profile_screen.dart';
 import 'package:revora/modules/dealer/presentation/ui/dealer_shell.dart';
+import 'package:revora/modules/dealer/presentation/ui/make_offer_screen.dart';
+import 'package:revora/modules/dealer/presentation/widgets/my_offers_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Renders every main screen in debug mode (where Flutter's layout assertions are on)
@@ -63,6 +67,10 @@ void main() {
     'request details': () =>
         const RequirementDetailsScreen(requirementId: 'REQ-101'),
     'post request': () => const PostBuyRequirementScreen(),
+    'post sell listing': () => const PostSellListingScreen(),
+    'listing offers': () => const ListingDetailsScreen(listingId: 'SELL-301'),
+    'make offer': () => const MakeOfferScreen(listingId: 'SLEAD-01'),
+    'my offers': () => const Scaffold(body: MyOffersView()),
     'dealer shell': () => const DealerShell(),
     'dealer home': () => const DealerHomeScreen(),
     'dealer leads': () => const DealerLeadsScreen(),

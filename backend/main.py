@@ -15,6 +15,7 @@ from backend.app.api.admin_api import router as admin_router
 from backend.app.api.dealer_onboarding_api import router as dealer_onboarding_router
 from backend.app.api.inventory_api import router as inventory_router
 from backend.app.api.quotes_api import router as quotes_router
+from backend.app.api.offers_api import router as offers_router
 from backend.app.api.notifications_api import router as notifications_router
 from backend.app.core.master_data import as_payload as master_data_payload
 
@@ -43,6 +44,7 @@ app.include_router(dealer_router, prefix="/api")
 app.include_router(dealer_onboarding_router, prefix="/api")
 app.include_router(inventory_router, prefix="/api")
 app.include_router(quotes_router, prefix="/api")
+app.include_router(offers_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
@@ -65,14 +67,16 @@ async def _matching_loop(interval: int) -> None:
     from sqlmodel import Session
 
     from backend.app.database.session import engine
-    from backend.app.services import matching_service, quote_service
+    from backend.app.services import matching_service, offer_service, quote_service, sell_service
 
     while True:
         await asyncio.sleep(interval)
         try:
             with Session(engine) as session:
                 created = matching_service.rematch_open_requests(session)
+                created += sell_service.rematch_open_listings(session)
                 quote_service.expire_due_quotes(session)
+                offer_service.expire_due_offers(session)
                 session.commit()
             if created:
                 logging.getLogger("revora.matching").info("periodic matching created %s matches", created)

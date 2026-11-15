@@ -7,7 +7,12 @@ _BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 class Settings:
     PROJECT_NAME: str = "Revora API"
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "dev")
+    # Secure by default: an unset ENVIRONMENT means production, so a forgotten variable can only
+    # make the server refuse to start, never run with development shortcuts. Local development
+    # sets ENVIRONMENT=dev explicitly.
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "prod")
+    # Logs every SQL statement with its parameters (emails, phones, ...). Opt-in, never on by default.
+    SQL_ECHO: bool = os.getenv("SQL_ECHO", "").lower() in ("1", "true", "yes")
 
     # Database (Postgres in staging/prod; SQLite is for local dev and tests)
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///revora.db")
@@ -26,7 +31,7 @@ class Settings:
     ]
     CORS_ORIGIN_REGEX: Optional[str] = (
         r"http://(localhost|127\.0\.0\.1)(:\d+)?"
-        if os.getenv("ENVIRONMENT", "dev") == "dev"
+        if os.getenv("ENVIRONMENT", "prod") == "dev"
         else None
     )
 
@@ -42,6 +47,8 @@ class Settings:
         """Refuse to start outside dev with an unsafe configuration."""
         if self.ENVIRONMENT == "dev":
             return
+        if self.DATABASE_URL.startswith("sqlite"):
+            raise RuntimeError("Set DATABASE_URL to a Postgres database when ENVIRONMENT is not 'dev' (SQLite is for local development only).")
         if not (self.SUPABASE_URL or self.SUPABASE_JWT_SECRET):
             raise RuntimeError(
                 "Set SUPABASE_URL (and optionally SUPABASE_JWT_SECRET) when ENVIRONMENT is not 'dev'."

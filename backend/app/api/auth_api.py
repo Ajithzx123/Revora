@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import current_user_id, verify_identity, verify_token
 from backend.app.database.session import get_session
 from backend.app.models.audit_model import AuditEvent
@@ -27,7 +28,7 @@ def _profile_response(session: Session, user: User) -> ProfileResponse:
     )
 
 
-@router.post("/profile", response_model=ProfileResponse, status_code=201)
+@router.post("/profile", response_model=ProfileResponse, status_code=201, dependencies=[Depends(rate_limit.profile)])
 def create_profile(
     body: ProfileCreate,
     claims: dict = Depends(verify_identity),
@@ -84,7 +85,7 @@ def get_me(
     return _profile_response(session, session.get(User, current_user_id(user_data)))
 
 
-@router.patch("/me", response_model=ProfileResponse)
+@router.patch("/me", response_model=ProfileResponse, dependencies=[Depends(rate_limit.action)])
 def update_me(
     body: ProfileUpdate,
     user_data: dict = Depends(verify_token),

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 import uuid
 from datetime import datetime, timedelta
@@ -7,6 +7,7 @@ from typing import List, Optional
 from sqlmodel import func
 
 from backend.app.database.session import get_session
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import get_dealer_profile, require_verified_dealer
 from pydantic import BaseModel, Field
 from backend.app.models.marketplace_models import (
@@ -17,14 +18,15 @@ from backend.app.models.marketplace_models import (
     BuyRequirement,
     RequirementStatus,
     SellListing,
+    SellMatch,
     DealerQuote,
     DealerOffer,
 )
 from backend.app.models.user_model import User
 from backend.app.schemas.requirement_schema import BuyLeadResponse
-from backend.app.services import matching_service, quote_service
+from backend.app.services import matching_service, offer_service, quote_service, sell_service
 from backend.app.schemas.marketplace_schema import (
-    SellListingResponse,
+    SellLeadResponse,
     DealerQuoteCreate,
     DealerQuoteResponse,
     DealerOfferCreate,
@@ -91,7 +93,7 @@ class DismissLead(BaseModel):
     reason: str = Field(default="NOT_INTERESTED", max_length=60)
 
 
-@router.post("/leads/buy/{requirement_id}/dismiss", status_code=204)
+@router.post("/leads/buy/{requirement_id}/dismiss", status_code=204, dependencies=[Depends(rate_limit.action)])
 def dismiss_lead(
     requirement_id: uuid.UUID,
     body: DismissLead,
@@ -108,36 +110,43 @@ def dismiss_lead(
     session.commit()
 
 
-@router.get("/leads/sell", response_model=List[SellListingResponse])
+@router.get("/leads/sell", response_model=List[SellLeadResponse])
 def get_seller_leads(
-    _dealer: Dealer = Depends(require_verified_dealer),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    dealer: Dealer = Depends(require_verified_dealer),
     session: Session = Depends(get_session),
 ):
-    listings = session.exec(
-        select(SellListing).where(SellListing.status == "ACTIVE")
+    """Only listings this dealer was matched to (they buy the make and are in range)."""
+    offer_service.expire_due_offers(session)
+    session.commit()
+    rows = session.exec(
+        select(SellMatch, SellListing)
+        .join(SellListing, SellListing.id == SellMatch.listing_id)
+        .where(SellMatch.dealer_id == dealer.id, SellMatch.dismissed_at.is_(None), SellListing.status == "ACTIVE")
+        .order_by(SellMatch.score.desc(), SellMatch.created_at.desc())
+        .offset(offset)
+        .limit(limit)
     ).all()
-    return [
-        SellListingResponse(
-            id=l.id,
-            customer_id=l.customer_id,
-            make=l.make,
-            model=l.model,
-            year=l.year,
-            fuel=l.fuel,
-            transmission=l.transmission,
-            km=l.km,
-            expected_price=l.expected_price,
-            city=l.city,
-            images=[img for img in l.images_csv.split(",") if img],
-            status=l.status,
-            created_at=l.created_at,
+    mine = {
+        o.sell_listing_id: o.status
+        for o in session.exec(select(DealerOffer).where(DealerOffer.dealer_id == dealer.id)).all()
+    }
+    out = []
+    for match, listing in rows:
+        base = sell_service.listing_response(session, listing).model_dump()
+        base.pop("offer_count", None)   # sealed: dealers never see how many offers exist
+        out.append(
+            SellLeadResponse(
+                **base, offer_count=0, match_score=match.score, match_reasons=match.reasons,
+                my_offer_status=mine.get(listing.id),
+            )
         )
-        for l in listings
-    ]
+    return out
 
 
 # --- Dealer Sends Quote on Requirement ---
-@router.post("/quotes", response_model=DealerQuoteResponse)
+@router.post("/quotes", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.submit)])
 def send_quote(
     quote_data: DealerQuoteCreate,
     dealer: Dealer = Depends(require_verified_dealer),
@@ -192,45 +201,14 @@ def send_quote(
 
 
 # --- Dealer Sends Purchase Offer on Sell Listing ---
-@router.post("/offers", response_model=DealerOfferResponse)
+@router.post("/offers", response_model=DealerOfferResponse, dependencies=[Depends(rate_limit.submit)])
 def make_offer(
     offer_data: DealerOfferCreate,
     dealer: Dealer = Depends(require_verified_dealer),
     session: Session = Depends(get_session),
 ):
-    if offer_data.offered_price <= 0:
-        raise HTTPException(status_code=422, detail="Offered price must be positive")
-    listing = session.get(SellListing, offer_data.sell_listing_id)
-    if listing is None or listing.status != "ACTIVE":
-        raise HTTPException(status_code=404, detail="Listing not found or closed")
-    already = session.exec(
-        select(DealerOffer).where(
-            DealerOffer.dealer_id == dealer.id,
-            DealerOffer.sell_listing_id == offer_data.sell_listing_id,
-        )
-    ).first()
-    if already is not None:
-        raise HTTPException(status_code=409, detail="You have already made an offer on this listing")
-
-    offer = DealerOffer(
-        dealer_id=dealer.id,
-        sell_listing_id=offer_data.sell_listing_id,
-        offered_price=offer_data.offered_price,
-        message=offer_data.message,
-        status="PENDING",
-    )
-    session.add(offer)
+    """Offer to buy a listing this dealer was matched to. Sealed: nobody sees other offers."""
+    offer = offer_service.submit(session, dealer, offer_data)
     session.commit()
     session.refresh(offer)
-
-    return DealerOfferResponse(
-        id=offer.id,
-        dealer_id=offer.dealer_id,
-        dealer_name=dealer.business_name,
-        dealer_rating=dealer.rating,
-        sell_listing_id=offer.sell_listing_id,
-        offered_price=offer.offered_price,
-        message=offer.message,
-        status=offer.status,
-        created_at=offer.created_at,
-    )
+    return offer_service.offer_response(session, offer)

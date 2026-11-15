@@ -58,11 +58,17 @@ class Dealer(SQLModel, table=True):
     total_deals: int = Field(default=0)
     # Makes this dealer will source on request even without a matching car in stock.
     sourcing_makes_csv: str = Field(default="")
+    # Makes this dealer buys from sellers; sell listings are matched on this.
+    buy_makes_csv: str = Field(default="")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @property
     def sourcing_makes(self) -> list[str]:
         return [m for m in self.sourcing_makes_csv.split(",") if m]
+
+    @property
+    def buy_makes(self) -> list[str]:
+        return [m for m in self.buy_makes_csv.split(",") if m]
 
     @property
     def verified(self) -> bool:
@@ -202,8 +208,39 @@ class SellListing(SQLModel, table=True):
     expected_price: int
     city: str
     images_csv: str = Field(default="")  # Comma-separated URLs
-    status: str = Field(default="ACTIVE")  # ACTIVE, CLOSED, SOLD
+    # ACTIVE (open for offers), OFFER_ACCEPTED, FINAL_ACCEPTED, SOLD, CLOSED, EXPIRED, FROZEN
+    status: str = Field(default="ACTIVE")
+    status_reason: Optional[str] = None
+    variant: Optional[str] = None
+    owners: int = Field(default=1)
+    color: Optional[str] = None
+    urgency: str = Field(default="NORMAL")      # URGENT (2 days), NORMAL (14 days), MAX_PRICE (5 days)
+    loan_outstanding: bool = Field(default=False)
+    loan_amount: Optional[int] = None
+    challans_amount: Optional[int] = None        # declared pending challans, Rs
+    insurance_valid: Optional[bool] = None
+    description: Optional[str] = None
+    expires_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+
+class SellMatch(SQLModel, table=True):
+    """A dealer who was shown a sell listing. Offers are only accepted from matched dealers."""
+
+    __table_args__ = (UniqueConstraint("listing_id", "dealer_id", name="uq_sellmatch_listing_dealer"),)
+
+    id: uuid.UUID = Field(default_factory=_id, primary_key=True)
+    listing_id: uuid.UUID = Field(foreign_key="selllisting.id", index=True)
+    dealer_id: uuid.UUID = Field(foreign_key="dealer.id", index=True)
+    score: int = Field(default=0)
+    reasons_csv: str = Field(default="")
+    dismissed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @property
+    def reasons(self) -> list[str]:
+        return [r for r in self.reasons_csv.split("|") if r]
 
 
 class DealerQuote(SQLModel, table=True):
@@ -261,5 +298,52 @@ class DealerOffer(SQLModel, table=True):
     sell_listing_id: uuid.UUID = Field(foreign_key="selllisting.id", index=True)
     offered_price: int
     message: Optional[str] = None
-    status: str = Field(default="PENDING")  # PENDING, ACCEPTED, REJECTED, EXPIRED
+    # PENDING (live), ACCEPTED, REJECTED, NOT_SELECTED, WITHDRAWN, EXPIRED, VOID_ADMIN
+    status: str = Field(default="PENDING")
+    status_reason: Optional[str] = None
+    void_cause: Optional[str] = None        # with VOID_ADMIN: ADMIN or DEALER_SUSPENDED
+    revision: int = Field(default=1)
+    valid_until: Optional[datetime] = None
+    inspection_required: bool = Field(default=True)
+    pickup_days: Optional[int] = None
+    accepted_at: Optional[datetime] = None
+    # The inspection stage, after the seller accepts: the dealer confirms or lowers the price.
+    # None (no final offer yet), SUBMITTED, ACCEPTED, DECLINED.
+    final_status: Optional[str] = None
+    final_price: Optional[int] = None
+    final_reason_code: Optional[str] = None
+    final_reason_note: Optional[str] = None
+    final_evidence_csv: str = Field(default="")
+    final_submitted_at: Optional[datetime] = None
+    final_decided_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+    @property
+    def final_evidence(self) -> list[str]:
+        return [u for u in self.final_evidence_csv.split(",") if u]
+
+
+class OfferRound(SQLModel, table=True):
+    """One counter-offer in a price negotiation on an offer (at most 5 per offer)."""
+
+    id: uuid.UUID = Field(default_factory=_id, primary_key=True)
+    offer_id: uuid.UUID = Field(foreign_key="dealeroffer.id", index=True)
+    round_no: int
+    by: str  # SELLER or DEALER
+    price: int
+    note: Optional[str] = None
+    status: str = Field(default="OPEN")  # OPEN, AGREED, DECLINED, COUNTERED, SUPERSEDED, EXPIRED
+    valid_until: datetime
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class OfferRevision(SQLModel, table=True):
+    """Every price an offer has had, so a revision never erases history."""
+
+    id: uuid.UUID = Field(default_factory=_id, primary_key=True)
+    offer_id: uuid.UUID = Field(foreign_key="dealeroffer.id", index=True)
+    revision: int
+    price: int
+    message: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

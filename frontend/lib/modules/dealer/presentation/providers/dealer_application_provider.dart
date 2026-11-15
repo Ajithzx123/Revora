@@ -47,6 +47,9 @@ class DealerApplicationNotifier extends AsyncNotifier<DealerApplication> {
 
   Future<void> setSourcingMakes(List<String> makes) =>
       _apply(() => _repo.setSourcingMakes(makes));
+
+  Future<void> setBuyMakes(List<String> makes) =>
+      _apply(() => _repo.setBuyMakes(makes));
 }
 
 final dealerApplicationProvider =

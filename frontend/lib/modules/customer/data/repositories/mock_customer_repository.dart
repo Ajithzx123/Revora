@@ -1,6 +1,5 @@
 import '../../domain/entities/buy_requirement.dart';
 import '../../domain/entities/quote.dart';
-import '../../domain/entities/sell_post.dart';
 import '../../domain/entities/customer_activity.dart';
 import '../../domain/repositories/customer_repository.dart';
 import '../../../../shared/domain/entities/dealer_info.dart';
@@ -18,9 +17,6 @@ class MockCustomerRepository implements CustomerRepository {
   List<Quote> getAllQuotes() => CustomerMockData.quotes;
 
   @override
-  List<SellPost> getSellPosts() => CustomerMockData.sellPosts;
-
-  @override
   List<DealerInfo> getTopDealers() => CustomerMockData.topDealers;
 
   @override
@@ -29,10 +25,5 @@ class MockCustomerRepository implements CustomerRepository {
   @override
   void addRequirement(BuyRequirement req) {
     CustomerMockData.requirements.insert(0, req);
-  }
-
-  @override
-  void addSellPost(SellPost post) {
-    CustomerMockData.sellPosts.insert(0, post);
   }
 }

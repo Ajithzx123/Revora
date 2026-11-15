@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import ValidationError
 from sqlmodel import Session, func, select
 
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import (
     ADMIN_ROLES,
     current_user_id,
@@ -66,7 +67,7 @@ def _owned(session: Session, requirement_id: uuid.UUID, user_data: dict) -> BuyR
     return req
 
 
-@router.post("/", response_model=RequirementResponse, status_code=201)
+@router.post("/", response_model=RequirementResponse, status_code=201, dependencies=[Depends(rate_limit.create)])
 def create_requirement(
     data: RequirementCreate,
     user_data: dict = Depends(require_customer),
@@ -186,7 +187,7 @@ def _is_material_change(before: BuyRequirement, changes: dict) -> bool:
     return False
 
 
-@router.patch("/{requirement_id}", response_model=RequirementResponse)
+@router.patch("/{requirement_id}", response_model=RequirementResponse, dependencies=[Depends(rate_limit.action)])
 def edit_requirement(
     requirement_id: uuid.UUID,
     data: RequirementUpdate,
@@ -254,7 +255,7 @@ def _move(requirement_id, new_status, user_data, session):
     return to_response(session, req)
 
 
-@router.post("/{requirement_id}/pause", response_model=RequirementResponse)
+@router.post("/{requirement_id}/pause", response_model=RequirementResponse, dependencies=[Depends(rate_limit.action)])
 def pause_requirement(
     requirement_id: uuid.UUID,
     user_data: dict = Depends(require_customer),
@@ -263,7 +264,7 @@ def pause_requirement(
     return _move(requirement_id, R.PAUSED, user_data, session)
 
 
-@router.post("/{requirement_id}/resume", response_model=RequirementResponse)
+@router.post("/{requirement_id}/resume", response_model=RequirementResponse, dependencies=[Depends(rate_limit.action)])
 def resume_requirement(
     requirement_id: uuid.UUID,
     user_data: dict = Depends(require_customer),
@@ -276,7 +277,7 @@ def resume_requirement(
     return to_response(session, req)
 
 
-@router.post("/{requirement_id}/cancel", response_model=RequirementResponse)
+@router.post("/{requirement_id}/cancel", response_model=RequirementResponse, dependencies=[Depends(rate_limit.action)])
 def cancel_requirement(
     requirement_id: uuid.UUID,
     user_data: dict = Depends(require_customer),

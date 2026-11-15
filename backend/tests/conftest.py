@@ -8,7 +8,8 @@ from pathlib import Path
 # Must run before any backend import: throwaway database + uploads, test signing secret.
 _tmp = tempfile.TemporaryDirectory()
 TEST_JWT_SECRET = "test-secret-test-secret-test-secret-0123456789"
-os.environ["DATABASE_URL"] = f"sqlite:///{_tmp.name}/test.db"
+# TEST_DATABASE_URL points the whole suite at Postgres (CI does this); otherwise a throwaway SQLite file.
+os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{_tmp.name}/test.db"
 os.environ["UPLOAD_DIR"] = f"{_tmp.name}/uploads"
 os.environ["ENVIRONMENT"] = "dev"
 os.environ["SUPABASE_JWT_SECRET"] = TEST_JWT_SECRET
@@ -45,8 +46,11 @@ def make_token(uid, email, *, secret=TEST_JWT_SECRET, alg="HS256", aud="authenti
 
 @pytest.fixture(autouse=True)
 def fresh_db():
+    from backend.app.core import rate_limit
+
     SQLModel.metadata.drop_all(engine)
     create_db()
+    rate_limit.reset()  # every test starts with empty counters
     yield
 
 
@@ -116,6 +120,14 @@ def source(client, dealer, *makes):
     """Make a dealer eligible for requests of these makes by having them offer to source them.
     Call before the buyer posts (matching runs at post time)."""
     r = client.put("/api/dealers/me/sourcing", headers=dealer, json={"makes": list(makes or ["Hyundai"])})
+    assert r.status_code == 200, r.text
+    return dealer
+
+
+def buys(client, dealer, *makes):
+    """Make a dealer eligible for sell listings of these makes. Call before the seller lists
+    (matching runs at listing time)."""
+    r = client.put("/api/dealers/me/buying", headers=dealer, json={"makes": list(makes or ["Maruti Suzuki"])})
     assert r.status_code == 200, r.text
     return dealer
 

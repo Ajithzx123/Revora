@@ -19,11 +19,12 @@ After changing a model, write a migration (`alembic -c backend/alembic.ini revis
 
 | Variable | Dev default | Required outside dev |
 |---|---|---|
-| `ENVIRONMENT` | `dev` | set to `staging` / `prod` |
+| `ENVIRONMENT` | `prod` (secure by default) | set `dev` for local work; `staging` / `prod` otherwise |
+| `SQL_ECHO` | off | opt-in: logs every SQL statement with parameters, so never in production |
 | `SUPABASE_URL` | none | yes (also used to fetch signing keys) |
 | `SUPABASE_JWT_SECRET` | none | only for projects still on the legacy HS256 secret |
 | `CORS_ORIGINS` | any `localhost` port | yes, comma-separated origins |
-| `DATABASE_URL` | `sqlite:///revora.db` | yes (Postgres) |
+| `DATABASE_URL` | `sqlite:///revora.db` | yes (Postgres; SQLite is refused outside dev) |
 | `UPLOAD_DIR` | `backend/uploads` | yes (persistent, private disk) |
 
 **Buy requests and inventory (S2).** Buyers post requests (`/api/requirements`) with the full set of preferences, then edit, pause, resume or close them; a request lives 14 days and a buyer may hold five open at once. Dealers manage stock at `/api/inventory`: each car has a unique registration number, up to 8 photos (JPEG/PNG/WebP, 5 MB) served publicly at `/api/media/<id>`, and a private minimum price that buyers never see. Pick-lists (makes, models, cities) come from `GET /api/master-data`. If you ran S1, run `alembic upgrade head` again: migration 0002 rebuilds the request, quote and inventory tables.

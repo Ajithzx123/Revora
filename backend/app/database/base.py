@@ -20,6 +20,9 @@ from backend.app.models.marketplace_models import (
     SellListing,
     DealerQuote,
     DealerOffer,
+    OfferRevision,
+    OfferRound,
+    SellMatch,
 )
 
 

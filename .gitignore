@@ -37,3 +37,8 @@ Thumbs.db
 
 # Local dealer-document uploads
 backend/uploads/
+
+# gstack (project-local install; links point at ~/work/softwares/gstack on this machine)
+.claude/skills/gstack/
+.claude/skills/gstack-*/
+.claude/skills/_gstack-command/

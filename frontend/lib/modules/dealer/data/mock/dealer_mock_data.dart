@@ -1,5 +1,4 @@
 import 'package:revora/modules/dealer/domain/entities/buy_lead.dart';
-import 'package:revora/modules/dealer/domain/entities/sell_lead.dart';
 import 'package:revora/modules/dealer/domain/entities/dealer_kpi.dart';
 import 'package:revora/modules/dealer/domain/entities/dealer_activity.dart';
 import 'package:revora/shared/domain/entities/vehicle.dart';
@@ -82,47 +81,6 @@ class DealerMockData {
       status: 'active',
       quotesCount: 2,
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-  ];
-
-  static final List<SellLead> sellLeads = [
-    SellLead(
-      id: 'SLEAD-01',
-      customerName: 'Pooja Nair',
-      customerPhone: '+91 98201 11223',
-      customerCity: 'Andheri West, Mumbai',
-      make: 'Maruti Suzuki',
-      model: 'Swift',
-      year: 2020,
-      variant: 'ZXi AMT',
-      mileage: 38000,
-      fuelType: 'Petrol',
-      transmission: 'Automatic',
-      expectedPrice: 620000,
-      imageUrl:
-          'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=500',
-      status: 'active',
-      offersCount: 3,
-      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-    ),
-    SellLead(
-      id: 'SLEAD-02',
-      customerName: 'Manoj Tiwari',
-      customerPhone: '+91 98190 88776',
-      customerCity: 'Bandra, Mumbai',
-      make: 'Hyundai',
-      model: 'Venue',
-      year: 2021,
-      variant: 'SX Plus DCT',
-      mileage: 26000,
-      fuelType: 'Petrol',
-      transmission: 'Automatic',
-      expectedPrice: 940000,
-      imageUrl:
-          'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500',
-      status: 'active',
-      offersCount: 2,
-      createdAt: DateTime.now().subtract(const Duration(hours: 18)),
     ),
   ];
 

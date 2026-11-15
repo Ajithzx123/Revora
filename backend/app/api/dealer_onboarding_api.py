@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlmodel import Session
 
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import current_user_id, get_dealer_profile, require_dealer
 from backend.app.database.session import get_session
 from backend.app.models.marketplace_models import (
@@ -62,6 +63,7 @@ def dealer_response(session: Session, dealer: Dealer) -> DealerResponse:
         can_submit=editable and not missing and complete,
         editable=editable,
         sourcing_makes=dealer.sourcing_makes,
+        buy_makes=dealer.buy_makes,
     )
 
 
@@ -81,7 +83,7 @@ def get_my_dealer(
     return dealer_response(session, dealer)
 
 
-@router.patch("/me", response_model=DealerResponse)
+@router.patch("/me", response_model=DealerResponse, dependencies=[Depends(rate_limit.action)])
 def update_my_dealer(
     body: DealerUpdate,
     dealer: Dealer = Depends(get_dealer_profile),
@@ -97,7 +99,7 @@ def update_my_dealer(
     return dealer_response(session, dealer)
 
 
-@router.post("/me/documents", response_model=DocumentResponse, status_code=201)
+@router.post("/me/documents", response_model=DocumentResponse, status_code=201, dependencies=[Depends(rate_limit.upload)])
 async def upload_document(
     doc_type: DocumentType = Form(...),
     file: UploadFile = File(...),
@@ -128,7 +130,7 @@ async def upload_document(
     return document_response(document)
 
 
-@router.delete("/me/documents/{document_id}", status_code=204)
+@router.delete("/me/documents/{document_id}", status_code=204, dependencies=[Depends(rate_limit.action)])
 def delete_document(
     document_id: uuid.UUID,
     dealer: Dealer = Depends(get_dealer_profile),
@@ -143,7 +145,7 @@ def delete_document(
     session.commit()
 
 
-@router.post("/me/submit", response_model=DealerResponse)
+@router.post("/me/submit", response_model=DealerResponse, dependencies=[Depends(rate_limit.action)])
 def submit_application(
     user_data: dict = Depends(require_dealer),
     dealer: Dealer = Depends(get_dealer_profile),
@@ -155,7 +157,30 @@ def submit_application(
     return dealer_response(session, dealer)
 
 
-@router.put("/me/sourcing", response_model=DealerResponse)
+@router.put("/me/buying", response_model=DealerResponse, dependencies=[Depends(rate_limit.action)])
+def set_buying_makes(
+    body: SourcingUpdate,
+    dealer: Dealer = Depends(get_dealer_profile),
+    session: Session = Depends(get_session),
+):
+    """Makes this dealer buys from sellers. Sell listings are matched on this list.
+    Allowed in any status; it takes effect once the dealer is approved."""
+    unknown = sorted({m for m in body.makes if m not in md.MAKES_AND_MODELS})
+    if unknown:
+        raise HTTPException(status_code=422, detail=f"Unknown make: {', '.join(unknown)}")
+    dealer.buy_makes_csv = ",".join(sorted(set(body.makes)))
+    session.add(dealer)
+    session.flush()
+    if dealer.status == DealerStatus.APPROVED:
+        from backend.app.services import sell_service
+
+        sell_service.rematch_open_listings(session)
+    session.commit()
+    session.refresh(dealer)
+    return dealer_response(session, dealer)
+
+
+@router.put("/me/sourcing", response_model=DealerResponse, dependencies=[Depends(rate_limit.action)])
 def set_sourcing_makes(
     body: SourcingUpdate,
     dealer: Dealer = Depends(get_dealer_profile),

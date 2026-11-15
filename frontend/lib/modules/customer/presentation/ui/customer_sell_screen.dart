@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/network/api_error.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/error_widget.dart';
 import '../../../../shared/widgets/responsive_card_grid.dart';
 import '../../../../shared/widgets/section_header.dart';
-import '../providers/customer_providers.dart';
+import '../../domain/entities/sell_post.dart';
+import '../../domain/repositories/sell_repository.dart';
 import '../widgets/customer_sell_post_card.dart';
 
 class CustomerSellScreen extends ConsumerWidget {
@@ -13,8 +16,7 @@ class CustomerSellScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sellPosts = ref.watch(customerSellPostsProvider);
-    final t = Theme.of(context).textTheme;
+    final listings = ref.watch(sellListingsProvider);
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
@@ -27,68 +29,121 @@ class CustomerSellScreen extends ConsumerWidget {
         icon: const Icon(Icons.add_rounded),
         label: const Text('Sell a car'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          96,
-        ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _HowItWorks(),
-                const SizedBox(height: AppSpacing.xxl),
-                const SectionHeader(
-                  title: 'Your listed cars',
-                  subtitle: 'Verified dealers bid on these',
-                ),
-                if (sellPosts.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(AppSpacing.xxl),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.directions_car_outlined,
-                          size: 44,
-                          color: AppColors.textMuted,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Text('No cars listed yet', style: t.titleMedium),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          'List your car once and dealers compete to buy it.',
-                          textAlign: TextAlign.center,
-                          style: t.bodySmall,
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  ResponsiveCardGrid(
-                    children: [
-                      for (final post in sellPosts)
-                        CustomerSellPostCard(
-                          post: post,
-                          onViewOffers: () =>
-                              context.push('/customer/listing/${post.id}'),
-                        ),
-                    ],
+      body: RefreshIndicator(
+        onRefresh: () => ref.refresh(sellListingsProvider.future),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            96,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _HowItWorks(),
+                  const SizedBox(height: AppSpacing.xxl),
+                  const SectionHeader(
+                    title: 'Your listed cars',
+                    subtitle: 'Verified dealers bid on these',
                   ),
-              ],
+                  listings.when(
+                    loading: () => const _ListingsSkeleton(),
+                    error: (e, _) => SizedBox(
+                      height: 260,
+                      child: AppErrorWidget(
+                        message: apiErrorMessage(e),
+                        onRetry: () => ref.invalidate(sellListingsProvider),
+                      ),
+                    ),
+                    data: (posts) => posts.isEmpty
+                        ? const _EmptyListings()
+                        : _ListingGrid(posts: posts),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ListingGrid extends StatelessWidget {
+  final List<SellPost> posts;
+  const _ListingGrid({required this.posts});
+
+  @override
+  Widget build(BuildContext context) {
+    return ResponsiveCardGrid(
+      children: [
+        for (final post in posts)
+          CustomerSellPostCard(
+            post: post,
+            onViewOffers: () => context.push('/customer/listing/${post.id}'),
+          ),
+      ],
+    );
+  }
+}
+
+class _EmptyListings extends StatelessWidget {
+  const _EmptyListings();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.directions_car_outlined,
+            size: 44,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text('No cars listed yet', style: t.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'List your car once and dealers compete to buy it.',
+            textAlign: TextAlign.center,
+            style: t.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ListingsSkeleton extends StatelessWidget {
+  const _ListingsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var i = 0; i < 2; i++)
+          Container(
+            height: 120,
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.borderLight,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            ),
+          ),
+      ],
     );
   }
 }

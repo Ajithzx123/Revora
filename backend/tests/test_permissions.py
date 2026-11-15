@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 
 from backend.app.database.connection import engine
 from backend.app.models.audit_model import AuditEvent
-from backend.tests.conftest import CAR, LISTING, MISSING, REQUIREMENT, source
+from backend.tests.conftest import CAR, LISTING, MISSING, REQUIREMENT, buys, source
 
 
 # ---------- authentication required ----------
@@ -230,7 +230,7 @@ def test_dealer_cannot_attach_another_dealers_car(client, actors):
 
 def test_offer_rules(client, actors):
     seller = actors.customer()
-    dealer = actors.dealer(approved=True)
+    dealer = buys(client, actors.dealer(approved=True))
     lid = client.post("/api/sell-listings/", headers=seller, json=LISTING).json()["id"]
     assert client.post("/api/offers", headers=dealer, json={"sell_listing_id": lid, "offered_price": -1}).status_code == 422
     assert client.post("/api/offers", headers=dealer, json={"sell_listing_id": lid, "offered_price": 380000}).status_code == 200

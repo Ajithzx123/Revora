@@ -5,6 +5,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
+from backend.app.core import rate_limit
 from backend.app.core.dependencies import current_user_id, require_customer, require_verified_dealer
 from backend.app.database.session import get_session
 from backend.app.models.marketplace_models import BuyRequirement, Dealer, DealerQuote
@@ -68,7 +69,7 @@ def my_quotes(dealer: Dealer = Depends(require_verified_dealer), session: Sessio
     return out
 
 
-@router.put("/{quote_id}", response_model=DealerQuoteResponse)
+@router.put("/{quote_id}", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.action)])
 def revise_quote(
     quote_id: uuid.UUID,
     body: QuoteRevise,
@@ -79,7 +80,7 @@ def revise_quote(
     return svc.quote_response(session, quote)
 
 
-@router.post("/{quote_id}/withdraw", response_model=DealerQuoteResponse)
+@router.post("/{quote_id}/withdraw", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.action)])
 def withdraw_quote(
     quote_id: uuid.UUID,
     body: ReasonOptional,
@@ -90,7 +91,7 @@ def withdraw_quote(
     return svc.quote_response(session, quote)
 
 
-@router.post("/{quote_id}/negotiation", response_model=DealerQuoteResponse)
+@router.post("/{quote_id}/negotiation", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.action)])
 def dealer_negotiation_reply(
     quote_id: uuid.UUID,
     body: NegotiationReply,
@@ -104,7 +105,7 @@ def dealer_negotiation_reply(
 
 
 # ---------------------------------------------------------------- buyer
-@router.post("/{quote_id}/accept", response_model=DealerQuoteResponse)
+@router.post("/{quote_id}/accept", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.action)])
 def accept_quote(
     quote_id: uuid.UUID,
     body: AcceptQuote,
@@ -116,7 +117,7 @@ def accept_quote(
     return svc.quote_response(session, quote)
 
 
-@router.post("/{quote_id}/reject", response_model=DealerQuoteResponse)
+@router.post("/{quote_id}/reject", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.action)])
 def reject_quote(
     quote_id: uuid.UUID,
     body: ReasonOptional,
@@ -128,7 +129,7 @@ def reject_quote(
     return svc.quote_response(session, quote)
 
 
-@router.post("/{quote_id}/counter", response_model=DealerQuoteResponse)
+@router.post("/{quote_id}/counter", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.action)])
 def counter_quote(
     quote_id: uuid.UUID,
     body: CounterCreate,
@@ -141,7 +142,7 @@ def counter_quote(
     return svc.quote_response(session, quote)
 
 
-@router.post("/{quote_id}/negotiation/respond", response_model=DealerQuoteResponse)
+@router.post("/{quote_id}/negotiation/respond", response_model=DealerQuoteResponse, dependencies=[Depends(rate_limit.action)])
 def customer_negotiation_reply(
     quote_id: uuid.UUID,
     body: NegotiationReply,

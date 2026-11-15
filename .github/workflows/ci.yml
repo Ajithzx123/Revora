@@ -8,6 +8,22 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Production is Postgres, so the suite also runs on it (SQLite alone hid a lock-order deadlock
+    # and missing foreign-key handling).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: revora
+          POSTGRES_PASSWORD: revora
+          POSTGRES_DB: revora_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U revora"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -16,7 +32,12 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - run: pip install -r backend/requirements.txt -r backend/requirements-dev.txt
-      - run: python -m pytest backend/tests -q
+      - name: Tests on SQLite
+        run: python -m pytest backend/tests -q
+      - name: Tests on Postgres
+        env:
+          TEST_DATABASE_URL: postgresql://revora:revora@localhost:5432/revora_test
+        run: python -m pytest backend/tests -q
 
   frontend:
     runs-on: ubuntu-latest
@@ -27,10 +48,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          # Pinned to the version the project is built and tested on. "stable" alone floats to the
+          # newest release, whose analyzer now flags every `package:flutter/material.dart` import as
+          # deprecated (material_ui migration), failing `flutter analyze` without any code change.
+          flutter-version: "3.44.0"
           channel: stable
           cache: true
       - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed lib test
-        continue-on-error: true # becomes blocking once the codebase is formatted (tracked in S0 follow-up)
       - run: flutter analyze
       - run: flutter test

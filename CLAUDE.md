@@ -2,6 +2,8 @@
 
 Revora is a **reverse car marketplace for India**: customers post what they want to buy or sell, verified dealers compete with quotes (buy) and purchase offers (sell). It is NOT a classified-listing site. Demand and competitive offers are the centre; inventory is supporting.
 
+Current status, process and open items: `plans/revora_progress.md` (keep it updated at the end of every slice).
+
 Read first: `plans/revora_plan_1_audit_and_features.md`, `plans/revora_plan_2_flows_and_rules.md`, `plans/revora_plan_3_screens_tech_roadmap.md`, `plans/revora_scenarios.md`, `design/DESIGN.md`.
 
 ## Stack (do not swap without approval)
@@ -16,6 +18,8 @@ Read first: `plans/revora_plan_1_audit_and_features.md`, `plans/revora_plan_2_fl
 4. **No secrets in the repo.** Keys come from env/`--dart-define`. Never commit `.env`, service-account files, or real keys.
 5. **Ask before** destructive or outward-facing actions (deleting data, pushing, changing infra, sending messages).
 6. **Match existing style.** Follow the surrounding code's naming, comment density and folder layout. Do not reformat unrelated code.
+7. **Commit/push sparingly.** Commit only when a slice is complete or the user says we are stopping for the day; push only when asked. Commits use the personal email (`kumarajith577@gmail.com`), never the office one: check `git config user.email` and `gh auth status` first.
+8. **Keep the record.** Update `plans/revora_progress.md` (status, decisions, open items, how-to) when a slice ends or a decision changes.
 
 ## Product rules (must hold in all code)
 - Buying requests, selling listings, quotes, purchase offers, negotiation, bookings, transactions and payments are **separate entities with separate status fields**. Never one generic status.
