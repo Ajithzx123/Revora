@@ -24,6 +24,7 @@ Update it at the end of every feature (slice) and whenever a decision changes. L
 | Backend server | `ENVIRONMENT=dev backend/.venv/bin/uvicorn backend.main:app --reload` (from repo root). **`ENVIRONMENT=dev` is now required locally**: an unset value means production and the server refuses to start without Postgres/Supabase/CORS config. `SQL_ECHO=1` turns on SQL logging (dev only). |
 | Backend tests on Postgres | start a Postgres 16, then `TEST_DATABASE_URL=postgresql://user@127.0.0.1:PORT/revora_test backend/.venv/bin/python -m pytest backend -q`. CI runs both SQLite and Postgres. On this Mac use `brew install postgresql@16` and `LC_ALL=en_US.UTF-8`; stop and delete the scratch server afterwards. |
 | New migration | add `backend/migrations/versions/000N_*.py`; `test_migrations.py` fails if models and migrations drift |
+| Flutter version | **3.44.0** (stable). CI is pinned to it in `.github/workflows/ci.yml`. Newer Flutter (3.47+) deprecates `package:flutter/material.dart` in favour of `package:material_ui`; moving to it is a separate migration (every file imports material.dart). |
 | Flutter SDK | `/Users/santhosh/work/softwares/flutter/bin` is **not on PATH**: `export PATH=/Users/santhosh/work/softwares/flutter/bin:$PATH` |
 | Flutter checks (in `frontend/`) | `flutter analyze`, `dart format lib test`, `flutter test` |
 | Mock vs live data | Flutter uses mock repositories by default in debug/test (`USE_MOCK_DATA`); release builds never use mocks |

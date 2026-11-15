@@ -48,6 +48,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          # Pinned to the version the project is built and tested on. "stable" alone floats to the
+          # newest release, whose analyzer now flags every `package:flutter/material.dart` import as
+          # deprecated (material_ui migration), failing `flutter analyze` without any code change.
+          flutter-version: "3.44.0"
           channel: stable
           cache: true
       - run: flutter pub get
