@@ -1,7 +1,44 @@
 # Revora — Progress, Process and Open Items
 
 The single place to see where the project stands, how we work, and what is left.
-Update it at the end of every feature (slice) and whenever a decision changes. Last updated: 2026-11-09.
+Update it at the end of every feature (slice) and whenever a decision changes. Last updated: 2026-11-15 (end of day handoff).
+
+## START HERE — where we stopped (handoff, 2026-11-15)
+
+**If a new session asks "what's next?", answer from this section.**
+
+### State of the code
+- `main` on GitHub (`Ajithzx123/Revora`) contains **everything built so far: S0 through S6, the P0 fixes from the project review, and CI on Postgres.** PR #1 and PR #2 are both merged. **No PR is open.**
+- All checks were green at the end: backend **315** tests (SQLite and Postgres 16), Flutter **194** tests, `flutter analyze` and `dart format` clean, CI passing (Flutter pinned to 3.44.0).
+- The old branch name `s0-security-foundation` is stale (it held S0–S6). **Start the next work on a new, clearly named branch from `main`:** `git fetch && git checkout main && git pull && git checkout -b <short-name>`.
+- Local clutter that can go: branch `backup-before-author-rewrite` (old commits with the office email, local only).
+
+### What exists
+Buy side (requests, matching, quotes, negotiation, atomic accept), sell side (listings, matching, offers, counter-offers, inspection final offer), dealer onboarding and admin verification, notifications (in-app complete, push is a stub), admin audit log / quote + offer monitors / real overview, rate limiting, secure config. Details by slice are in section 3.
+
+### What to do next (recommended order)
+
+**A. Things only the user can decide or provide (ask these first)**
+1. **Compliance inputs (P0-6, the one P0 item left):** terms + privacy text and a grievance contact; account deletion/retention policy; phone OTP (Supabase phone auth needs an SMS provider, DLT-registered for India); a private Supabase Storage bucket + key for KYC documents. Full list in `plans/revora_review_2026-11-15.md` section 5a. Once provided it is one slice: consent records + screens, account deletion/export, phone OTP, private storage.
+2. **Revenue model:** nothing earns money yet. Options that respect the rules: a fee when a customer accepts (contact release) or a flat dealer subscription that never affects ranking. Decide before any pilot.
+3. **Procurement calculator question:** a running loan and pending challans are currently treated as the seller's liabilities paid out of the offer (they lower what the seller receives, not the dealer's cost). The plan lists them as dealer costs. Confirm which.
+4. **Firebase project** (for real push) and a **WhatsApp/SMS provider** (dealers live in WhatsApp; today a lead is only visible in the app).
+
+**B. Engineering work, in order (the P1 list from the review)**
+1. **Production-readiness pass 2 (backend):** paginate the 8 unpaginated lists (admin dealers, dealer buyer leads, my quotes, my offers, inventory, my requirements, quotes for a request, offers for a listing); `Idempotency-Key` on accept endpoints; indexes on `status` / `valid_until` / `expires_at` for quotes, offers, listings, rounds; enums + transition tables for quote/offer/listing statuses; timezone-aware datetimes (replace 46 `utcnow()`); pin `requirements.txt`; move background jobs (matching, expiry, push) out of the web process (they run twice with several workers; push has no row lock); `create_profile` race should return 409; check `email_verified`; Redis-backed rate limits before running more than one process.
+2. **Flutter pass:** 200%-text fixes on 8 screens at 375px (admin dashboard/requirements/vehicles/shell, customer home/shell, dealer home/profile/shell); remove the fake chat screen and no-op dealer profile tiles; one wizard pattern for buy and sell; replace ~541 hard-coded colours and ~173 strings with tokens and ARB localisation; offline banner; form drafts; contract tests that run Flutter parsers against real API responses; replace the 0.55× text hack in the screen sweep.
+3. **Compliance slice** (after A1), then **pilot enablers:** WhatsApp/SMS delivery, analytics events, real FCM, an admin bootstrap flow.
+4. **Roadmap slices:** S7 appointments and inspection scheduling, S8 transactions / price lock / payment records (the sell journey currently stops at "final price accepted"), S9 real chat, S10 trust and disputes, S11 dealer tools.
+5. **Pilot:** the review recommends a small concierge pilot in one city (e.g. Bengaluru: recruit 20–30 dealers by hand, post first buyers yourself) as soon as A1, A2 and push/WhatsApp exist. No real user has used the product yet.
+
+**C. Not yet verified (be honest about these)**
+The app has never run against a live backend (Flutter was tested on mock repositories); dealer and admin screens were not viewed in a browser; no dark-mode pass; no load test; no real device; no external security scan or dependency audit; real FCM push untested.
+
+### How to resume in a new session
+1. Read this section, then `CLAUDE.md` (rules) and `plans/revora_review_2026-11-15.md` (findings).
+2. Check identity before any git action: `git config user.email` must be `kumarajith577@gmail.com`; `gh auth status` must be `Ajithzx123`.
+3. Run the checks in section 2 (note `ENVIRONMENT=dev` for the local server; Flutter is not on PATH).
+4. Ask the user which item above to start, then plan first, build, test, and commit only when the slice is complete (or when the user says they are stopping).
 
 ## 1. How we work (the process)
 
@@ -48,23 +85,18 @@ Current numbers: backend **315** tests passing (on both SQLite and Postgres 16);
 
 ## 4. Git and PR state
 
-- Working branch: `s0-security-foundation` (holds S0–S5c; the name is stale). 21 commits plus the merge commit ahead of the common base `3b4ff4d`, all authored with the personal email.
-- Pushed to `origin/s0-security-foundation`. **PR #1** is open and **conflicts with `main`**.
-- **Why it conflicts:** `main` has 3 UI commits (22–29 Sep 2026: "buy req ui" ×2, "popup button ui") that restructured the Flutter app (`ui/` → `pages/` + `layouts/`, new router `core/router/`, `api_client.dart`, `auth_provider.dart`, accent/theme system, new buy-a-car flow). This branch rewrote the same layers (auth, router, theme, most screens). About 100 files conflict. A merge attempt was aborted; nothing was changed.
-- **Earlier proposal (superseded by the decision below):** merge `main` into the branch keeping this branch's core (auth, router, network, Showroom theme); keep their `pages/` + `layouts/` folder layout; bring over their buy-flow screens and appearance settings if they fit. Re-run all checks after.
-- **Second merge attempt (2026-11-09), aborted:** git resolved most renames cleanly, but the real blocker is a **theme clash**. `main` builds on its own theme system (navy/indigo palette, switchable accent, light/dark runtime toggle, `context.revoraColors` via `revora_theme_colors.dart`, `theme_provider.dart`, `accent_provider.dart`). This branch uses the "Showroom" theme (warm canvas, ignition orange, `AppColors` tokens). Their buy-flow screens and several shared widgets (`spec_chip`, `status_chip`, `dealer_match_card`) depend on `revoraColors`, so they cannot be brought over without their theme. Tree was reset to `925ce18`; nothing merged.
-- **Decision (2026-11-09): keep the latest.** `main`'s September UI commits are older than the Showroom redesign (31 Oct) and S1–S5c, so this branch wins. Merged with `git merge -s ours origin/main` (commit `3de908c`, local, not yet pushed): the tree is unchanged, `main` is now an ancestor, and PR #1 will no longer conflict once pushed. Their buy-flow, accent/theme system and `ui/`→`pages/` restructure were NOT applied; they stay reachable in `main`'s history if ever wanted.
-- Local safety branch: `backup-before-author-rewrite` (old commits with the office email; local only; delete when no longer needed).
-- Lesson: long-lived branches that never merge to `main` diverge. Merge `main` into the branch regularly, or merge each finished slice.
+- `main` = everything through S6 + P0 fixes + CI pinning. PR #1 (S0–S5c) and PR #2 (S6 + P0) are merged; no PR is open.
+- **History worth knowing:** `main` once carried three older September UI commits from another line of work (new theme system, buy-flow screens, folder restructure). On 2026-11-09 we decided **to keep the latest** (the Showroom design and S1–S5c) and merged `main` with `git merge -s ours`, so those commits are in history but not in the code. They stay reachable if ever wanted.
+- **Commit identity:** all commits use `kumarajith577@gmail.com`; the office email was removed from history on 2026-11-09 (old hashes may remain reachable on GitHub).
+- **Lesson:** long-lived branches diverge. Merge each finished slice (or merge `main` in weekly) and use branch names that match the work.
+- **CI:** `.github/workflows/ci.yml` runs the backend suite on SQLite and Postgres 16 and the Flutter job (pinned to 3.44.0; format check is blocking).
 
 ## 5. Open items and known gaps
 
 **Project review (2026-11-15):** full findings and the recommended order are in `plans/revora_review_2026-11-15.md`. The P0 pass fixed five of six items the same day; the sixth (compliance) waits on your decisions (section 5a of that report). Still open from the review: P1/P2 items (pagination on 8 lists, idempotency keys, indexes, background jobs out of the web process, enums for statuses, 200% text on 8 screens, fake chat/settings, wizard consistency, hard-coded colours/strings, contract tests, branch merge).
 
 
-**Decisions waiting on the user**
-- Merge `main` into the branch (see section 4).
-- Whether the `main` UI changes (buy flow, accent/theme) are wanted.
+**Decisions waiting on the user:** see "START HERE" (compliance inputs, revenue model, calculator semantics, Firebase and WhatsApp/SMS providers).
 
 **Not verified**
 - Real FCM push: no Firebase project is configured (no `google-services` files, no `Firebase.initializeApp`). The Flutter token source is a stub; the backend sender only logs without credentials. `firebase-admin` is not in `requirements.txt`.
@@ -112,6 +144,7 @@ Current numbers: backend **315** tests passing (on both SQLite and Postgres 16);
 
 ## 8. Change log (newest first)
 
+- 2026-11-15: PR #2 (S6 + P0) merged after CI pinned Flutter to 3.44.0; end-of-day handoff written (START HERE section).
 - 2026-11-15: P0 fix pass from the project review: phone layout fix, real admin data, secure `ENVIRONMENT` default, rate limiting, Postgres verification (found and fixed a deadlock, a missing driver and a foreign-key bug), CI on Postgres.
 - 2026-11-15: gstack installed for Revora only (see section 7).
 - 2026-11-09: S6 complete and committed (S6a sell-side backend, S6b Flutter, S6c counter-offers + inspection final offer; migrations 0007, 0008).
